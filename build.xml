@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ant-project>
+<project name="mdm" basedir="." default="bang">
+	<description>
+  Modern Dependancy Management automates the organization of a project and the 
+  libraries it depends on with clever git submodules, giving you a project
+  structure that is:
+   - strongly versioned and guaranteed repeatable builds!
+   - checking out a project gives you exactly everything you need to do a build!
+   - your repository doesn't bloat over time and doing a fresh clone ships you 
+     the bare minimum number of bytes that you need!
+	</description>
+	<property file="build.properties"/>
+	<property name="app" value="mdm"/>
+	
+	
+	<target name="init">
+		<property name="src" value="src"/>
+		<property name="lib" value="lib"/>
+		<property name="build" value="bld"/>
+		<property name="dist" value="dist"/>
+		<mkdir dir="${src}"/>
+		<mkdir dir="${lib}"/>
+		<mkdir dir="${build}"/>
+		<mkdir dir="${dist}"/>
+	</target>
+	
+	
+	<target name="zip"
+		depends="init"
+		description="zip the source and libraries together"
+		>
+		<zip destfile="${build}/${app}.zip">
+			<fileset dir="${src}"/>
+		</zip>
+	</target>
+	<target name="bang"
+		depends="zip"
+		description="cat a shebang onto the front of the zip file so that it Just Works when run"
+		>
+		<concat destfile="${dist}/${app}" binary="true">
+			<concat>#!/usr/bin/env python
+</concat>
+			<fileset file="${build}/${app}.zip" />
+		</concat>
+		<chmod file="${dist}/${app}" perm="755" />
+	</target>
+	
+	
+	<target name="clean" description="clean up">
+		<delete dir="${build}"/>
+		<delete dir="${dist}"/>
+	</target>
+</project>
