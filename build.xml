@@ -32,6 +32,8 @@
 		>
 		<zip destfile="${build}/${app}.zip">
 			<fileset dir="${src}"/>
+			<!-- there may well be a better way to structure this than dumping files together, but I don't know python's import resolution very well yet so I'm going to "KISS" until it bites me. -->
+			<fileset file="${lib}/pbs/pbs.py"/>
 		</zip>
 	</target>
 	<target name="bang"
