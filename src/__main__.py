@@ -107,6 +107,16 @@ def isGitRepoRoot(dirname):
 	cd(retreat);
 	return gitbase == wheream;
 
+def isSubmodule(path):
+	retreat = os.getcwd();
+	try :
+		cd(git("rev-parse", "--show-toplevel").strip());
+		submodstr = git.submodule("status", path);
+		if (len(submodstr) == 0): return False;
+		submodstr = submodstr.split("\n")[0].split(" ");
+		return path == submodstr[2 if (submodstr[0] == "") else 1];
+	finally:
+		cd(retreat);
 
 
 #===============================================================================
