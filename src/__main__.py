@@ -109,10 +109,10 @@ def isGitRepoRoot(dirname):
 		return False;
 	retreat = os.getcwd();
 	cd(dirname);
-	gitbase = git("rev-parse", "--show-toplevel");
-	wheream = pwd("-P");
-	cd(retreat);
-	return gitbase == wheream;
+	try:
+		return git("rev-parse", "--show-toplevel") == pwd("-P");
+	finally:
+		cd(retreat);
 
 def isSubmodule(path):
 	retreat = os.getcwd();
