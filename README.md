@@ -94,31 +94,23 @@ With a typical Ant setup, that might look like this:
 Alternatively, if you're the cautious type, you may wish to perform your build, then inspect the produced files at your leisure, and then call ```mdm release``` only when you're satisfied.
 
 
-### Prerequisite Setup
+Usage: Initialing a release system:
+-------------------------------------------------------
 
-(There's not much, but there's a little.)
-
-When you're setting up a project, you need to not only create the git repository for that project, but also a repository for its releases.
-```mdm``` doesn't automate this because generally setting up the public location for a new repository requires a bit of a human touch.
-Conventionally, for some project at ```https://github.com/username/mdm.git```, the releases repository is suggested to be at ```https://github.com/username/mdm-releases.git```.
-
-It's also typical to set up your (that is, you-as-the-release-author) project repository so that its releases repository is a submodule and set up to be writable.
-There's a couple of potential pitfalls there that can be a little confusing.
-First of all, you are very strongly recommended to make sure that the reference to the submodule that you commit and publish uses an https link *without* login credentials.  Under no circumstances should you make the mistake of using a url that requires authentication, because that would make it terribly irksome for others to fork your project and contribute.
-So, keeping with the earlier example, you would want to initialize your project repository to know its own releases submodule like this:
+When you're setting up a project to perform releases with with ```mdm```, you need to not only create the git repository for that project, but also a repository for its releases.
+```mdm``` will happily automate this too:
 
 ```
-	git submodule add https://github.com/username/mdm-releases.git releases && git commit
+	mdm init
 ```
 
-This leaves the ```.gitmodules``` file -- the file that others refer to when cloning your project -- containing that public url.
+This automatically creates a new repository for releases, and adds it as a submodule to your current project in the ```./releases/``` dir.
+The release-repo url defauls to ```./${yourproj}-releases.git``` --
+if your project is published at ```https://github.com/username/mdm.git```, the releases repository will be set up to publish to ```https://github.com/username/mdm-releases.git```
 
-You, on the other hand, as the project maintainer and author of releases, should very much like to have the releases submodule for *your* personal clone of the project use an authenticated url, since this makes it pleasant for you to commit and push new releases.
-You can apply that change to your own personal repository, without it ever entering version history or being propagated to others, like this:
+Setup of the publishing site for the release-repo is still up to you though -- so for example if you use github, you still have to sign in and click "new repository".  Don't blow your spine out with the strain.
 
-```
-	git config submodule.releases.url git@github.com:username/mdm-releases.git
-```
-
-Of course, all of this is totally optional and you can refuse to do so and instead run ```mdm``` a la ```mdm release --repo=../my/weird/path/releases-repo```.
+Note that all of this init business is totally optional and you can refuse to do so.
+If you want to do some sort of noncanonical setup, the rest of mdm will play nice;
+doing releases for example just requires that you run ```mdm``` with an extra argument, a la ```mdm release --repo=../my/weird/path/releases-repo```.
 
