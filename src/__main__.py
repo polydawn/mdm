@@ -64,23 +64,17 @@ def mdm_make_argsparser_releasesc(subparser):
 	parser_makerelease.add_argument(
 		"--version",
 		required=True,				# this appears to be broken and does not cause correct doc generation in my version of python.  so that's disappointing.
-		help="specifies the name/number of the release version to be made.  This will be used in creating tags, commit messages, directory names, and also given to the build command so that it can be included in the generated artifacts by that process.",
+		help="specifies the name/number of the release version to be made.  This will be used in creating tags, commit messages, and the name of the snapshot repository.",
+	);
+	parser_makerelease.add_argument(
+		"--files",
+		required=True,
+		help="specifies the directory to get artifact files from.",
 	);
 	parser_makerelease.add_argument(
 		"--repo",
 		help="specifies a local path to the releases repository for this project.  The new release snapshot repo will be added as raw data to this repository.  By default, it is assumed that the releases repo of this project is already a submodule in the ./releases/ directory, but using a path like '../projX-releases/' is also reasonable.  (default: '%(default)s')",
 		default="releases",
-	);
-	group = parser_makerelease.add_mutually_exclusive_group();
-	group.add_argument(
-		"--buildcmd",
-		help="specifies build command.  The version number will placed where '{}' occurs in the command string.  The current working directory of the command will be the snapshot repo already initialized in the releases repo.  (default: '%(default)s')  Either this or --files may be used to define what goes in the release snapshot.",
-		default="ant -Dversion={} -Ddist=.",
-	);
-	group.add_argument(
-		"--files",
-		help="specifies a directory to get artifact files from.  Either this or --buildcmd may be used to define what goes in the release snapshot.",
-		# this can NOT be replicated by buildcmd just being a `cp` command (i.e. `cp -r ../../dist/* .`) because the glob wouldn't get expanded (and doing it without the glob is... not what you want).
 	);
 
 def mdm_make_argsparser_updatesc(subparser):
@@ -133,12 +127,7 @@ def mdm_release(args):
 	
 	# do the build / copy in the artifacts
 	try:	# if anything fails in building, we want to destroy the snapshot area so it's not a mess the next time we try to do a release.
-		if (args.files):
-			cp(glob(args.files+"/*"), ".");				# copy in artifacts via glob (we don't really want to match dotfiles on the off chance someone considers their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess.)
-		else:
-			xargs("-I={}", "-r",					# invoke the build (via xargs, because we're using it to do the substitution of the version option.)
-				args.buildcmd.split()[:1], args.buildcmd.split()[1:],
-				_in=args.version);
+		cp(glob(args.files+"/*"), ".");				# copy in artifacts via glob (we don't really want to match dotfiles on the off chance someone considers their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess.)
 	except:
 		print >> stderr, "error during build!\n";
 		cd(".."); rm("-r", args.version);
