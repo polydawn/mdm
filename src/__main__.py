@@ -18,8 +18,10 @@
 #===============================================================================
 
 from sys import stderr;
+import os;
+from os import path;
 import argparse;
-from pbs import git, xargs, cd, ls, cp, rm, glob;
+from pbs import git, xargs, cd, ls, cp, rm, pwd, glob;
 from pbs import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 
 __version__ = "0.1"
@@ -92,6 +94,22 @@ def mdm_make_argsparser_clonesc(subparser):
 
 
 #===============================================================================
+# helpers
+#===============================================================================
+
+def isGitRepoRoot(dirname):
+	if (not path.isdir(dirname)):
+		return False;
+	retreat = os.getcwd();
+	cd(dirname);
+	gitbase = git("rev-parse", "--show-toplevel");
+	wheream = pwd("-P");
+	cd(retreat);
+	return gitbase == wheream;
+
+
+
+#===============================================================================
 # depend
 #===============================================================================
 
@@ -105,18 +123,13 @@ def mdm_make_argsparser_clonesc(subparser):
 
 def mdm_release(args):
 	# sanity check the releases-repo
-	try: ls(args.repo);			# check that releases-repo is at least a directory
-	except ErrorReturnCode_2:
-		print >> stderr, "repo directory '"+args.repo+"' doesn't exist!\n";
+	if (not isGitRepoRoot(args.repo)):	# check that releases-repo is already a git repo
+		print >> stderr, "repo directory '"+args.repo+"' doesn't look like a git repo!\n:(";
 		exit(3);
 	cd(args.repo);				# enter releases-repo
-	try: ls(".git");			# check that releases-repo is already a git repo (I considered using `git status` here, but it will always false-positive because it looks up at the parent dir.)
-	except ErrorReturnCode_2:
-		print >> stderr, "repo directory '"+args.repo+"' doesn't look like a git repo!\n";
-		exit(3);
 	try:					# check that nothing is already in the place where this version will be placed
 		ls(args.version);
-		print >> stderr, "something already exists at '"+args.repo+"/"+args.version+"' !  Can't release there.\n";
+		print >> stderr, "something already exists at '"+args.repo+"/"+args.version+"' !  Can't release there.\n:(";
 		exit(3);
 	except ErrorReturnCode_2:
 		pass;	#good
@@ -129,7 +142,7 @@ def mdm_release(args):
 	try:	# if anything fails in building, we want to destroy the snapshot area so it's not a mess the next time we try to do a release.
 		cp(glob(args.files+"/*"), ".");				# copy in artifacts via glob (we don't really want to match dotfiles on the off chance someone considers their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess.)
 	except:
-		print >> stderr, "error during build!\n";
+		print >> stderr, "error during build!\n:'(";
 		cd(".."); rm("-r", args.version);
 		raise;
 	
@@ -155,7 +168,7 @@ def mdm_release(args):
 	# TODO					# back out to the proj-repo
 	# TODO					# commit the new version of the release-repo submodule
 	
-	return "release version "+args.version+" complete  :D";
+	return "release version "+args.version+" complete\n:D";
 
 
 
