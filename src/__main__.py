@@ -40,6 +40,7 @@ def mdm_make_argsparser():
 	mdm_make_argsparser_releasesc(subparser);
 	mdm_make_argsparser_updatesc(subparser);
 	mdm_make_argsparser_clonesc(subparser);
+	mdm_make_argsparser_initsc(subparser);
 	return parser;
 
 def mdm_make_argsparser_dependsc(subparser):
@@ -89,6 +90,12 @@ def mdm_make_argsparser_clonesc(subparser):
 	parser_clone = subparser.add_parser(
 		"clone",
 		help="performs a normal git-clone, then automatically pulls all dependencies.",
+	);
+
+def mdm_make_argsparser_initsc(subparser):
+	parser_clone = subparser.add_parser(
+		"init",
+		help="set up a releases repository for a new project.",
 	);
 
 
@@ -199,6 +206,58 @@ def mdm_release(args):
 
 
 #===============================================================================
+# init
+#===============================================================================
+
+def mdm_init(args):
+	# am i at the root of a repo like I expect to be?		#XXX: i suppose we could do the first git-init as well if we're run in a void.  or better, with a name argument.
+	if (not isGitRepoRoot(".")):
+		print >> stderr, "this command should be run from the top level folder of your git repo.\n:(";
+		exit(3);
+	projname = os.getcwd().split("/")[-1];
+	
+	# check to make sure this repo has more than zero commits in it to avoid awkwardness.
+	## I take it back; this doesn't appear to be as problematic as I at first worried.
+	#try:
+	#	git.log("-n 1");
+	#except ErrorReturnCode:
+	#	print >> stderr, "please make at least one commit before initializing your releases repo.  (git can behave surprisingly in repositories with no history.)\n:(";
+	#	exit(3);
+	
+	# is the "releases" area free of clutter?  (we're not supporting other locations in this script, because if you want noncanonical here, you can go ahead and do it yourself.)
+	if (isSubmodule("releases")):					#  if it's a submodule already, we give a different error message.
+		print >> stderr, "there's already a releases module!  No changes made.\n:I";
+		exit(3);
+	try:
+		ls("releases");
+		print >> stderr, "something already exists at the 'releases' location.  clear it out and try again.\n:(";
+		exit(3);
+	except ErrorReturnCode_2:
+		pass;	#good
+	
+	# check the state of this repo for a remote origin.  trying to add a submodule with a relative repository url (as we're about to) will fail if that's not set.
+	try: git.config("--get", "remote.origin.url");
+	except ErrorReturnCode:
+		git.config("--add", "remote.origin.url", ".");		#XXX: I haven't done a lot of testing about the long-term health of this.  push and pull work, amusingly.  Still, it might be more sane to just abort and complain about the lack of remote.
+	
+	# okay!  make the new releases-repo.  put a first commit it in to avoid awkwardness.
+	git.init("releases");
+	cd("releases");
+	with open("README", 'w') as f: f.write("This is the releases repo for "+projname+".\n");
+	git.add("README");
+	git.commit("-m", "initialize releases repo for "+projname+".");
+	cd("..");
+	
+	# add the new releases-repo as a submodule to the project repo.
+	# using a relative url here means the author should be good to go with pushing, and others who clone the project with unauthenticated urls should also be fine.
+	git.submodule("add", "./"+projname+"-releases.git", "releases");
+	git.commit("-m", "initialize releases repo for "+projname+".");
+	
+	return "releases repo and submodule initialized\n:D";
+
+
+
+#===============================================================================
 # main
 #===============================================================================
 args = mdm_make_argsparser().parse_args();
@@ -207,6 +266,7 @@ print {
 	'release': mdm_release,
 	 'update': lambda args : args.subcommand + " not yet implemented",
 	  'clone': lambda args : args.subcommand + " not yet implemented",
+	   'init': mdm_init,
 }[args.subcommand](args);
 
 
