@@ -104,15 +104,17 @@ Conventionally, for some project at ```https://github.com/username/mdm.git```, t
 
 It's also typical to set up your (that is, you-as-the-release-author) project repository so that its releases repository is a submodule and set up to be writable.
 There's a couple of potential pitfalls there that can be a little confusing.
-First of all, you are very strongly recommended to make sure that your reference to the submodule uses an https link *without* login credentials.  Under no circumstances should you make the mistake of using a url that requires authentication, because that would make it terribly irksome for others to fork your project and contribute.
+First of all, you are very strongly recommended to make sure that the reference to the submodule that you commit and publish uses an https link *without* login credentials.  Under no circumstances should you make the mistake of using a url that requires authentication, because that would make it terribly irksome for others to fork your project and contribute.
 So, keeping with the earlier example, you would want to initialize your project repository to know its own releases submodule like this:
 
 ```
-	git submodule add https://github.com/username/mdm-releases.git releases
+	git submodule add https://github.com/username/mdm-releases.git releases && git commit
 ```
 
-You, on the other hand, as the project maintainer and author of releases, should very much like to have the releases submodule for your project use an authenticated url, since this makes it pleasant for you to commit and push new releases.
-You can apply that change to your own personal repository like this:
+This leaves the ```.gitmodules``` file -- the file that others refer to when cloning your project -- containing that public url.
+
+You, on the other hand, as the project maintainer and author of releases, should very much like to have the releases submodule for *your* personal clone of the project use an authenticated url, since this makes it pleasant for you to commit and push new releases.
+You can apply that change to your own personal repository, without it ever entering version history or being propagated to others, like this:
 
 ```
 	git config submodule.releases.url git@github.com:username/mdm-releases.git
