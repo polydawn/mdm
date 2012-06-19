@@ -48,15 +48,48 @@ def mdm_make_argsparser_dependsc(subparser):
 		"depend",
 		help="set up or modify a dependency.",
 	);
-	parser_depend.add_argument(
+	parser_depend_subparser = parser_depend.add_subparsers(dest="depend-subcommand", title="depend-subcommand");
+	
+	parser_depend_add = parser_depend_subparser.add_parser(
+		"add",
+		help="link a new dependency.",
+	);
+	parser_depend_add.add_argument(
 		"--lib",
-		help="specifies the directory which shall contain the dependency module.",
+		help="if creating a new dependency, specifies the directory which shall contain the dependency module.",
 		default="lib",
 	);
-	parser_depend.add_argument(
+	parser_depend_add.add_argument(
 		"--name",
-		help="override the default name of the dependency module (if not specified, the url of the upstream will be parsed to determine the appropriate name).",
-		default=None,
+		help="the name to give the new dependency module (if not specified, the url of the upstream will be parsed to determine the appropriate name).  Note that in the future, this dependency will be refered to by it's path -- i.e., ${lib}/${name} ."
+	);
+	parser_depend_add.add_argument(
+		"--version",
+		help="the version name of the dependency to set up.  If not provided, a mdm will default to the most recent published release."		# same presumption as providing a list, below
+	);
+	
+	parser_depend_alter = parser_depend_subparser.add_parser(
+		"alter",
+		help="alter an existing dependency (i.e. switch to a new version).",
+	);
+	parser_depend_alter.add_argument(
+		"--name",
+		required=True,
+		help="the name of the dependency module to operate on (these are the same as submodule paths, so you can find the possible values with `git submodule`, though not all submodules are mdm-style dependencies)."
+	);
+	parser_depend_alter.add_argument(
+		"--version",
+		help="the version name of the dependency to set up.  If not provided, a mdm will search for a list of options."		# providing a list of options assumes some metadata file will be populated in releases repos.
+	);
+	
+	parser_depend_remove = parser_depend_subparser.add_parser(
+		"remove",
+		help="removean existing dependency.",
+	);
+	parser_depend_remove.add_argument(
+		"--name",
+		required=True,
+		help="the name of the dependency module to operate on (these are the same as submodule paths, so you can find the possible values with `git submodule`, though not all submodules are mdm-style dependencies)."
 	);
 
 def mdm_make_argsparser_releasesc(subparser):
