@@ -158,6 +158,19 @@ def isSubmodule(path):
 	finally:
 		cd(retreat);
 
+def mdm_status(happy, message):
+	code = {
+		 ":D": 0,	# happy face is appropriate for great success
+		     # 1 is a catchall for general/unexpected errors.
+		     # 2 is for "misuse of shell builtins" in Bash.
+		 ":(": 3,	# sadness is appropriate for a misconfigured project or bad args or something
+		":'(": 4,	# tears is appropriate for major exceptions or subprocesses not doing well
+		 ":I": 0,	# cramped face is appropriate for when we sat on our hands because the request was awkward but the goal state is satisfied anyway
+	}[happy];
+	if (not code): code = 128;
+	return {'happy':happy, 'message':message, 'code':code};
+
+
 
 #===============================================================================
 # depend
@@ -174,13 +187,11 @@ def isSubmodule(path):
 def mdm_release(args):
 	# sanity check the releases-repo
 	if (not isGitRepoRoot(args.repo)):	# check that releases-repo is already a git repo
-		print >> stderr, "repo directory '"+args.repo+"' doesn't look like a git repo!\n:(";
-		exit(3);
+		return mdm_status(":(", "releases-repo directory '"+args.repo+"' doesn't look like a git repo!");
 	cd(args.repo);				# enter releases-repo
 	try:					# check that nothing is already in the place where this version will be placed
 		ls(args.version);
-		print >> stderr, "something already exists at '"+args.repo+"/"+args.version+"' !  Can't release there.\n:(";
-		exit(3);
+		return mdm_status(":(", "something already exists at '"+args.repo+"/"+args.version+"' !  Can't release there.");
 	except ErrorReturnCode_2:
 		pass;	#good
 	
@@ -191,10 +202,9 @@ def mdm_release(args):
 	# do the build / copy in the artifacts
 	try:	# if anything fails in building, we want to destroy the snapshot area so it's not a mess the next time we try to do a release.
 		cp(glob(args.files+"/*"), ".");				# copy in artifacts via glob (we don't really want to match dotfiles on the off chance someone considers their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess.)
-	except:
-		print >> stderr, "error during build!\n:'(";
+	except Exception, e:
 		cd(".."); rm("-r", args.version);
-		raise;
+		return mdm_status(":'(", "error during build: "+str(e));
 	
 	# commit the snapshot-repo
 	git.add(".");							# add the artifacts to snapshot-repo
@@ -218,7 +228,7 @@ def mdm_release(args):
 	# TODO					# back out to the proj-repo
 	# TODO					# commit the new version of the release-repo submodule
 	
-	return "release version "+args.version+" complete\n:D";
+	return mdm_status(":D", "release version "+args.version+" complete");
 
 
 
@@ -245,8 +255,7 @@ def mdm_release(args):
 def mdm_init(args):
 	# am i at the root of a repo like I expect to be?		#XXX: i suppose we could do the first git-init as well if we're run in a void.  or better, with a name argument.
 	if (not isGitRepoRoot(".")):
-		print >> stderr, "this command should be run from the top level folder of your git repo.\n:(";
-		exit(3);
+		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");
 	projname = os.getcwd().split("/")[-1];
 	
 	# check to make sure this repo has more than zero commits in it to avoid awkwardness.
@@ -259,12 +268,10 @@ def mdm_init(args):
 	
 	# is the "releases" area free of clutter?  (we're not supporting other locations in this script, because if you want noncanonical here, you can go ahead and do it yourself.)
 	if (isSubmodule("releases")):					#  if it's a submodule already, we give a different error message.
-		print >> stderr, "there's already a releases module!  No changes made.\n:I";
-		exit(3);
+		return mdm_status(":I", "there's already a releases module!  No changes made.");
 	try:
 		ls("releases");
-		print >> stderr, "something already exists at the 'releases' location.  clear it out and try again.\n:(";
-		exit(3);
+		return mdm_status(":(", "something already exists at the 'releases' location.  clear it out and try again.");
 	except ErrorReturnCode_2:
 		pass;	#good
 	
@@ -286,7 +293,7 @@ def mdm_init(args):
 	git.submodule("add", "./"+projname+"-releases.git", "releases");
 	git.commit("-m", "initialize releases repo for "+projname+".");
 	
-	return "releases repo and submodule initialized\n:D";
+	return mdm_status(":D", "releases repo and submodule initialized");
 
 
 
@@ -302,4 +309,11 @@ print {
 	   'init': mdm_init,
 }[args.subcommand](args);
 
+if (isinstance(answer, dict)):
+	print >> stderr, answer['message'];
+	print >> stderr, answer['happy'];
+	exit(answer['code']);
+else:
+	print answer;
+	exit(0);
 
