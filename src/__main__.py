@@ -65,7 +65,7 @@ def mdm_make_argsparser_dependsc(subparser):
 	);
 	parser_depend_add.add_argument(
 		"--version",
-		help="the version name of the dependency to set up.  If not provided, a mdm will default to the most recent published release."		# same presumption as providing a list, below
+		help="the version name of the dependency to set up.  If not provided, a mdm will default to the most recent published release."
 	);
 	
 	parser_depend_alter = parser_depend_subparser.add_parser(
@@ -79,7 +79,7 @@ def mdm_make_argsparser_dependsc(subparser):
 	);
 	parser_depend_alter.add_argument(
 		"--version",
-		help="the version name of the dependency to set up.  If not provided, a mdm will search for a list of options."		# providing a list of options assumes some metadata file will be populated in releases repos.
+		help="the version name of the dependency to set up.  If not provided, a mdm will search for a list of options."
 	);
 	
 	parser_depend_remove = parser_depend_subparser.add_parser(
@@ -225,6 +225,9 @@ def mdm_release(args):
 	rm("-r", args.version+".git/hooks");				# remove files from the bare snapshot-repo that are junk
 	with open(args.version+".git/refs/heads/.gitignore", 'w') as f: f.write("");	# you don't wanna know.
 	git.add(args.version+".git");					# add the raw data of the bare snapshot-repo to the releases-repo
+	with open("version_manifest", 'a') as f:			# add the new snapshot-repo to the plaintext manifest file so it's easily readable over plain http without cloning the whole releases repo
+		f.write(args.version+"\n");
+	git.add("version_manifest");					# and stage that version_manifest change we just made
 	with open(".gitignore", 'a') as f: f.write(args.version+"\n");	# add the new snapshot-repo to the .gitignore so we can have it be expanded later without there being noise
 	git.add(".gitignore");						# and stage that .gitignore change we just made
 	git.commit("-m","release snapshot version "+args.version);	# commit the raw data of the bare snapshot-repo to the releases-repo
