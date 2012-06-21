@@ -228,11 +228,18 @@ def mdm_release(args):
 	git.commit("-m","release snapshot version "+args.version);	# commit the raw data of the bare snapshot-repo to the releases-repo
 	git.tag(args.version);						# tag the snapshot commit in the releases-repo		#TODO: there should be a signing option here.
 	
-	# push all the things
-	#  this we may not want to do without letting the user get off and look around, because it makes things fairly unreversable.
-	# TODO					# push the releases-repo
-	# TODO					# back out to the proj-repo
-	# TODO					# commit the new version of the release-repo submodule
+	# commit the new hash of the releases-repo into the project main repo (if we are operating in a canonically placed releases submodule)
+	if (args.repo == "releases"):
+		cd("..");						# back out to the proj-repo
+		if (isGitRepoRoot(".") and isSubmodule("releases")):	# okay, it really does look like a canonically placed releases submodule.
+			git.commit("releases","-m","release snapshot version "+args.version);
+			git.tag(args.version);
+	
+	# we could push all the things...
+	#  and that's tempting, because if someone pushes their project without pushing the releases submodule first, they will piss other people off.
+	#  however, pushing makes things fairly unreversable; everything we've done so far is still local, and if something went fubar it's just one commit and one commit to reset.
+	#  So, we're not going to push.  we're going to let the user get off and look around.
+	#  (Perhaps we'll add switches for this later, though.)
 	
 	return mdm_status(":D", "release version "+args.version+" complete");
 
