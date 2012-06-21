@@ -159,15 +159,16 @@ def isSubmodule(path):
 		cd(retreat);
 
 def mdm_status(happy, message):
-	code = {
-		 ":D": 0,	# happy face is appropriate for great success
-		     # 1 is a catchall for general/unexpected errors.
-		     # 2 is for "misuse of shell builtins" in Bash.
-		 ":(": 3,	# sadness is appropriate for a misconfigured project or bad args or something
-		":'(": 4,	# tears is appropriate for major exceptions or subprocesses not doing well
-		 ":I": 0,	# cramped face is appropriate for when we sat on our hands because the request was awkward but the goal state is satisfied anyway
-	}[happy];
-	if (not code): code = 128;
+	try:
+		code = {
+			 ":D": 0,	# happy face is appropriate for great success
+			     # 1 is a catchall for general/unexpected errors.
+			     # 2 is for "misuse of shell builtins" in Bash.
+			 ":(": 3,	# sadness is appropriate for a misconfigured project or bad args or something
+			":'(": 4,	# tears is appropriate for major exceptions or subprocesses not doing well
+			 ":I": 0,	# cramped face is appropriate for when we sat on our hands because the request was awkward but the goal state is satisfied anyway
+		}[happy];
+	except: code = 128;
 	return {'happy':happy, 'message':message, 'code':code};
 
 
