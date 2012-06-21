@@ -185,28 +185,33 @@ def mdm_status(happy, message):
 #===============================================================================
 
 def mdm_release(args):
+	retreat = os.getcwd();			# mind you that this command can be run from anywhere; it is not limited to the root of your project repo (though that's probably where I would almost always do it from).
+	snapdir = args.repo+"/"+args.version;	# args.repo may have been either a relative or absolute path... dodge the issue by always cd'ing back to retreat before cd'ing to this.
+	
 	# sanity check the releases-repo
 	if (not isGitRepoRoot(args.repo)):	# check that releases-repo is already a git repo
 		return mdm_status(":(", "releases-repo directory '"+args.repo+"' doesn't look like a git repo!");
 	cd(args.repo);				# enter releases-repo
 	try:					# check that nothing is already in the place where this version will be placed
 		ls(args.version);
-		return mdm_status(":(", "something already exists at '"+args.repo+"/"+args.version+"' !  Can't release there.");
+		return mdm_status(":(", "something already exists at '"+snapdir+"' !  Can't release there.");
 	except ErrorReturnCode_2:
 		pass;	#good
 	
 	# make the snapshot-repo
 	git.init(args.version);						# create new snapshot-repo
-	cd(args.version);						# enter snapshot-repo
 	
 	# do the build / copy in the artifacts
+	cd(retreat);							# back out to the dir we were run from.  that's by far the least confusing behavior.
 	try:	# if anything fails in building, we want to destroy the snapshot area so it's not a mess the next time we try to do a release.
-		cp(glob(args.files+"/*"), ".");				# copy in artifacts via glob (we don't really want to match dotfiles on the off chance someone considers their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess.)
+		cp(glob(args.files+"/*"), snapdir);			# copy in artifacts via glob (we don't really want to match dotfiles on the off chance someone considers their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess.)
 	except Exception, e:
-		cd(".."); rm("-r", args.version);
+		cd(args.repo); rm("-r", args.version);
 		return mdm_status(":'(", "error during build: "+str(e));
 	
+	
 	# commit the snapshot-repo
+	cd(snapdir);
 	git.add(".");							# add the artifacts to snapshot-repo
 	git.commit("-m","release snapshot version "+args.version);	# commit the artifacts to snapshot-repo
 	git.tag(args.version);						# tag the snapshot commit in this snapshot-repo		#TODO: there should be a signing option here.
