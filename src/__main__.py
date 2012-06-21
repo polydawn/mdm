@@ -205,11 +205,13 @@ def mdm_release(args):
 	# do the build / copy in the artifacts
 	cd(retreat);							# back out to the dir we were run from.  that's by far the least confusing behavior.
 	try:	# if anything fails in building, we want to destroy the snapshot area so it's not a mess the next time we try to do a release.
-		cp(glob(args.files+"/*"), snapdir);			# copy in artifacts via glob (we don't really want to match dotfiles on the off chance someone considers their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess.)
+		glom = glob(args.files+"/*");				# select artifacts via glob (we don't really want to match dotfiles on the off chance someone tries to consider their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess.)
+		if (glom == args.files+"/*"):				# if the glob string comes back unchanged, that means it didn't match anything, and that's a problem.
+			return mdm_status(":(", "no files were found at "+args.files+"/");
+		cp("-r", glom, snapdir);				# copy, and recursively if applicable.
 	except Exception, e:
 		cd(args.repo); rm("-r", args.version);
 		return mdm_status(":'(", "error during build: "+str(e));
-	
 	
 	# commit the snapshot-repo
 	cd(snapdir);
