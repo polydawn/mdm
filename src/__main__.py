@@ -48,12 +48,16 @@ def mdm_make_argsparser_dependsc(subparser):
 		"depend",
 		help="set up or modify a dependency.",
 	);
-	parser_depend_subparser = parser_depend.add_subparsers(dest="depend-subcommand", title="depend-subcommand");
+	parser_depend_subparser = parser_depend.add_subparsers(dest="subcommand_depend", title="depend-subcommand");
 	
 	parser_depend_add = parser_depend_subparser.add_parser(
 		"add",
 		help="link a new dependency.",
 	);
+	parser_depend_add.add_argument(
+		"url",
+		help="url pointing to the mdm-style releases repository that contains snapshots.  This url should provide direct access to the contents of the master branch of the releases repository (i.e. for a project that clones from https://github.com/heavenlyhash/mdm.git, what you want here is https://raw.github.com/heavenlyhash/mdm-releases/master ).",
+	);	# these URLs are really troublingly unrelated to any other urls in use.  I can write a special parser that takes a normal repo url for github and parses it into the expected releases raw-readable url, and another one for redmine, and another one for gitweb, but it's all very gross.  I guess for the present I'm going to rely on people using mdm patterns to put the raw url in their project's readme and leave a manual step here.  But in the future, perhaps it would be pleasant to make a central repo site that could lookup names into release-repo raw-read urls.
 	parser_depend_add.add_argument(
 		"--lib",
 		help="if creating a new dependency, specifies the directory which shall contain the dependency module.",
@@ -73,8 +77,7 @@ def mdm_make_argsparser_dependsc(subparser):
 		help="alter an existing dependency (i.e. switch to a new version).",
 	);
 	parser_depend_alter.add_argument(
-		"--name",
-		required=True,
+		"name",
 		help="the name of the dependency module to operate on (these are the same as submodule paths, so you can find the possible values with `git submodule`, though not all submodules are mdm-style dependencies)."
 	);
 	parser_depend_alter.add_argument(
@@ -87,8 +90,7 @@ def mdm_make_argsparser_dependsc(subparser):
 		help="removean existing dependency.",
 	);
 	parser_depend_remove.add_argument(
-		"--name",
-		required=True,
+		"name",
 		help="the name of the dependency module to operate on (these are the same as submodule paths, so you can find the possible values with `git submodule`, though not all submodules are mdm-style dependencies)."
 	);
 
@@ -177,7 +179,27 @@ def mdm_status(happy, message):
 # depend
 #===============================================================================
 
-# TODO
+def mdm_depend_add(args):
+	# check we're in a repo top
+	if (not isGitRepoRoot(".")):
+		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");
+	
+	# check the url
+	# also decide if it already includes a version part we should take, or if we should present choices.
+	# the presense of the "version_manifest" file is a major deal here
+	url = mdm_parse_repourl(args.url);
+	
+	#TODO ...
+	
+	return mdm_status("DX", "not implemented");
+
+
+def mdm_depend_alter(args):
+	return mdm_status("DX", "not implemented");
+
+
+def mdm_depend_remove(args):
+	return mdm_status("DX", "not implemented");
 
 
 
@@ -319,8 +341,12 @@ def mdm_init(args):
 # main
 #===============================================================================
 args = mdm_make_argsparser().parse_args();
-print {
-	 'depend': lambda args : args.subcommand + " not yet implemented",
+answer = {
+	 'depend': lambda args : {
+			   'add': mdm_depend_add,
+			 'alter': mdm_depend_alter,
+			'remove': mdm_depend_remove,
+		}[args.subcommand_depend](args),
 	'release': mdm_release,
 	 'update': lambda args : args.subcommand + " not yet implemented",
 	  'clone': lambda args : args.subcommand + " not yet implemented",
