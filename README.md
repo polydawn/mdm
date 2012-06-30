@@ -92,6 +92,7 @@ With a typical Ant setup, that might look like this:
 ```
 
 Alternatively, if you're the cautious type, you may wish to perform your build, then inspect the produced files at your leisure, and then call ```mdm release``` only when you're satisfied.
+```mdm``` also doesn't actually push any of the commits it creates, so you can manipulate or reset the release commits if something goes wrong, then push when everything is perfect.
 
 
 Usage: Initialing a release system:
