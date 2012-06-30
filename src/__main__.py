@@ -21,6 +21,9 @@ from sys import stderr;
 import os;
 from os import path;
 import argparse;
+import re;
+import urllib;
+from contextlib import closing;
 from pbs import git, xargs, cd, ls, cp, rm, pwd, glob;
 from pbs import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 
@@ -60,16 +63,16 @@ def mdm_make_argsparser_dependsc(subparser):
 	);	# these URLs are really troublingly unrelated to any other urls in use.  I can write a special parser that takes a normal repo url for github and parses it into the expected releases raw-readable url, and another one for redmine, and another one for gitweb, but it's all very gross.  I guess for the present I'm going to rely on people using mdm patterns to put the raw url in their project's readme and leave a manual step here.  But in the future, perhaps it would be pleasant to make a central repo site that could lookup names into release-repo raw-read urls.
 	parser_depend_add.add_argument(
 		"--lib",
-		help="if creating a new dependency, specifies the directory which shall contain the dependency module.",
+		help="specifies the directory which shall contain the dependency module.  (default: '%(default)s')",
 		default="lib",
 	);
 	parser_depend_add.add_argument(
 		"--name",
-		help="the name to give the new dependency module (if not specified, the url of the upstream will be parsed to determine the appropriate name).  Note that in the future, this dependency will be refered to by it's path -- i.e., ${lib}/${name} ."
+		help="the name to give the new dependency module (if not specified, the url of the upstream will be parsed to determine the appropriate name, and if that fails, mdm will prompt you to choose one interactively).  Note that in the future, this dependency will be refered to by its path -- i.e., ${lib}/${name} ."
 	);
 	parser_depend_add.add_argument(
 		"--version",
-		help="the version name of the dependency to set up.  If not provided, a mdm will default to the most recent published release."
+		help="the version name of the dependency to set up.  If not provided, a mdm will try to obtain a list of available versions and prompt you to choose one interactively."
 	);
 	
 	parser_depend_alter = parser_depend_subparser.add_parser(
@@ -173,21 +176,12 @@ def mdm_status(happy, message):
 	except: code = 128;
 	return {'happy':happy, 'message':message, 'code':code};
 
-def mdm_parse_repourl(url):
-	# there's a lot of weird here.  there are fundamentally two structural patterns we can choose between considering critical here:
-	#   1. there is a "version_manifest" file at the in the top working directory of the master branch of a releases repo.
-	#   2. a releases repo should (alllllmost) certainly have a name ending in "-releases".
-	# I'd rather not make number 2 a real requirement... but on the other hand, without that, since there are no structures enforced on version names,
-	#  it's impossible to tell the difference between a url that includes the version name and one that's just to the top of the releases repo,
-	#  unless you're willing to actually make a connection to that url and actually look for version_manifest, and that's a latency cost that isn't to be sneezed at.
-	# Number 2 also gets an upvote from the fact that we'd really like to be able to guess the name of the project from its releases url (though of course it's optional since we accept a name argument from `mdm depend add`).
-	# Also, note that we're not going to parse urls correctly, and we're going to do that on purpose.  Why?  Gitweb's raw urls have the file paths in the http get parameter part rather than masked by rewrites... which means if we operate on urls "wrongly", system just works, whereas doing it "right" would break.
-	byslashes = url.split("/");
-	b = byslashes[-1] if byslashes[-1:]   else None;
-	a = byslashes[-2] if byslashes[-2:-1] else None;
-	releasesurl = url;
-	version = [a,b];
-	return {'releases':releasesurl, 'version':version};
+def mdm_get_versionmanifest(releasesUrl):
+	try:
+		with closing(urllib.urlopen(releasesUrl+"/version_manifest")) as f:
+			return f.read();
+	except:
+		return None;
 
 
 
@@ -200,14 +194,51 @@ def mdm_depend_add(args):
 	if (not isGitRepoRoot(".")):
 		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");
 	
-	# check the url
-	# also decide if it already includes a version part we should take, or if we should present choices.
-	# the presense of the "version_manifest" file is a major deal here
-	url = mdm_parse_repourl(args.url);
+	# pick out the name.  if we can't find one yet, we'll prompt for it in a little bit (we try to check that something at least exists on the far side of the url before bothering with the name part).
+	name = None;
+	if (args.name):		# well that was easy
+		name = args.name;
+	else:			# look for a discernable project name in the url chunks
+		urlchunks = args.url.split("/");
+		urlchunks.reverse();
+		for chunk in urlchunks:
+			tehMatch = re.match(r"(.*)-releases", chunk);
+			if (tehMatch):
+				name = tehMatch.group(1);
+				break;
 	
-	#TODO ...
+	# if a specific version name was given, we'll skip checking for a manifest and just go straight at it; otherwise we look for a manifest and present options interactively.
+	version = None;
+	if (args.version):	# well that was easy
+		version = args.version;
+	else:			# check the url.  whether or not we can get a version manifest determines its validity.
+		versionmf = mdm_get_versionmanifest(args.url);
+		if (versionmf == None):
+			return mdm_status(":(", "no version_manifest could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.");
+		versions = versionmf.split();
+		print "available versions: "+str(versions);
+		while (not version):
+			version = raw_input("select a version: ");
+			if (not version in versions):
+				print "\""+version+"\" is not in the list of available versions; double check your typing.";
+				version = None;
 	
-	return mdm_status("DX", "not implemented");
+	# check if we got a name earlier, and prompt for it if we don't have one picked yet.
+	if (not name):
+		name = raw_input("dependency name: ");
+	
+	# add us a submodule for great good!
+	print >> stderr, "adding "+name+"-"+version+" to "+args.lib+" from "+args.url;
+	git.submodule("add", args.url+"/"+version, args.lib+"/"+name);		# turns out there's no need to normalize these urls; git is already smart enough to make sure double slashies don't end up in git's names for things.
+	
+	# put a marker in the submodules config that this submodule is a dependency managed by mdm.  mostly a silent mutation, but possibly convenient for our bookkeeping sometimes.
+	git.config("-f", ".gitmodules", "submodule."+args.lib+"/"+name+".mdm", "dependency");	# this, on the other hand, DOES need normalization.
+	git.add(".gitmodules");
+	
+	# commit the changes
+	git.commit("-m", "adding dependency on "+name+" at "+version+".");
+	
+	return mdm_status(":D", "added dependency on "+name+"-"+version+" successfully!");
 
 
 def mdm_depend_alter(args):
