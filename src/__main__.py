@@ -173,6 +173,22 @@ def mdm_status(happy, message):
 	except: code = 128;
 	return {'happy':happy, 'message':message, 'code':code};
 
+def mdm_parse_repourl(url):
+	# there's a lot of weird here.  there are fundamentally two structural patterns we can choose between considering critical here:
+	#   1. there is a "version_manifest" file at the in the top working directory of the master branch of a releases repo.
+	#   2. a releases repo should (alllllmost) certainly have a name ending in "-releases".
+	# I'd rather not make number 2 a real requirement... but on the other hand, without that, since there are no structures enforced on version names,
+	#  it's impossible to tell the difference between a url that includes the version name and one that's just to the top of the releases repo,
+	#  unless you're willing to actually make a connection to that url and actually look for version_manifest, and that's a latency cost that isn't to be sneezed at.
+	# Number 2 also gets an upvote from the fact that we'd really like to be able to guess the name of the project from its releases url (though of course it's optional since we accept a name argument from `mdm depend add`).
+	# Also, note that we're not going to parse urls correctly, and we're going to do that on purpose.  Why?  Gitweb's raw urls have the file paths in the http get parameter part rather than masked by rewrites... which means if we operate on urls "wrongly", system just works, whereas doing it "right" would break.
+	byslashes = url.split("/");
+	b = byslashes[-1] if byslashes[-1:]   else None;
+	a = byslashes[-2] if byslashes[-2:-1] else None;
+	releasesurl = url;
+	version = [a,b];
+	return {'releases':releasesurl, 'version':version};
+
 
 
 #===============================================================================
