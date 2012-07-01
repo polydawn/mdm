@@ -20,6 +20,7 @@
 from sys import stderr;
 import os;
 from os import path;
+from os.path import join, relpath;
 import argparse;
 import re;
 import urllib;
@@ -227,12 +228,15 @@ def mdm_depend_add(args):
 	if (not name):
 		name = raw_input("dependency name: ");
 	
+	# we shall normalize a bit of uri here since it's rather disconcerting later if we don't (some commands will normalize it, and others won't, and that's just a mess).
+	path = relpath(join(args.lib, name));
+	
 	# add us a submodule for great good!
 	print >> stderr, "adding "+name+"-"+version+" to "+args.lib+" from "+args.url;
-	git.submodule("add", args.url+"/"+version, args.lib+"/"+name);		# turns out there's no need to normalize these urls; git is already smart enough to make sure double slashies don't end up in git's names for things.
+	git.submodule("add", args.url+"/"+version, path);
 	
 	# put a marker in the submodules config that this submodule is a dependency managed by mdm.  mostly a silent mutation, but possibly convenient for our bookkeeping sometimes.
-	git.config("-f", ".gitmodules", "submodule."+args.lib+"/"+name+".mdm", "dependency");	# this, on the other hand, DOES need normalization.
+	git.config("-f", ".gitmodules", "submodule."+path+".mdm", "dependency");
 	git.add(".gitmodules");
 	
 	# commit the changes
