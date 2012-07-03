@@ -54,6 +54,11 @@ def mdm_make_argsparser_dependsc(subparser):
 	);
 	parser_depend_subparser = parser_depend.add_subparsers(dest="subcommand_depend", title="depend-subcommand");
 	
+	parser_depend_status = parser_depend_subparser.add_parser(
+		"status",
+		help="list dependencies managed by mdm.",
+	);
+	
 	parser_depend_add = parser_depend_subparser.add_parser(
 		"add",
 		help="link a new dependency.",
@@ -219,6 +224,41 @@ def mdm_get_versionmanifest(releasesUrl):
 #===============================================================================
 # depend
 #===============================================================================
+
+def mdm_depend_status(args):
+	# get the submodules config.  we use this instead of what's actually inside the .git/config file because our custom mdm properties aren't copied in to the .git/config file by git when `git submodule init`.
+	try:
+		gmpath = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
+	except ErrorReturnCode:
+		return mdm_status(":(", "this command should be run within a git repo.");	
+	confdict = getGitConfig(gmpath);
+	
+	# if there's no gitmodules file, then we just don't have any dependencies
+	if (confdict is None):
+		return " --- no managed dependencies --- ";
+	submodules = confdict['submodule'];
+	
+	# filter out submodules that dont have the mdm dependency tag
+	for modname, vals in submodules.items():
+		if (not 'mdm' in vals or not vals['mdm'] == "dependency"):
+			del submodules[modname];
+	
+	# generate a big string o' data
+	if (len(submodules) is 0):
+		return " --- no managed dependencies --- ";
+	width1 = 0;
+	for modname, vals in submodules.items():
+		width1 = max(width1, len(modname));
+	width1 = (width1/8)*8+8;
+	width1 = str(width1);	# this line does not appease me.
+	v  = ("%-"+width1+"s   \t %s\n") % ("dependency:", "version:");
+	v += ("%-"+width1+"s   \t %s\n") % ("-----------", "--------");
+	for modname, vals in submodules.items():
+		v += ("  %-"+width1+"s \t   %s\n") % (modname, vals['url'].split("/")[-1]);
+	
+	return v[:-1];
+
+
 
 def mdm_depend_add(args):
 	# check we're in a repo top
@@ -424,6 +464,7 @@ def mdm_init(args):
 args = mdm_make_argsparser().parse_args();
 answer = {
 	 'depend': lambda args : {
+			'status': mdm_depend_status,
 			   'add': mdm_depend_add,
 			 'alter': mdm_depend_alter,
 			'remove': mdm_depend_remove,
