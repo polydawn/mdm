@@ -115,3 +115,41 @@ Note that all of this init business is totally optional and you can refuse to do
 If you want to do some sort of noncanonical setup, the rest of mdm will play nice;
 doing releases for example just requires that you run ```mdm``` with an extra argument, a la ```mdm release --repo=../my/weird/path/releases-repo```.
 
+
+
+Other Notes
+===========
+
+### Artifact File Names
+
+I recommend NOT including the version number of a release in its artifact file name.
+I.e., name your release file ```projX.tar.gz```,  not ```projX-1.4.5-SNAPSHOT.tar.gz```.
+Why?
+- *The **version** is handled by the **version control** system.*
+- The version number belongs somewhere *inside* the release anyway; it shouldn't be lost if the release file is renamed.
+  (Being redundant in this situation is fine, but redundancy is redundant.)
+- It's vastly easier to script with when you don't have to fiddle with that filename changing.
+
+### Relationship to Dependency Resolution
+
+A person could combine this with automatic dependency resolution.
+I'm personally not going to do so at this stage.  There's relatively little point that I can see to automating that,
+since once you've adopted this kind project organization suddenly everything about dependencies has become a one-time setup in the lifetime of the project,
+and any repository clone already has the hard choices etched into the repository's own structure with no runtime resolution needed.
+
+### Dependencies of Dependencies of Dependencies of...
+
+Dependencies are all being put in a flat "lib" dir in the example.
+What if there's a situation with a projA -> projX -> projY dependency, you ask?
+Keep It Simple, Smartass.  Paths like ```projA/lib/projX``` and ```projA/lib/projY``` still do the job just fine.
+
+You may have a fleeting thought that it would be super cool if including one library submodule would also include all the library submodules that it may in turn depend on.
+This is a bad idea.  Quash that thought now.
+Why?  Two reasons:
+1. Because software dependencies are a graph.  A filesystem, and in this case git submodules, are a tree.
+   Trees are a graph, but a graph is not always a tree -- in other words, there's a fundamental mismatch between what you want to describe and what the medium is capable of.
+1. At runtime, are dependencies resolved as a graph?
+   No, they're not.  Things are pretty much thrown in a heap on the includepath/classpath and after that it's up to a language's namespacing to work it out.
+   Given that, there's no sense to trying to store your dependencies in a graph, since you're just fibbing to yourself anyway.
+
+
