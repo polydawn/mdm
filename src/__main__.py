@@ -181,8 +181,7 @@ def getGitConfig(filename):
 	v = {};
 	for line in gmlines.split("\0"):
 		if (not line): continue;
-		kv = line.split("\n", 1);
-		keys = kv[0]; value = kv[1];
+		keys, value = tuple(line.split("\n", 1));
 		d1 = keys.index(".");
 		d2 = keys.rindex(".");
 		key1 = keys[:d1];
