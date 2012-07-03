@@ -143,6 +143,14 @@ def mdm_make_argsparser_initsc(subparser):
 # helpers
 #===============================================================================
 
+def mdaa(dct, tup, val):
+	# merge a value into a multidimentional ragged array.  I feel like this is something there certainly ought to be a more pythonic convenient syntax for, but if so I haven't found it yet.
+	for k in tup[:-1]:
+		if (not k in dct):
+			dct[k] = {};
+		dct = dct[k];
+	dct[tup[-1]] = val;
+
 def isGitRepoRoot(dirname):
 	if (not path.isdir(dirname)):
 		return False;
@@ -163,6 +171,29 @@ def isSubmodule(path):
 		return path == submodstr[2 if (submodstr[0] == "") else 1];
 	finally:
 		cd(retreat);
+
+def getGitConfig(filename):
+	# note about parsing this: dots in the final of the three keys are not allowed.  dots in the first and second keys ARE allowed (yes, both of them), so I don't know how to parse that correctly from the output of this command (though it's possible from the file itself of course).  I'm just going to assume that there are no dots in the first key; if there are, you're weird and a bastard.
+	try:
+		gmlines = str(git.config("-f", filename, "-lz"));
+	except ErrorReturnCode:
+		return None;
+	v = {};
+	for line in gmlines.split("\0"):
+		if (not line): continue;
+		kv = line.split("\n", 1);
+		keys = kv[0]; value = kv[1];
+		d1 = keys.index(".");
+		d2 = keys.rindex(".");
+		key1 = keys[:d1];
+		if (d1 == d2):
+			key2 = keys[d1+1:];
+			mdaa(v, (key1, key2), value);
+		else:
+			key2 = keys[d1+1:d2];
+			key3 = keys[d2+1:];
+			mdaa(v, (key1, key2, key3), value);
+	return v;
 
 def mdm_status(happy, message):
 	try:
