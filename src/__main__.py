@@ -240,7 +240,7 @@ def mdm_depend_status(args):
 	confdict = getGitConfig(gmpath);
 	
 	# if there's no gitmodules file, then we just don't have any dependencies
-	if (confdict is None):
+	if (confdict is None or not 'submodule' in confdict):
 		return " --- no managed dependencies --- ";
 	submodules = confdict['submodule'];
 	
