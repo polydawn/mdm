@@ -232,6 +232,16 @@ def mdm_doDependencyAdd(name, url, version):
 	git.add(".gitmodules");								# have to `git add` the gitmodules file again since otherwise the marker we just appended doesn't get staged
 	pass;
 
+def mdm_doDependencyRemove(name):
+	try: git.config("-f", ".gitmodules", "--remove-section", "submodule."+name);	# remove config lines for this submodule currently in gitmodules file.  also, note i'm assuming we're already at the pwd of the repo top here.
+	except: pass;									# errors because there was already no such config lines aren't really errors.
+	git.add(".gitmodules");								# stage the gitmodule file change into the index.
+	git.rm("--cached", name);							# mark submodule for removal in the index.  have to use the cached option and rm-rf it ourselves or git has a beef, seems silly to me but eh.
+	rm("-rf", name);								# clear out the actual files
+	try: git.config("-f", ".git/config", "--remove-section", "submodule."+name);	# remove conflig lines for this submodule currently in .git/config.	# environmental $GIT_DIR is not supported.	# i'm a little unhappy about doing this before trying to commit anything else for smooth error recovery reasons... but on the other hand, we want to use this function to compose with other things in the same commit, so.
+	except: pass;									# errors because there was already no such config lines aren't really errors.
+	pass;
+
 
 
 #===============================================================================
@@ -347,8 +357,49 @@ def mdm_depend_add(args):
 	return mdm_status(":D", "added dependency on "+name+"-"+version+" successfully!");
 
 
+
 def mdm_depend_alter(args):
-	return mdm_status("DX", "not implemented");
+	# parse gitmodules, check that the name we were asked to alter actually exist, and get its data.
+	try:
+		gmpath = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
+	except ErrorReturnCode:
+		return mdm_status(":(", "this command should be run within a git repo.");
+	confdict = getGitConfig(gmpath);
+	if (confdict is None):
+		return mdm_status(":(", "there is no mdm dependency by that name.");
+	if (not 'submodule' in confdict):
+		return mdm_status(":(", "there is no mdm dependency by that name.");
+	if (not args.name in confdict['submodule']):
+		return mdm_status(":(", "there is no mdm dependency by that name.");
+	submodule = confdict['submodule'][args.name];
+	if (not 'mdm' in submodule or not "dependency" == submodule['mdm']):
+		return mdm_status(":(", "there is no mdm dependency by that name.");
+	
+	# parse the url pointing to the current snapshot repo and drop the last part off of it; if things are canonical, this should be the releases repo.
+	releasesUrl = submodule['url'][:submodule['url'].rindex("/")];
+	
+	# decide what version we're switching to
+	version = None;
+	if (args.version):	# well that was easy
+		version = args.version;
+	else:			# look for a version manifest and prompt for choices
+		version = mdm_promptForVersion(releasesUrl);
+		if (version is None):
+			return mdm_status(":'(", "no version_manifest could be found where we expected a releases repository to be for the existing dependency.  maybe it has moved, or this dependency has an unusual/manual release structure, or the internet broke?");
+	
+	# check that the remote path is actually looking like a git repo before we call submodule add
+	if (not isGitRepo(releasesUrl+"/"+version,  "refs/tags/"+version)):
+		return mdm_status(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
+	
+	# do the submodule/dependency dancing
+	mdm_doDependencyRemove(args.name);
+	mdm_doDependencyAdd(args.name, releasesUrl, version);
+	
+	# commit the changes
+	git.commit("-m", "shifting dependency on "+args.name+" to version "+version+".");
+	
+	return mdm_status(":D", "altered dependency on "+args.name+" to version "+version+" successfully!");
+
 
 
 def mdm_depend_remove(args):
