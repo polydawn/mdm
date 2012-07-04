@@ -166,6 +166,12 @@ def isGitRepoRoot(dirname):
 	finally:
 		cd(retreat);
 
+def isGitRepo(url, ref="refs/heads/master"):
+	try:
+		return len(str(git("ls-remote", url, ref))) > 0;
+	except ErrorReturnCode:
+		return False;
+
 def isSubmodule(path):
 	retreat = os.getcwd();
 	try :
