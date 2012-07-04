@@ -125,7 +125,8 @@ Other Notes
 I recommend NOT including the version number of a release in its artifact file name.
 I.e., name your release file ```projX.tar.gz```,  not ```projX-1.4.5-SNAPSHOT.tar.gz```.
 Why?
-- *The **version** is handled by the **version control** system.*
+
+- *The* ***version*** *is handled by the* ***version control*** *system.*
 - The version number belongs somewhere *inside* the release anyway; it shouldn't be lost if the release file is renamed.
   (Being redundant in this situation is fine, but redundancy is redundant.)
 - It's vastly easier to script with when you don't have to fiddle with that filename changing.
@@ -146,6 +147,7 @@ Keep It Simple, Smartass.  Paths like ```projA/lib/projX``` and ```projA/lib/pro
 You may have a fleeting thought that it would be super cool if including one library submodule would also include all the library submodules that it may in turn depend on.
 This is a bad idea.  Quash that thought now.
 Why?  Two reasons:
+
 1. Because software dependencies are a graph.  A filesystem, and in this case git submodules, are a tree.
    Trees are a graph, but a graph is not always a tree -- in other words, there's a fundamental mismatch between what you want to describe and what the medium is capable of.
 1. At runtime, are dependencies resolved as a graph?
