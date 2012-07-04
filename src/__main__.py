@@ -266,6 +266,22 @@ def mdm_depend_status(args):
 
 
 
+def mdm_promptForVersion(releasesUrl):
+	versionmf = mdm_get_versionmanifest(releasesUrl);
+	if (versionmf == None):
+		return None;
+	versions = versionmf.split();
+	print "available versions: "+str(versions);
+	version = None;
+	while (not version):
+		version = raw_input("select a version: ");
+		if (not version in versions):
+			print "\""+version+"\" is not in the list of available versions; double check your typing.";
+			version = None;
+	return version;
+
+
+
 def mdm_depend_add(args):
 	# check we're in a repo top
 	if (not isGitRepoRoot(".")):
@@ -307,16 +323,9 @@ def mdm_depend_add(args):
 	if (args.version):	# well that was easy
 		version = args.version;
 	else:			# check the url.  whether or not we can get a version manifest determines its validity.
-		versionmf = mdm_get_versionmanifest(args.url);
-		if (versionmf == None):
+		version = mdm_promptForVersion(args.url)
+		if (version is None):
 			return mdm_status(":(", "no version_manifest could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.");
-		versions = versionmf.split();
-		print "available versions: "+str(versions);
-		while (not version):
-			version = raw_input("select a version: ");
-			if (not version in versions):
-				print "\""+version+"\" is not in the list of available versions; double check your typing.";
-				version = None;
 	
 	# add us a submodule for great good!
 	print >> stderr, "adding "+name+"-"+version+" to "+args.lib+" from "+args.url;
