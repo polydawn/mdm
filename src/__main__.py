@@ -205,6 +205,17 @@ def getGitConfig(filename):
 			mdaa(v, (key1, key2, key3), value);
 	return v;
 
+def getMdmDependencyConfig(name):
+	try: gmpath = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
+	except ErrorReturnCode: return None;	# this is actually a "we're not even in a git repo" situation, which may be more serious than the others, but eh.
+	confdict = getGitConfig(gmpath);
+	if (confdict is None): return None;
+	if (not 'submodule' in confdict): return None;
+	if (not name in confdict['submodule']): return None;
+	submodule = confdict['submodule'][name];
+	if (not 'mdm' in submodule or not "dependency" == submodule['mdm']): return None;
+	return submodule;
+
 def mdm_status(happy, message):
 	try:
 		code = {
@@ -360,19 +371,8 @@ def mdm_depend_add(args):
 
 def mdm_depend_alter(args):
 	# parse gitmodules, check that the name we were asked to alter actually exist, and get its data.
-	try:
-		gmpath = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
-	except ErrorReturnCode:
-		return mdm_status(":(", "this command should be run within a git repo.");
-	confdict = getGitConfig(gmpath);
-	if (confdict is None):
-		return mdm_status(":(", "there is no mdm dependency by that name.");
-	if (not 'submodule' in confdict):
-		return mdm_status(":(", "there is no mdm dependency by that name.");
-	if (not args.name in confdict['submodule']):
-		return mdm_status(":(", "there is no mdm dependency by that name.");
-	submodule = confdict['submodule'][args.name];
-	if (not 'mdm' in submodule or not "dependency" == submodule['mdm']):
+	submodule = getMdmDependencyConfig(args.name);
+	if (submodule is None):
 		return mdm_status(":(", "there is no mdm dependency by that name.");
 	
 	# parse the url pointing to the current snapshot repo and drop the last part off of it; if things are canonical, this should be the releases repo.
