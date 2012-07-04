@@ -327,6 +327,10 @@ def mdm_depend_add(args):
 		if (version is None):
 			return mdm_status(":(", "no version_manifest could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.");
 	
+	# check that the remote path is actually looking like a git repo before we call submodule add
+	if (not isGitRepo(args.url+"/"+version,  "refs/tags/"+version)):
+		return mdm_status(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
+	
 	# add us a submodule for great good!
 	print >> stderr, "adding "+name+"-"+version+" to "+args.lib+" from "+args.url;
 	git.submodule("add", args.url+"/"+version, path);
