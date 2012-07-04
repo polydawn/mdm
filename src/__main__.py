@@ -403,7 +403,18 @@ def mdm_depend_alter(args):
 
 
 def mdm_depend_remove(args):
-	return mdm_status("DX", "not implemented");
+	# parse gitmodules, check that the name we were asked to alter actually exist, and get its data.
+	submodule = getMdmDependencyConfig(args.name);
+	if (submodule is None):
+		return mdm_status(":I", "there is no mdm dependency by that name.");
+	
+	# kill it
+	mdm_doDependencyRemove(args.name);
+	
+	# commit the changes
+	git.commit("-m", "removing dependency on "+args.name+".");
+	
+	return mdm_status(":D", "removed dependency on "+args.name+"!");
 
 
 
