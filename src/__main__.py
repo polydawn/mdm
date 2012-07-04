@@ -87,20 +87,20 @@ def mdm_make_argsparser_dependsc(subparser):
 	);
 	parser_depend_alter.add_argument(
 		"name",
-		help="the name of the dependency module to operate on (these are the same as submodule paths, so you can find the possible values with `git submodule`, though not all submodules are mdm-style dependencies)."
+		help="the name of the dependency module to operate on."
 	);
 	parser_depend_alter.add_argument(
 		"--version",
-		help="the version name of the dependency to set up.  If not provided, a mdm will search for a list of options."
+		help="the version name of the dependency to set up.  If not provided, mdm will search for a list of options."
 	);
 	
 	parser_depend_remove = parser_depend_subparser.add_parser(
 		"remove",
-		help="removean existing dependency.",
+		help="remove an existing dependency.",
 	);
 	parser_depend_remove.add_argument(
 		"name",
-		help="the name of the dependency module to operate on (these are the same as submodule paths, so you can find the possible values with `git submodule`, though not all submodules are mdm-style dependencies)."
+		help="the name of the dependency module to operate on."
 	);
 
 def mdm_make_argsparser_releasesc(subparser):
