@@ -236,7 +236,7 @@ def mdm_depend_status(args):
 	try:
 		gmpath = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
 	except ErrorReturnCode:
-		return mdm_status(":(", "this command should be run within a git repo.");	
+		return mdm_status(":(", "this command should be run within a git repo.");
 	confdict = getGitConfig(gmpath);
 	
 	# if there's no gitmodules file, then we just don't have any dependencies
