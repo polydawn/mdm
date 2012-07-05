@@ -183,6 +183,25 @@ def isSubmodule(path):
 	finally:
 		cd(retreat);
 
+def getGitSubmodules():
+	# note that there's several possible and not necessarily consistent ways to define what's a git submodule.  this function reads the git index.  keys in the returned dict are submodule names; values are a string describing the status.
+	retreat = os.getcwd();
+	try :
+		cd(git("rev-parse", "--show-toplevel").strip());
+		subs = {};
+		submodstr = git.submodule("status");
+		if (len(submodstr) == 0): return subs;
+		for submline in submodstr.split("\n"):
+			if (not submline): continue;
+			frags = submline.split(" ");
+			if (frags[0] == ""):
+				subs[frags[2]] = " ";
+			else:
+				subs[frags[1]] = frags[0][0];
+		return subs;
+	finally:
+		cd(retreat);
+
 def getGitConfig(filename):
 	# note about parsing this: dots in the final of the three keys are not allowed.  dots in the first and second keys ARE allowed (yes, both of them), so I don't know how to parse that correctly from the output of this command (though it's possible from the file itself of course).  I'm just going to assume that there are no dots in the first key; if there are, you're weird and a bastard.
 	try:
@@ -491,7 +510,66 @@ def mdm_release(args):
 # update
 #===============================================================================
 
-# TODO
+def mdm_update(args):
+	# check we're in a repo
+	if (not isGitRepoRoot(".")):
+		return mdm_status(":(", "this command should be run within a git repo.");
+	
+	# load all of the submodules in the git index
+	submodules = getGitSubmodules();
+	
+	# load all the mdm dependency submodules from gitmodules file, and only pay attention to the intersection of that and the git index
+	# and then act on them based on the difference between the filesystem state and the git index intention
+	impacted = [];
+	unphased = 0;
+	contorted = [];
+	removed = [];
+	for subm, status in submodules.items():
+		mdmdep = getMdmDependencyConfig(subm);
+		if (mdmdep is None): continue;		# ignore things that don't look like mdm dependencies
+		if (status == " "):			# go ahead and ignore things where status indicates filesystem state already matches the index intention
+			unphased += 1;
+			continue;
+		if (status == "-"):			# .git/config is not initialized
+			git.submodule("init", subm);		# so initialize it.		#XXX: if something is initialized, but the update was superfluous, should that count as impacted?  I lean towards no, but it's also not a situation that should come up enough to be worth fretting over.
+			git.submodule("update", subm);		# and update (clone) it.
+		elif (status == "+"):			# submodule repo on the filesystem has a different commit hash checked out than index intentions
+			# try to update it inplace (this will probably fail, but if someone did something clever with branches by all means let them enjoy it)
+			#XXX later
+			
+			# read urls currently in .git/config, so that if someone repointed their repo to know about a more local copy, we can alter the prefix of what we're about to install to try to respect that.
+			#XXX later
+			
+			# clear out the files and .git/config and reinit.  if we don't do the clear before updating, `git submodule init` doesn't change the url, and the url still pointing to the old version will cause `git submodule update` to clone it again but nothing will end up checked out and a hash error is reported.
+			rm("-rf", subm);								# clear out the actual files
+			try: git.config("-f", ".git/config", "--remove-section", "submodule."+subm);	# remove config lines for this submodule currently in .git/config.
+			except: pass;									# errors because there was already no such config lines aren't really errors.
+			git.submodule("init", subm);							# initialize again.
+			
+			# okay, now we can pull again
+			git.submodule("update", subm);
+		else:					# what?  could be a merge conflicted submodule or something, but you shouldn't have that with mdm dependency submodules unless you were doing something manual that was asking for trouble.
+			contorted.append(subm);
+			continue;
+		#XXX: we have no special detection or handling for when submodule deletes are pulled from upstream.  what you end up with after that is just untracked files.  that's a little suprising, in my mind, but it's not exactly wrong, either.
+		impacted.append(subm);
+	
+	# that's all.  compose a status string.
+	status  = str(len(impacted)) + " changed, ";
+	status += str(unphased) + " unaffected";
+	if (len(contorted) > 0):
+		status += ", "+str(len(contorted))+" contorted";
+	if (len(removed) > 0):
+		status += ", "+str(len(removed))+" removed";
+	status2 = "";
+	if (len(impacted) > 0):
+		status2 += "\n  changed: "+str(impacted);
+	if (len(contorted) > 0):
+		status2 += "\n  contorted: "+str(contorted);
+	if (len(removed) > 0):
+		status2 += "\n  removed: "+str(removed);
+	
+	return mdm_status(":D", "mdm dependencies have been updated ("+status+")"+status2);
 
 
 
@@ -570,7 +648,7 @@ answer = {
 			'remove': mdm_depend_remove,
 		}[args.subcommand_depend](args),
 	'release': mdm_release,
-	 'update': lambda args : args.subcommand + " not yet implemented",
+	 'update': mdm_update,
 	  'clone': lambda args : args.subcommand + " not yet implemented",
 	   'init': mdm_init,
 }[args.subcommand](args);
