@@ -288,7 +288,7 @@ def mdm_depend_status(args):
 	v  = ("%-"+width1+"s   \t %s\n") % ("dependency:", "version:");
 	v += ("%-"+width1+"s   \t %s\n") % ("-----------", "--------");
 	for modname, vals in submodules.items():
-		v += ("  %-"+width1+"s \t   %s\n") % (modname, vals['url'].split("/")[-1]);
+		v += ("  %-"+width1+"s \t   %s\n") % (modname, vals['url'].split("/")[-1]);	#FIXME: i'm not sure this is the ideal place to get the version string from.  this is the version intended by gitmodule config, but not the actual reality of what's checked out!  it's not clear where would be best to get ground truth from; perhaps the tag name checked out in the submodule?  that can break if there are multiple tags on the same commit, but a release manager shouldn't be doing crap like that.
 	
 	return v[:-1];
 
