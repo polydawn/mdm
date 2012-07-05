@@ -546,6 +546,12 @@ def mdm_init(args):
 	# add the new releases-repo as a submodule to the project repo.
 	# using a relative url here means the author should be good to go with pushing, and others who clone the project with unauthenticated urls should also be fine.
 	git.submodule("add", "./"+projname+"-releases.git", "releases");
+	
+	# put a marker in the submodules config that this submodule is a releases repo managed by mdm.
+	git.config("-f", ".gitmodules", "submodule.releases.mdm", "dependency");
+	git.add(".gitmodules");
+	
+	# commit the changes
 	git.commit("-m", "initialize releases repo for "+projname+".");
 	
 	return mdm_status(":D", "releases repo and submodule initialized");
