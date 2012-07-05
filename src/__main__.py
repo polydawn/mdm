@@ -43,7 +43,6 @@ def mdm_make_argsparser():
 	mdm_make_argsparser_dependsc(subparser);
 	mdm_make_argsparser_releasesc(subparser);
 	mdm_make_argsparser_updatesc(subparser);
-	mdm_make_argsparser_clonesc(subparser);
 	mdm_make_argsparser_initsc(subparser);
 	return parser;
 
@@ -128,12 +127,6 @@ def mdm_make_argsparser_updatesc(subparser):
 	parser_update = subparser.add_parser(
 		"update",
 		help="pull all dependencies up to date.  Run this after cloning a fresh repo, or pulling or checking out commits that change a dependency.",
-	);
-
-def mdm_make_argsparser_clonesc(subparser):
-	parser_clone = subparser.add_parser(
-		"clone",
-		help="performs a normal git-clone, then automatically pulls all dependencies.",
 	);
 
 def mdm_make_argsparser_initsc(subparser):
@@ -574,14 +567,6 @@ def mdm_update(args):
 
 
 #===============================================================================
-# clone
-#===============================================================================
-
-# TODO
-
-
-
-#===============================================================================
 # init
 #===============================================================================
 
@@ -649,7 +634,6 @@ answer = {
 		}[args.subcommand_depend](args),
 	'release': mdm_release,
 	 'update': mdm_update,
-	  'clone': lambda args : args.subcommand + " not yet implemented",
 	   'init': mdm_init,
 }[args.subcommand](args);
 
