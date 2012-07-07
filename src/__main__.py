@@ -160,6 +160,7 @@ def isGitRepoRoot(dirname):
 		cd(retreat);
 
 def isGitRepo(url, ref="refs/heads/master"):
+	# we include looking for a ref string that we expect mdm to have put in the snapshot-repo's commit, since I've seen urls that `git ls-remote` will not tell you is not a git repo, but will return many lines of nonsense.  it's also handy if you expect a certain tag to be in a repository, since then it can be a preliminary check that you're looking at the repo you want as opposed to just any repo as well.
 	try:
 		return len(str(git("ls-remote", url, ref))) > 0;
 	except ErrorReturnCode:
@@ -217,16 +218,25 @@ def getGitConfig(filename):
 			mdaa(v, (key1, key2, key3), value);
 	return v;
 
-def getMdmDependencyConfig(name):
-	try: gmpath = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
-	except ErrorReturnCode: return None;	# this is actually a "we're not even in a git repo" situation, which may be more serious than the others, but eh.
-	confdict = getGitConfig(gmpath);
+def getMdmSubmodules(kind=None, name=None, gmFilename=None):
+	if (not gmFilename):
+		try: gmpath = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
+		except ErrorReturnCode: return None;
+	dConf = getGitConfig(gmFilename);
 	if (confdict is None): return None;
 	if (not 'submodule' in confdict): return None;
-	if (not name in confdict['submodule']): return None;
-	submodule = confdict['submodule'][name];
-	if (not 'mdm' in submodule or not "dependency" == submodule['mdm']): return None;
-	return submodule;
+	dSubm = dConf['submodule'];
+	if (name):
+		if (not name in dSubm): return None;
+		subm = dSubm[name];
+		if (not 'mdm' in subm): return None;
+		if (kind and not subm['mdm'] == kind): return None;
+		return subm;
+	else:
+		for submName, submDat in dSubm.items():
+			if (not 'mdm' in submDat): del dSubm[submName];
+			if (kind and not submDat['mdm'] == kind): del dSubm[submName];
+		return dSubm;
 
 def mdm_status(happy, message):
 	try:
@@ -383,7 +393,7 @@ def mdm_depend_add(args):
 
 def mdm_depend_alter(args):
 	# parse gitmodules, check that the name we were asked to alter actually exist, and get its data.
-	submodule = getMdmDependencyConfig(args.name);
+	submodule = getMdmSubmodules("dependency", args.name);
 	if (submodule is None):
 		return mdm_status(":(", "there is no mdm dependency by that name.");
 	
@@ -416,7 +426,7 @@ def mdm_depend_alter(args):
 
 def mdm_depend_remove(args):
 	# parse gitmodules, check that the name we were asked to alter actually exist, and get its data.
-	submodule = getMdmDependencyConfig(args.name);
+	submodule = getMdmSubmodules("dependency", args.name);
 	if (submodule is None):
 		return mdm_status(":I", "there is no mdm dependency by that name.");
 	
@@ -509,7 +519,10 @@ def mdm_update(args):
 		return mdm_status(":(", "this command should be run within a git repo.");
 	
 	# load all of the submodules in the git index
+	# load all the config that is for mdm dependencies from the submodules file
+	# (we do both instead of just iterating on what we see in the submodules file because otherwise we'd need to write a check somewhere in the loop coming up that the submodule config actually has a matching data in the git object store as well; this way is the minimum forking.)
 	submodules = getGitSubmodules();
+	submConf = getMdmSubmodules("dependency");
 	
 	# load all the mdm dependency submodules from gitmodules file, and only pay attention to the intersection of that and the git index
 	# and then act on them based on the difference between the filesystem state and the git index intention
@@ -518,8 +531,7 @@ def mdm_update(args):
 	contorted = [];
 	removed = [];
 	for subm, status in submodules.items():
-		mdmdep = getMdmDependencyConfig(subm);
-		if (mdmdep is None): continue;		# ignore things that don't look like mdm dependencies
+		if (submConf[subm] is None): continue;	# ignore things that don't look like mdm dependencies.
 		if (status == " "):			# go ahead and ignore things where status indicates filesystem state already matches the index intention
 			unphased += 1;
 			continue;
