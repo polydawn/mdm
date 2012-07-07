@@ -623,7 +623,7 @@ def mdm_init(args):
 	git.submodule("add", "./"+projname+"-releases.git", "releases");
 	
 	# put a marker in the submodules config that this submodule is a releases repo managed by mdm.
-	git.config("-f", ".gitmodules", "submodule.releases.mdm", "dependency");
+	git.config("-f", ".gitmodules", "submodule.releases.mdm", "releases");
 	git.add(".gitmodules");
 	
 	# commit the changes
