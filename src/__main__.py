@@ -450,7 +450,7 @@ def mdm_release(args):
 	
 	# sanity check the releases-repo
 	if (not isGitRepoRoot(args.repo)):	# check that releases-repo is already a git repo
-		return mdm_status(":(", "releases-repo directory '"+args.repo+"' doesn't look like a git repo!");
+		return mdm_status(":(", "releases-repo directory '"+args.repo+"' doesn't look like a git repo!  (Maybe you forgot to set up with `mdm init` before making your first release?)");
 	cd(args.repo);				# enter releases-repo
 	try:					# check that nothing is already in the place where this version will be placed
 		ls(args.version);
