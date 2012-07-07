@@ -25,7 +25,7 @@ import argparse;
 import re;
 import urllib;
 from contextlib import closing;
-from pbs import git, xargs, cd, ls, cp, rm, pwd, glob;
+from pbs import git, cd, ls, cp, rm, pwd, glob;
 from pbs import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 
 __version__ = "0.1"
