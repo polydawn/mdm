@@ -28,7 +28,7 @@ from contextlib import closing;
 from pbs import git, cd, ls, cp, rm, pwd, glob;
 from pbs import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 
-__version__ = "0.1"
+__version__ = "0.2.0"
 __project_url__ = "https://github.com/heavenlyhash/mdm"
 
 
@@ -377,8 +377,8 @@ def mdm_depend_add(args):
 		if (version is None):
 			return mdm_status(":(", "no version_manifest could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.");
 	
-	# check that the remote path is actually looking like a git repo before we call submodule add
-	if (not isGitRepo(args.url+"/"+version,  "refs/tags/"+version)):
+	# check that the remote path is actually looking like a git repo before we call submodule add.
+	if (not isGitRepo(args.url+"/"+version,  "refs/tags/release/"+version)):
 		return mdm_status(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
 	
 	# do the submodule/dependency adding
@@ -410,7 +410,7 @@ def mdm_depend_alter(args):
 			return mdm_status(":'(", "no version_manifest could be found where we expected a releases repository to be for the existing dependency.  maybe it has moved, or this dependency has an unusual/manual release structure, or the internet broke?");
 	
 	# check that the remote path is actually looking like a git repo before we call submodule add
-	if (not isGitRepo(releasesUrl+"/"+version,  "refs/tags/"+version)):
+	if (not isGitRepo(releasesUrl+"/"+version,  "refs/tags/release/"+version)):
 		return mdm_status(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
 	
 	# do the submodule/dependency dancing
@@ -476,7 +476,7 @@ def mdm_release(args):
 	cd(snapdir);
 	git.add(".");							# add the artifacts to snapshot-repo
 	git.commit("-m","release snapshot version "+args.version);	# commit the artifacts to snapshot-repo
-	git.tag(args.version);						# tag the snapshot commit in this snapshot-repo		#TODO: there should be a signing option here.
+	git.tag("release/"+args.version);				# tag the snapshot commit in this snapshot-repo		#TODO: there should be a signing option here.
 	cd("..");							# back out to the releases-repo
 	
 	# commit the snapshot-repo into the releases-repo
@@ -490,14 +490,14 @@ def mdm_release(args):
 	with open(".gitignore", 'a') as f: f.write(args.version+"\n");	# add the new snapshot-repo to the .gitignore so we can have it be expanded later without there being noise
 	git.add(".gitignore");						# and stage that .gitignore change we just made
 	git.commit("-m","release snapshot version "+args.version);	# commit the raw data of the bare snapshot-repo to the releases-repo
-	git.tag(args.version);						# tag the snapshot commit in the releases-repo		#TODO: there should be a signing option here.
+	git.tag("release/"+args.version);				# tag the snapshot commit in the releases-repo		#TODO: there should be a signing option here.
 	
 	# commit the new hash of the releases-repo into the project main repo (if we are operating in a canonically placed releases submodule)
 	if (args.repo == "releases"):
 		cd("..");						# back out to the proj-repo
 		if (isGitRepoRoot(".") and isSubmodule("releases")):	# okay, it really does look like a canonically placed releases submodule.
 			git.commit("releases","-m","release snapshot version "+args.version);
-			git.tag(args.version);
+			git.tag("release/"+args.version);
 	
 	# we could push all the things...
 	#  and that's tempting, because if someone pushes their project without pushing the releases submodule first, they will piss other people off.
