@@ -257,7 +257,7 @@ def mdm_status(happy, message):
 	return {'happy':happy, 'message':message, 'code':code};
 
 def mdm_get_versionmanifest(releasesUrl):
-	# grab the gitmodules file (which may be either local or over remote over raw http transport!) and store as string
+	# grab the gitmodules file (which may be either local, or remote over raw http transport!) and store as string
 	try:
 		with closing(urllib.urlopen(releasesUrl+"/.gitmodules")) as f:
 			remoteModulesStr = f.read();
