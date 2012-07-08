@@ -25,7 +25,8 @@ import argparse;
 import re;
 import urllib;
 from contextlib import closing;
-from pbs import git, cd, ls, cp, rm, pwd, glob;
+from glob import glob;
+from pbs import git, cd, ls, cp, rm, pwd;
 from pbs import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 
 __version__ = "0.2.0"
@@ -115,7 +116,7 @@ def mdm_make_argsparser_releasesc(subparser):
 	parser_makerelease.add_argument(
 		"--files",
 		required=True,
-		help="specifies the directory to get artifact files from.",
+		help="specifies the directory to get artifact files from.  A single literal filename can be used, or basic shell globbing patterns (i.e. \"target/*\") can be used, or if a directory is provided, all files matching \"$files/*\" will be included.",
 	);
 	parser_makerelease.add_argument(
 		"--repo",
@@ -464,10 +465,16 @@ def mdm_release(args):
 	# do the build / copy in the artifacts
 	cd(retreat);							# back out to the dir we were run from.  that's by far the least confusing behavior.
 	try:	# if anything fails in building, we want to destroy the snapshot area so it's not a mess the next time we try to do a release.
-		glom = glob(args.files+"/*");				# select artifacts via glob (we don't really want to match dotfiles on the off chance someone tries to consider their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess.)
-		if (glom == args.files+"/*"):				# if the glob string comes back unchanged, that means it didn't match anything, and that's a problem.
-			return mdm_status(":(", "no files were found at "+args.files+"/");
-		cp("-r", glom, snapdir);				# copy, and recursively if applicable.
+		if (path.isfile(args.files)):		# if it's a file, we take it literally.
+			glom = args.files;
+		else:
+			if (path.isdir(args.files)):	# if it's a dir, we glob everything within it (we don't really want to match dotfiles on the off chance someone tries to consider their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess).
+				glom = glob(args.files+"/*");
+			else:				# if it wasn't anything we can take literally, we'll just toss it to glob() directly and see what it can do with it.
+				glom = glob(args.files);
+			if (not glom):
+				return mdm_status(":(", "no files were found at "+args.files);
+		cp("-r", glom, snapdir);		# copy, and recursively if applicable.
 	except Exception, e:
 		cd(args.repo); rm("-r", args.version);
 		return mdm_status(":'(", "error during build: "+str(e));
