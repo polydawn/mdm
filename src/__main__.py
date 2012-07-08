@@ -479,7 +479,7 @@ def mdm_release(args):
 	# commit the snapshot-repo
 	cd(snapdir);
 	git.add(".");							# add the artifacts to snapshot-repo
-	git.commit("-m","release snapshot version "+args.version);	# commit the artifacts to snapshot-repo
+	git.commit("-m","release version "+args.version);		# commit the artifacts to snapshot-repo
 	git.tag("release/"+args.version);				# tag the snapshot commit in this snapshot-repo		#TODO: there should be a signing option here.
 	cd("..");							# back out to the releases-repo
 	
