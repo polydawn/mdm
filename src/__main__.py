@@ -28,8 +28,9 @@ from contextlib import closing;
 from glob import glob;
 from pbs import git, cd, ls, cp, rm, pwd;
 from pbs import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
+from distutils.version import LooseVersion as fn_version_sort;
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __project_url__ = "https://github.com/heavenlyhash/mdm"
 
 
@@ -200,7 +201,10 @@ def getGitSubmodules():
 def getGitConfig(filename):
 	# note about parsing this: dots in the final of the three keys are not allowed.  dots in the first and second keys ARE allowed (yes, both of them), so I don't know how to parse that correctly from the output of this command (though it's possible from the file itself of course).  I'm just going to assume that there are no dots in the first key; if there are, you're weird and a bastard.
 	try:
-		gmlines = str(git.config("-f", filename, "-lz"));
+		if (isinstance(filename, tuple)):	# this is the (admittedly awkward and terrible) way I chose to indicate that I want a string passed as a file via a /dev/fd/0 hack.  I opened an issue about named pipes upstream in pbs; hopefully a better way to address this comes from there and I'll be able to throw this away.
+			gmlines = str(git.config("-f", "/dev/fd/0", "-lz", _in=filename[0]));
+		else:					# it's a normal filename, chill out.
+			gmlines = str(git.config("-f", filename, "-lz"));
 	except ErrorReturnCode:
 		return None;
 	v = {};
@@ -253,11 +257,18 @@ def mdm_status(happy, message):
 	return {'happy':happy, 'message':message, 'code':code};
 
 def mdm_get_versionmanifest(releasesUrl):
+	# grab the gitmodules file (which may be either local or over remote over raw http transport!) and store as string
 	try:
-		with closing(urllib.urlopen(releasesUrl+"/version_manifest")) as f:
-			return f.read();
+		with closing(urllib.urlopen(releasesUrl+"/.gitmodules")) as f:
+			remoteModulesStr = f.read();
 	except:
 		return None;
+	
+	# hand the gitmodules contents through `git-config` (via getGitConfig via getMdmSubmodules), get a proper dict of the conf back
+	dConf = getMdmSubmodules("release-snapshot", None, (remoteModulesStr,));
+	
+	# we only really need an array of the names back
+	return sorted(filter(lambda pythonYUNoHaveATrueFunctionAlready : True, dConf), key=fn_version_sort);
 
 def mdm_doDependencyAdd(name, url, version):
 	git.submodule("add", join(url+"/"+version), name);				# add us a submodule for great good!
@@ -485,7 +496,7 @@ def mdm_release(args):
 	git.tag("release/"+args.version);				# tag the snapshot commit in this snapshot-repo		#TODO: there should be a signing option here.
 	cd("..");							# back out to the releases-repo
 	
-	# commit the snapshot-repo into the releases-repo
+	# clone the snapshot-repo data into the releases-repo in a way that can be added and commited
 	git.clone(args.version, "--bare", args.version+".git");		# clone a bare mirror of the snapshot-repo
 	rm("-r", args.version+".git/hooks");				# remove files from the bare snapshot-repo that are junk
 	rm("-r", args.version+".git/info/exclude");			# remove files from the bare snapshot-repo that are junk
@@ -493,11 +504,15 @@ def mdm_release(args):
 	git.config("-f", args.version+".git/config", "--remove-section", "remote.origin");	# remove files from the bare snapshot-repo that are junk
 	with open(args.version+".git/refs/heads/.gitignore", 'w') as f: f.write("");	# you don't wanna know.
 	git.add(args.version+".git");					# add the raw data of the bare snapshot-repo to the releases-repo
-	with open("version_manifest", 'a') as f:			# add the new snapshot-repo to the plaintext manifest file so it's easily readable over plain http without cloning the whole releases repo
-		f.write(args.version+"\n");
-	git.add("version_manifest");					# and stage that version_manifest change we just made
-	with open(".gitignore", 'a') as f: f.write(args.version+"\n");	# add the new snapshot-repo to the .gitignore so we can have it be expanded later without there being noise
-	git.add(".gitignore");						# and stage that .gitignore change we just made
+	
+	# add the snapshot-repo as a submodule to the releases-repo (this is part of how clients are later able to retrieve the list of available versions remotely)
+	try: git.config("--get", "remote.origin.url");			# check the state of this repo for a remote origin.  trying to add a submodule with a relative repository url (as we're about to) will fail if that's not set.
+	except ErrorReturnCode: git.config("--add", "remote.origin.url", ".");
+	git.submodule("add", "./"+args.version+".git");			# add the new snapshot-repo as a submodule; this puts it in the submodules file so it's easily readable over plain http without cloning the whole releases repo (it also puts it in the index of the releases repo again, but that's fairly redundant and not the point).
+	git.config("-f", ".gitmodules", "submodule."+args.version+".mdm", "release-snapshot");	# put a marker in the submodules config that this submodule is a release-snapshot managed by mdm.
+	git.add(".gitmodules");						# and stage that version_manifest change we just made
+	
+	# commit the releases-repo changes
 	git.commit("-m","release snapshot version "+args.version);	# commit the raw data of the bare snapshot-repo to the releases-repo
 	git.tag("release/"+args.version);				# tag the snapshot commit in the releases-repo		#TODO: there should be a signing option here.
 	
