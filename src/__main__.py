@@ -161,6 +161,10 @@ def isGitRepoRoot(dirname):
 	finally:
 		cd(retreat);
 
+def amInGitRepo():
+	try: git("rev-parse"); return True;
+	except: return False;
+
 def isGitRepo(url, ref="refs/heads/master"):
 	# we include looking for a ref string that we expect mdm to have put in the snapshot-repo's commit, since I've seen urls that `git ls-remote` will not tell you is not a git repo, but will return many lines of nonsense.  it's also handy if you expect a certain tag to be in a repository, since then it can be a preliminary check that you're looking at the repo you want as opposed to just any repo as well.
 	try:
@@ -294,25 +298,15 @@ def mdm_doDependencyRemove(name):
 #===============================================================================
 
 def mdm_depend_status(args):
-	# get the submodules config.  we use this instead of what's actually inside the .git/config file because our custom mdm properties aren't copied in to the .git/config file by git when `git submodule init`.
-	try:
-		gmpath = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
-	except ErrorReturnCode:
-		return mdm_status(":(", "this command should be run within a git repo.");
-	confdict = getGitConfig(gmpath);
+	# check we're in a repo somewhere.
+	if (not amInGitRepo()):
+		return mdm_status(":(", "this command should be run from within a git repo.");
 	
-	# if there's no gitmodules file, then we just don't have any dependencies
-	if (confdict is None or not 'submodule' in confdict):
-		return " --- no managed dependencies --- ";
-	submodules = confdict['submodule'];
-	
-	# filter out submodules that dont have the mdm dependency tag
-	for modname, vals in submodules.items():
-		if (not 'mdm' in vals or not vals['mdm'] == "dependency"):
-			del submodules[modname];
+	# load config for all mdm dependencies
+	submodules = getMdmSubmodules("dependency");
 	
 	# generate a big string o' data
-	if (len(submodules) is 0):
+	if (not submodules or len(submodules) is 0):
 		return " --- no managed dependencies --- ";
 	width1 = 0;
 	for modname, vals in submodules.items():
