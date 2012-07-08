@@ -343,9 +343,9 @@ def mdm_promptForVersion(releasesUrl):
 
 
 def mdm_depend_add(args):
-	# check we're in a repo top
+	# check we're in a repo root.  `git submodule` insists that we must be at the top.
 	if (not isGitRepoRoot(".")):
-		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");	# like with most things, we certainly could be more flexible than this.  however, it just seems like usage will have less potential to be confusing when the script insisting on a certain pwd means that path arguments will actually make sense relative to where the invocation is being made.
+		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");
 	
 	# git's behavior of assuming relative urls should be relative to the remote origin instead of relative to the local filesystem is almost certainly not what you want.
 	if (args.url[:3] == "../" or args.url[:2] == "./"):
@@ -538,9 +538,9 @@ def mdm_release(args):
 #===============================================================================
 
 def mdm_update(args):
-	# check we're in a repo
+	# check we're in a repo root.  `git submodule` insists that we must be at the top.
 	if (not isGitRepoRoot(".")):
-		return mdm_status(":(", "this command should be run within a git repo.");
+		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");
 	
 	# load all of the submodules in the git index
 	# load all the config that is for mdm dependencies from the submodules file
