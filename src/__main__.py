@@ -498,6 +498,7 @@ def mdm_release(args):
 	rm("-r", args.version+".git/description");			# remove files from the bare snapshot-repo that are junk
 	git.config("-f", args.version+".git/config", "--remove-section", "remote.origin");	# remove files from the bare snapshot-repo that are junk
 	with open(args.version+".git/refs/heads/.gitignore", 'w') as f: f.write("");	# you don't wanna know.
+	git.gc("--aggressive");						# compact the snapshot-repo as hard as possible
 	git.add(args.version+".git");					# add the raw data of the bare snapshot-repo to the releases-repo
 	
 	# add the snapshot-repo as a submodule to the releases-repo (this is part of how clients are later able to retrieve the list of available versions remotely)
