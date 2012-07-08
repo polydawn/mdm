@@ -276,6 +276,7 @@ def mdm_get_versionmanifest(releasesUrl):
 
 def mdm_doDependencyAdd(name, url, version):
 	git.submodule("add", join(url+"/"+version), name);				# add us a submodule for great good!
+	git.submodule("init", name);							# i would've thought `git submodule add` would have already done this, but it seems sometimes it does not.  anyway, at worst, this is a redunant no-op.
 	git.config("-f", ".gitmodules", "submodule."+name+".mdm", "dependency");	# put a marker in the submodules config that this submodule is a dependency managed by mdm.
 	# git.config("-f", ".gitmodules", "submodule."+name+".mdm-version", version);	# we could add another marker to make the version name an explicit property, but what would be the point?  our purposes are served well enough by making the pathname have an extremely explicit connection to the version name.
 	git.add(".gitmodules");								# have to `git add` the gitmodules file again since otherwise the marker we just appended doesn't get staged
