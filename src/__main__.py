@@ -646,24 +646,26 @@ def mdm_init(args):
 #===============================================================================
 # main
 #===============================================================================
-args = mdm_make_argsparser().parse_args();
-answer = {
-	 'depend': lambda args : {
-			'status': mdm_depend_status,
-			   'add': mdm_depend_add,
-			 'alter': mdm_depend_alter,
-			'remove': mdm_depend_remove,
-		}[args.subcommand_depend](args),
-	'release': mdm_release,
-	 'update': mdm_update,
-	   'init': mdm_init,
-}[args.subcommand](args);
-
-if (isinstance(answer, dict)):
-	print >> stderr, answer['message'];
-	print >> stderr, answer['happy'];
-	exit(answer['code']);
-else:
-	print answer;
-	exit(0);
+try:
+	args = mdm_make_argsparser().parse_args();
+	answer = {
+		'depend': lambda args : {
+				'status': mdm_depend_status,
+				'add': mdm_depend_add,
+				'alter': mdm_depend_alter,
+				'remove': mdm_depend_remove,
+			}[args.subcommand_depend](args),
+		'release': mdm_release,
+		'update': mdm_update,
+		'init': mdm_init,
+	}[args.subcommand](args);
+	
+	if (isinstance(answer, dict)):
+		print >> stderr, answer['message'];
+		print >> stderr, answer['happy'];
+		exit(answer['code']);
+	else:
+		print answer;
+		exit(0);
+except KeyboardInterrupt: print >> stderr, "";	# I know what an interrupt is and I don't need a dozen lines of stack trace every time I do it, thanks.
 
