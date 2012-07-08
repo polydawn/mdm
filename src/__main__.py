@@ -472,7 +472,11 @@ def mdm_release(args):
 	
 	# make the snapshot-repo
 	git.init(snapdir);						# create new snapshot-repo inside the releases-repo
-	cp("-nr", glom, snapdir);					# copy, and recursively if applicable.  also, no-clobber mode because we'd hate to ever accidentally overwrite the .git structures.
+	try:								# if anything fails in building, we want to destroy the snapshot area so it's not a mess the next time we try to do a release.
+		cp("-nr", glom, snapdir);				# copy, and recursively if applicable.  also, no-clobber mode because we'd hate to ever accidentally overwrite the .git structures.
+	except Exception, e:
+		cd(args.repo); rm("-rf", args.version);
+		return mdm_status(":'(", "error during build: "+str(e));
 	
 	# commit the snapshot-repo
 	cd(snapdir);
