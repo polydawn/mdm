@@ -615,7 +615,7 @@ def mdm_init(args):
 	# check the state of this repo for a remote origin.  trying to add a submodule with a relative repository url (as we're about to) will fail if that's not set.
 	try: git.config("--get", "remote.origin.url");
 	except ErrorReturnCode:
-		git.config("--add", "remote.origin.url", ".");		#XXX: I haven't done a lot of testing about the long-term health of this.  push and pull work, amusingly.  Still, it might be more sane to just abort and complain about the lack of remote.
+		git.config("--add", "remote.origin.url", pwd().strip());	#XXX: I don't like using pwd here, but "." doesn't work either since the semantically correct thing for actual remotes on say github is to have a "../" prefix in order to make things siblings... and if the remote.origin.url is just ".", `git submodule add` barfs at that prefix.  Everything about this behavior of relative submodule paths is terribly frustrating.
 	
 	# okay!  make the new releases-repo.  put a first commit it in to avoid awkwardness.
 	git.init("releases");
@@ -627,7 +627,7 @@ def mdm_init(args):
 	
 	# add the new releases-repo as a submodule to the project repo.
 	# using a relative url here means the author should be good to go with pushing, and others who clone the project with unauthenticated urls should also be fine.
-	git.submodule("add", "./"+projname+"-releases.git", "releases");
+	git.submodule("add", "../"+projname+"-releases.git", "releases");
 	
 	# put a marker in the submodules config that this submodule is a releases repo managed by mdm.
 	git.config("-f", ".gitmodules", "submodule.releases.mdm", "releases");
