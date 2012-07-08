@@ -488,6 +488,9 @@ def mdm_release(args):
 	# commit the snapshot-repo into the releases-repo
 	git.clone(args.version, "--bare", args.version+".git");		# clone a bare mirror of the snapshot-repo
 	rm("-r", args.version+".git/hooks");				# remove files from the bare snapshot-repo that are junk
+	rm("-r", args.version+".git/info/exclude");			# remove files from the bare snapshot-repo that are junk
+	rm("-r", args.version+".git/description");			# remove files from the bare snapshot-repo that are junk
+	git.config("-f", args.version+".git/config", "--remove-section", "remote.origin");	# remove files from the bare snapshot-repo that are junk
 	with open(args.version+".git/refs/heads/.gitignore", 'w') as f: f.write("");	# you don't wanna know.
 	git.add(args.version+".git");					# add the raw data of the bare snapshot-repo to the releases-repo
 	with open("version_manifest", 'a') as f:			# add the new snapshot-repo to the plaintext manifest file so it's easily readable over plain http without cloning the whole releases repo
