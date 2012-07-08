@@ -459,25 +459,22 @@ def mdm_release(args):
 	except ErrorReturnCode_2:
 		pass;	#good
 	
-	# make the snapshot-repo
-	git.init(args.version);						# create new snapshot-repo
 	
-	# do the build / copy in the artifacts
-	cd(retreat);							# back out to the dir we were run from.  that's by far the least confusing behavior.
-	try:	# if anything fails in building, we want to destroy the snapshot area so it's not a mess the next time we try to do a release.
-		if (path.isfile(args.files)):		# if it's a file, we take it literally.
-			glom = args.files;
-		else:
-			if (path.isdir(args.files)):	# if it's a dir, we glob everything within it (we don't really want to match dotfiles on the off chance someone tries to consider their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess).
-				glom = glob(args.files+"/*");
-			else:				# if it wasn't anything we can take literally, we'll just toss it to glob() directly and see what it can do with it.
-				glom = glob(args.files);
-			if (not glom):
-				return mdm_status(":(", "no files were found at "+args.files);
-		cp("-r", glom, snapdir);		# copy, and recursively if applicable.
-	except Exception, e:
-		cd(args.repo); rm("-r", args.version);
-		return mdm_status(":'(", "error during build: "+str(e));
+	# select the artifact files that we'll be copying in
+	cd(retreat);					# back out to the dir we were run from before going any further, in case the arguments used any relative paths.  that's by far the least confusing behavior.
+	if (path.isfile(args.files)):		# if it's a file, we take it literally.
+		glom = args.files;
+	else:
+		if (path.isdir(args.files)):	# if it's a dir, we glob everything within it (we don't really want to match dotfiles on the off chance someone tries to consider their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess).
+			glom = glob(args.files+"/*");
+		else:				# if it wasn't anything we can take literally, we'll just toss it to glob() directly and see what it can do with it.
+			glom = glob(args.files);
+		if (not glom):
+			return mdm_status(":(", "no files were found at "+args.files+"\nrelease aborted.");
+	
+	# make the snapshot-repo
+	git.init(snapdir);						# create new snapshot-repo inside the releases-repo
+	cp("-nr", glom, snapdir);					# copy, and recursively if applicable.  also, no-clobber mode because we'd hate to ever accidentally overwrite the .git structures.
 	
 	# commit the snapshot-repo
 	cd(snapdir);
