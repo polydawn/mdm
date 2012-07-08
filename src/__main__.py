@@ -221,11 +221,11 @@ def getGitConfig(filename):
 
 def getMdmSubmodules(kind=None, name=None, gmFilename=None):
 	if (not gmFilename):
-		try: gmpath = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
+		try: gmFilename = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
 		except ErrorReturnCode: return None;
 	dConf = getGitConfig(gmFilename);
-	if (confdict is None): return None;
-	if (not 'submodule' in confdict): return None;
+	if (dConf is None): return None;
+	if (not 'submodule' in dConf): return None;
 	dSubm = dConf['submodule'];
 	if (name):
 		if (not name in dSubm): return None;
@@ -235,8 +235,8 @@ def getMdmSubmodules(kind=None, name=None, gmFilename=None):
 		return subm;
 	else:
 		for submName, submDat in dSubm.items():
-			if (not 'mdm' in submDat): del dSubm[submName];
-			if (kind and not submDat['mdm'] == kind): del dSubm[submName];
+			if (not 'mdm' in submDat): del dSubm[submName]; continue;
+			if (kind and not submDat['mdm'] == kind): del dSubm[submName]; continue;
 		return dSubm;
 
 def mdm_status(happy, message):
@@ -318,10 +318,8 @@ def mdm_depend_status(args):
 
 
 def mdm_promptForVersion(releasesUrl):
-	versionmf = mdm_get_versionmanifest(releasesUrl);
-	if (versionmf == None):
-		return None;
-	versions = versionmf.split();
+	versions = mdm_get_versionmanifest(releasesUrl);
+	if (versions is None): return None;
 	print "available versions: "+str(versions);
 	version = None;
 	while (not version):
@@ -535,7 +533,8 @@ def mdm_update(args):
 	contorted = [];
 	removed = [];
 	for subm, status in submodules.items():
-		if (submConf[subm] is None): continue;	# ignore things that don't look like mdm dependencies.
+		if (not submConf): continue;		# this condition should really just go outside the loop
+		if (not subm in submConf): continue;	# ignore things that don't look like mdm dependencies.
 		if (status == " "):			# go ahead and ignore things where status indicates filesystem state already matches the index intention
 			unphased += 1;
 			continue;
