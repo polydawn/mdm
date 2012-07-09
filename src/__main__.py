@@ -275,7 +275,7 @@ def mdm_get_versionmanifest(releasesUrl):
 	return sorted(filter(lambda pythonYUNoHaveATrueFunctionAlready : True, dConf), key=fn_version_sort);
 
 def mdm_doDependencyAdd(name, url, version):
-	git.submodule("add", join(url+"/"+version), name);				# add us a submodule for great good!
+	git.submodule("add", join(url, version+".git"), name);				# add us a submodule for great good!
 	git.submodule("init", name);							# i would've thought `git submodule add` would have already done this, but it seems sometimes it does not.  anyway, at worst, this is a redunant no-op.
 	git.config("-f", ".gitmodules", "submodule."+name+".mdm", "dependency");	# put a marker in the submodules config that this submodule is a dependency managed by mdm.
 	# git.config("-f", ".gitmodules", "submodule."+name+".mdm-version", version);	# we could add another marker to make the version name an explicit property, but what would be the point?  our purposes are served well enough by making the pathname have an extremely explicit connection to the version name.
@@ -383,7 +383,7 @@ def mdm_depend_add(args):
 			return mdm_status(":(", "no version_manifest could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.");
 	
 	# check that the remote path is actually looking like a git repo before we call submodule add.
-	if (not isGitRepo(args.url+"/"+version,  "refs/tags/release/"+version)):
+	if (not isGitRepo(join(args.url, version+".git"),  "refs/tags/release/"+version)):
 		return mdm_status(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
 	
 	# do the submodule/dependency adding
@@ -415,7 +415,7 @@ def mdm_depend_alter(args):
 			return mdm_status(":'(", "no version_manifest could be found where we expected a releases repository to be for the existing dependency.  maybe it has moved, or this dependency has an unusual/manual release structure, or the internet broke?");
 	
 	# check that the remote path is actually looking like a git repo before we call submodule add
-	if (not isGitRepo(releasesUrl+"/"+version,  "refs/tags/release/"+version)):
+	if (not isGitRepo(join(releasesUrl, version+".git"),  "refs/tags/release/"+version)):
 		return mdm_status(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
 	
 	# do the submodule/dependency dancing
