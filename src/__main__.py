@@ -487,7 +487,7 @@ def mdm_release(args):
 	# commit the snapshot-repo
 	cd(snapdir);
 	git.add(".");							# add the artifacts to snapshot-repo
-	git.commit("-m","release version "+args.version);		# commit the artifacts to snapshot-repo
+	git.commit("-m","release snapshot version "+args.version);	# commit the artifacts to snapshot-repo
 	git.tag("release/"+args.version);				# tag the snapshot commit in this snapshot-repo		#TODO: there should be a signing option here.
 	cd("..");							# back out to the releases-repo
 	
@@ -509,14 +509,14 @@ def mdm_release(args):
 	git.add(".gitmodules");						# and stage that version_manifest change we just made
 	
 	# commit the releases-repo changes
-	git.commit("-m","release snapshot version "+args.version);	# commit the raw data of the bare snapshot-repo to the releases-repo
+	git.commit("-m","release version "+args.version);		# commit the raw data of the bare snapshot-repo to the releases-repo
 	git.tag("release/"+args.version);				# tag the snapshot commit in the releases-repo		#TODO: there should be a signing option here.
 	
 	# commit the new hash of the releases-repo into the project main repo (if we are operating in a canonically placed releases submodule)
 	if (args.repo == "releases"):
 		cd("..");						# back out to the proj-repo
 		if (isGitRepoRoot(".") and isSubmodule("releases")):	# okay, it really does look like a canonically placed releases submodule.
-			git.commit("releases","-m","release snapshot version "+args.version);
+			git.commit("releases","-m","release version "+args.version);
 			git.tag("release/"+args.version);
 	
 	# we could push all the things...
