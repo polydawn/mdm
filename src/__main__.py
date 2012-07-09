@@ -30,7 +30,7 @@ from pbs import git, cd, ls, cp, rm, pwd;
 from pbs import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 from distutils.version import LooseVersion as fn_version_sort;
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __project_url__ = "https://github.com/heavenlyhash/mdm"
 
 
@@ -499,7 +499,9 @@ def mdm_release(args):
 	rm("-r", args.version+".git/description");			# remove files from the bare snapshot-repo that are junk
 	git.config("-f", args.version+".git/config", "--remove-section", "remote.origin");	# remove files from the bare snapshot-repo that are junk
 	with open(args.version+".git/refs/heads/.gitignore", 'w') as f: f.write("");	# you don't wanna know.
-	git.gc("--aggressive");						# compact the snapshot-repo as hard as possible
+	cd(args.version+".git");					# cd into the snapshot-repo so we can compact it
+	git.gc("--aggressive");						# compact the snapshot-repo as hard as possible.  this also incidentally performs `git update-server-info`, which is necessary for raw/dumb http cloning to work.
+	cd("..");							# back out to the releases-repo
 	git.add(args.version+".git");					# add the raw data of the bare snapshot-repo to the releases-repo
 	
 	# add the snapshot-repo as a submodule to the releases-repo (this is part of how clients are later able to retrieve the list of available versions remotely)
