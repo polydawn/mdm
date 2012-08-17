@@ -98,7 +98,7 @@ Alternatively, if you're the cautious type, you may wish to perform your build, 
 Usage: Initialing a release system:
 -------------------------------------------------------
 
-When you're setting up a project to perform releases with with ```mdm```, you need to not only create the git repository for that project, but also a repository for its releases.
+When you're setting up a project to perform releases with ```mdm```, you need to not only create the git repository for that project, but also a repository for its releases.
 ```mdm``` will happily automate this too:
 
 ```
@@ -110,10 +110,60 @@ The release-repo url defauls to ```./${yourproj}-releases.git``` --
 if your project is published at ```https://github.com/username/mdm.git```, the releases repository will be set up to publish to ```https://github.com/username/mdm-releases.git```
 
 Setup of the publishing site for the release-repo is still up to you though -- so for example if you use github, you still have to sign in and click "new repository".  Don't blow your spine out with the strain.
+And you should probably do the "remote add" and first "push" stuff before moving on to do your first release.
+
+If you're not a fan of github, hosting your own releases is crazy easy: you just put a clone of your releases repo in directory that's published over http somewhere.  Zero configuration required.
 
 Note that all of this init business is totally optional and you can refuse to do so.
 If you want to do some sort of noncanonical setup, the rest of mdm will play nice;
 doing releases for example just requires that you run ```mdm``` with an extra argument, a la ```mdm release --repo=../my/weird/path/releases-repo```.
+
+
+Usage: Adding a Dependency:
+---------------------------
+
+```mdm depend add [URL]``` is the general form.
+Specifying a version is optional, because ```mdm``` will look for the available versions and interactively prompt you to choose one.
+A local name and local path for the dependency can optionally be specified as well.
+
+
+Usage: Updating all Dependencies:
+---------------------------------
+
+```mdm update``` askes mdm to pull the correct versions of all dependencies into the current project.
+
+Run this command whenever you clone a new repo, or pull changes that add or remove or alter dependencies, or whenever you switch between branches that have different dependencies.
+
+
+Usage: Looking at Dependencies:
+-------------------------------
+
+```mdm depend status``` will list the all of the dependencies managed by mdm in the current project.
+
+
+Usage: Changing a Dependency Version:
+-------------------------------------
+
+```mdm depend alter [NAME]``` looks at the releases repository for something you already depend on and lets you switch which version your project specifies.
+
+
+Usage: Dropping a Dependency:
+-----------------------------
+
+```mdm depend remove [NAME]``` removes a dependency from the repo's submodule config and the git hash tree, and tosses that repo.
+
+
+Usage: just in general...
+-------------------------
+
+You can add a ```-h``` to any of these commands and get specific help and a full list of all available options, including descriptions of behaviors and default values.
+So for example, ```mdm -h``` will tell you all of the subcommands of mdm; ```mdm depend add -h``` will list all possible options of the ```add``` subcommand in detail.
+
+Most of mdm commands (and this really shouldn't be suprising!) generate git commits when you ask them to do something.
+So, there's a couple of implications of that:
+
+1. you should probably only do things in a relatively clean working tree.  Like, if you're in the middle of doing changes to submodules, you probably shouldn't also use ```mdm depend alter```, because it'll commit the .gitmodules file.
+1. notice I said "commit" and not "push"!  That means anything mdm does is actually totally easy to back out of if it doesn't quite go according to plan.
 
 
 
