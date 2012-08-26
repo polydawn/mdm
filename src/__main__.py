@@ -663,15 +663,15 @@ def mdm_init(args):
 try:
 	args = mdm_make_argsparser().parse_args();
 	answer = {
-		'depend': lambda args : {
+		 'depend': lambda args : {
 				'status': mdm_depend_status,
-				'add': mdm_depend_add,
-				'alter': mdm_depend_alter,
+				   'add': mdm_depend_add,
+				 'alter': mdm_depend_alter,
 				'remove': mdm_depend_remove,
 			}[args.subcommand_depend](args),
 		'release': mdm_release,
-		'update': mdm_update,
-		'init': mdm_init,
+		 'update': mdm_update,
+		   'init': mdm_init,
 	}[args.subcommand](args);
 	
 	if (isinstance(answer, dict)):
