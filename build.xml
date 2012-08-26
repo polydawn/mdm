@@ -49,4 +49,13 @@
 		<delete dir="${build}"/>
 		<delete dir="${dist}"/>
 	</target>
+	
+	
+	<target name="release" depends="clean, bang">
+		<exec executable="mdm">
+			<arg value="release" />
+			<arg value="--version=${version}" />
+			<arg value="--files=${dist}" />
+		</exec>
+	</target>
 </project>
