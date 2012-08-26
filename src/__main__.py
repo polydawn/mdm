@@ -30,7 +30,7 @@ from pbs import git, cd, ls, cp, rm, pwd;
 from pbs import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 from distutils.version import LooseVersion as fn_version_sort;
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __project_url__ = "https://github.com/heavenlyhash/mdm"
 
 
@@ -488,7 +488,12 @@ def mdm_release(args):
 	# commit the snapshot-repo
 	cd(snapdir);
 	git.add(".");							# add the artifacts to snapshot-repo
-	git.commit("-m","release snapshot version "+args.version);	# commit the artifacts to snapshot-repo
+	convenv = {							# set up an env vars that will make the single commit in the snapshot-repo have uniform blob headers... this means if more than one person ever for example makes their own releases repo from artifacts they got somewhere else, their snapshots will actually converge to the same hash!
+		    'GIT_AUTHOR_NAME' : "mdm",				 'GIT_COMMITTER_NAME' : "mdm",
+		   'GIT_AUTHOR_EMAIL' : "",				'GIT_COMMITTER_EMAIL' : "",
+		    'GIT_AUTHOR_DATE' : "Jan 01 1970 00:00 -0000",	 'GIT_COMMITTER_DATE' : "Jan 01 1970 00:00 -0000",
+	}
+	git.commit("-m","release snapshot version "+args.version, _env=convenv);	# commit the artifacts to snapshot-repo
 	git.tag("release/"+args.version);				# tag the snapshot commit in this snapshot-repo		#TODO: there should be a signing option here.
 	cd("..");							# back out to the releases-repo
 	
