@@ -14,7 +14,7 @@
 	<import file="lib/exus-build/build-exultant.xml"/>
 	
 	
-	<target name="init">
+	<target name="init" depends="exusInitId">
 		<mkdir dir="${src}"/>
 		<mkdir dir="${lib}"/>
 		<mkdir dir="${build}"/>
