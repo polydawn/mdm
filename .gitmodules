@@ -4,3 +4,7 @@
 [submodule "lib/exus-build"]
 	path = lib/exus-build
 	url = https://github.com/heavenlyhash/exus-build.git
+[submodule "releases"]
+	path = releases
+	url = https://github.com/mdm-releases/mdm-releases.git
+	mdm = releases
