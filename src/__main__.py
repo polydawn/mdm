@@ -30,7 +30,7 @@ from pbs import git, cd, ls, cp, rm, pwd;
 from pbs import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 from distutils.version import LooseVersion as fn_version_sort;
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 __project_url__ = "https://github.com/heavenlyhash/mdm"
 
 
@@ -288,6 +288,7 @@ def mdm_doDependencyRemove(name):
 	git.add(".gitmodules");								# stage the gitmodule file change into the index.
 	git.rm("--cached", name);							# mark submodule for removal in the index.  have to use the cached option and rm-rf it ourselves or git has a beef, seems silly to me but eh.
 	rm("-rf", name);								# clear out the actual files
+	rm("-rf", join(".git/modules",name));						# if this is one of the newer version of git (specifically, 1.7.8 or newer) that stores the submodule's data in the parent projects .git dir, clear that out forcefully as well or else git does some very silly things (you end up with the url changed but it recreates the old files and doesn't change the object id like it should).
 	try: git.config("-f", ".git/config", "--remove-section", "submodule."+name);	# remove conflig lines for this submodule currently in .git/config.	# environmental $GIT_DIR is not supported.	# i'm a little unhappy about doing this before trying to commit anything else for smooth error recovery reasons... but on the other hand, we want to use this function to compose with other things in the same commit, so.
 	except: pass;									# errors because there was already no such config lines aren't really errors.
 	pass;
