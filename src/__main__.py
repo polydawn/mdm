@@ -512,7 +512,7 @@ def mdm_release(args):
 	
 	# add the snapshot-repo as a submodule to the releases-repo (this is part of how clients are later able to retrieve the list of available versions remotely)
 	try: git.config("--get", "remote.origin.url");			# check the state of this repo for a remote origin.  trying to add a submodule with a relative repository url (as we're about to) will fail if that's not set.
-	except ErrorReturnCode: git.config("--add", "remote.origin.url", ".");
+	except ErrorReturnCode: git.config("--add", "remote.origin.url", ".");		#TODO: consider updating: this restriction actually appears to have been considered a bug in git, as it was removed in git v1.7.6.1.  mdm may want to remove this workaround behavior in the future.
 	git.submodule("add", "./"+args.version+".git");			# add the new snapshot-repo as a submodule; this puts it in the submodules file so it's easily readable over plain http without cloning the whole releases repo (it also puts it in the index of the releases repo again, but that's fairly redundant and not the point).
 	git.config("-f", ".gitmodules", "submodule."+args.version+".mdm", "release-snapshot");	# put a marker in the submodules config that this submodule is a release-snapshot managed by mdm.
 	git.add(".gitmodules");						# and stage that version_manifest change we just made
