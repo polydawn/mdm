@@ -654,6 +654,7 @@ def mdm_init(args):
 	
 	# put a marker in the submodules config that this submodule is a releases repo managed by mdm.
 	git.config("-f", ".gitmodules", "submodule.releases.mdm", "releases");
+	git.config("-f", ".gitmodules", "submodule.releases.update", "none");	# by default, most people probably won't need to download a releases repo unless they explicitly ask for it.
 	git.add(".gitmodules");
 	
 	# commit the changes
