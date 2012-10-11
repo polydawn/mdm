@@ -467,7 +467,7 @@ def mdm_release(args):
 	
 	
 	# select the artifact files that we'll be copying in
-	cd(retreat);					# back out to the dir we were run from before going any further, in case the arguments used any relative paths.  that's by far the least confusing behavior.
+	cd(retreat);				# back out to the dir we were run from before going any further, in case the arguments used any relative paths.  that's by far the least confusing behavior.
 	if (path.isfile(args.files)):		# if it's a file, we take it literally.
 		glom = args.files;
 	else:
