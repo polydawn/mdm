@@ -48,6 +48,19 @@
 	<target name="clean" description="clean up">
 		<delete dir="${build}"/>
 		<delete dir="${dist}"/>
+		<delete dir="demo"/>
+	</target>
+	
+	
+	<target name="run-test" depends="bang">
+		<!-- actually, just running this in a shell can be nicer since then you don't have ant dicking up your output buffering in strange ways:
+			ant bang && export MDM=$(pwd)/dist/mdm && ( rm -rf demo/ ; mdma.sh -t)
+		-->
+		<delete dir="demo" />
+		<exec executable="mdma.sh">
+			<env key="MDM" value="${basedir}/${dist}/${app}" />
+			<arg value="-t" />
+		</exec>
 	</target>
 	
 	
