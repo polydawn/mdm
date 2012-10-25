@@ -27,8 +27,8 @@ import re;
 import urllib;
 from contextlib import closing;
 from glob import glob;
-from sh import git, cd, ls, cp, rm, pwd;
-from sh import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
+from pbs.sh import git, cd, ls, cp, rm, pwd;
+from pbs.sh import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 from distutils.version import LooseVersion as fn_version_sort;
 
 from util import *;
