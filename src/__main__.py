@@ -34,7 +34,7 @@ from distutils.version import LooseVersion as fn_version_sort;
 from util import *;
 import cgw;
 
-__version__ = "0.6.0"
+__version__ = "1.0.0"
 __project_url__ = "https://github.com/heavenlyhash/mdm"
 
 
@@ -42,102 +42,102 @@ __project_url__ = "https://github.com/heavenlyhash/mdm"
 #===============================================================================
 # args parsing setup
 #===============================================================================
-def mdm_make_argsparser():
+def mdm_makeArgsParser():
 	parser = argparse.ArgumentParser(prog="mdm");
 	parser.add_argument("--version", action="version", version=__version__);
 	subparser = parser.add_subparsers(dest="subcommand", title="subcommands");
-	mdm_make_argsparser_dependsc(subparser);
-	mdm_make_argsparser_releasesc(subparser);
-	mdm_make_argsparser_updatesc(subparser);
-	mdm_make_argsparser_initsc(subparser);
+	mdm_makeArgsParser_status(subparser);
+	mdm_makeArgsParser_update(subparser);
+	mdm_makeArgsParser_add(subparser);
+	mdm_makeArgsParser_alter(subparser);
+	mdm_makeArgsParser_remove(subparser);
+	mdm_makeArgsParser_release(subparser);
+	mdm_makeArgsParser_releaseinit(subparser);
 	return parser;
 
-def mdm_make_argsparser_dependsc(subparser):
-	parser_depend = subparser.add_parser(
-		"depend",
-		help="set up or modify a dependency.",
-	);
-	parser_depend_subparser = parser_depend.add_subparsers(dest="subcommand_depend", title="depend-subcommand");
-	
-	parser_depend_status = parser_depend_subparser.add_parser(
+def mdm_makeArgsParser_status(subparser):
+	parser_status = subparser.add_parser(
 		"status",
-		help="list dependencies managed by mdm.",
-	);
-	
-	parser_depend_add = parser_depend_subparser.add_parser(
-		"add",
-		help="link a new dependency.",
-	);
-	parser_depend_add.add_argument(
-		"url",
-		help="url pointing to the mdm-style releases repository that contains snapshots.  This url should provide direct access to the contents of the master branch of the releases repository (i.e. for a project that clones from https://github.com/heavenlyhash/mdm.git, what you want here is https://raw.github.com/heavenlyhash/mdm-releases/master ).",
-	);	# these URLs are really troublingly unrelated to any other urls in use.  I can write a special parser that takes a normal repo url for github and parses it into the expected releases raw-readable url, and another one for redmine, and another one for gitweb, but it's all very gross.  I guess for the present I'm going to rely on people using mdm patterns to put the raw url in their project's readme and leave a manual step here.  But in the future, perhaps it would be pleasant to make a central repo site that could lookup names into release-repo raw-read urls.
-	parser_depend_add.add_argument(
-		"--lib",
-		help="specifies the directory which shall contain the dependency module.  (default: '%(default)s')",
-		default="lib",
-	);
-	parser_depend_add.add_argument(
-		"--name",
-		help="the name to give the new dependency module (if not specified, the url of the upstream will be parsed to determine the appropriate name, and if that fails, mdm will prompt you to choose one interactively).  Note that in the future, this dependency will be refered to by its path -- i.e., ${lib}/${name} ."
-	);
-	parser_depend_add.add_argument(
-		"--version",
-		help="the version name of the dependency to set up.  If not provided, a mdm will try to obtain a list of available versions and prompt you to choose one interactively."
-	);
-	
-	parser_depend_alter = parser_depend_subparser.add_parser(
-		"alter",
-		help="alter an existing dependency (i.e. switch to a new version).",
-	);
-	parser_depend_alter.add_argument(
-		"name",
-		help="the name of the dependency module to operate on."
-	);
-	parser_depend_alter.add_argument(
-		"--version",
-		help="the version name of the dependency to set up.  If not provided, mdm will search for a list of options."
-	);
-	
-	parser_depend_remove = parser_depend_subparser.add_parser(
-		"remove",
-		help="remove an existing dependency.",
-	);
-	parser_depend_remove.add_argument(
-		"name",
-		help="the name of the dependency module to operate on."
+		help="list dependencies managed by mdm, and their current status.",
 	);
 
-def mdm_make_argsparser_releasesc(subparser):
-	parser_makerelease = subparser.add_parser(
-		"release",
-		help="generates a new release (creating and committing a new bare repo into your project's releases repo, then pulling that update and commiting it into the project's releases submodule).",
-	);
-	parser_makerelease.add_argument(
-		"--version",
-		required=True,				# this appears to be broken and does not cause correct doc generation in my version of python.  so that's disappointing.
-		help="specifies the name/number of the release version to be made.  This will be used in creating tags, commit messages, and the name of the snapshot repository.",
-	);
-	parser_makerelease.add_argument(
-		"--files",
-		required=True,
-		help="specifies the directory to get artifact files from.  A single literal filename can be used, or basic shell globbing patterns (i.e. \"target/*\") can be used, or if a directory is provided, all files matching \"$files/*\" will be included.",
-	);
-	parser_makerelease.add_argument(
-		"--repo",
-		help="specifies a local path to the releases repository for this project.  The new release snapshot repo will be added as raw data to this repository.  By default, it is assumed that the releases repo of this project is already a submodule in the ./releases/ directory, but using a path like '../projX-releases/' is also reasonable.  (default: '%(default)s')",
-		default="releases",
-	);
-
-def mdm_make_argsparser_updatesc(subparser):
+def mdm_makeArgsParser_update(subparser):
 	parser_update = subparser.add_parser(
 		"update",
 		help="pull all dependencies up to date.  Run this after cloning a fresh repo, or pulling or checking out commits that change a dependency.",
 	);
 
-def mdm_make_argsparser_initsc(subparser):
-	parser_clone = subparser.add_parser(
-		"init",
+def mdm_makeArgsParser_add(subparser):
+	parser_add = subparser.add_parser(
+		"add",
+		help="link a new dependency.",
+	);
+	parser_add.add_argument(
+		"url",
+		help="url pointing to the mdm-style releases repository that contains snapshots.  This url should provide direct access to the contents of the master branch of the releases repository (i.e. for a project that clones from https://github.com/heavenlyhash/mdm.git, what you want here is https://raw.github.com/heavenlyhash/mdm-releases/master ).",
+	);	# these URLs are really troublingly unrelated to any other urls in use.  I can write a special parser that takes a normal repo url for github and parses it into the expected releases raw-readable url, and another one for redmine, and another one for gitweb, but it's all very gross.  I guess for the present I'm going to rely on people using mdm patterns to put the raw url in their project's readme and leave a manual step here.  But in the future, perhaps it would be pleasant to make a central repo site that could lookup names into release-repo raw-read urls.
+	parser_add.add_argument(
+		"--lib",
+		help="specifies the directory which shall contain the dependency module.  (default: '%(default)s')",
+		default="lib",
+	);
+	parser_add.add_argument(
+		"--name",
+		help="the name to give the new dependency module (if not specified, the url of the upstream will be parsed to determine the appropriate name, and if that fails, mdm will prompt you to choose one interactively).  Note that in the future, this dependency will be refered to by its path -- i.e., ${lib}/${name} ."
+	);
+	parser_add.add_argument(
+		"--version",
+		help="the version name of the dependency to set up.  If not provided, a mdm will try to obtain a list of available versions and prompt you to choose one interactively."
+	);
+
+def mdm_makeArgsParser_alter(subparser):
+	parser_alter = subparser.add_parser(
+		"alter",
+		help="alter an existing dependency (i.e. switch to a new version).",
+	);
+	parser_alter.add_argument(
+		"name",
+		help="the name of the dependency module to operate on."
+	);
+	parser_alter.add_argument(
+		"--version",
+		help="the version name of the dependency to set up.  If not provided, mdm will search for a list of options."
+	);
+
+def mdm_makeArgsParser_remove(subparser):
+	parser_remove = subparser.add_parser(
+		"remove",
+		help="remove an existing dependency.",
+	);
+	parser_remove.add_argument(
+		"name",
+		help="the name of the dependency module to operate on."
+	);
+
+def mdm_makeArgsParser_release(subparser):
+	parser_release = subparser.add_parser(
+		"release",
+		help="generates a new release (creating and committing a new bare repo into your project's releases repo, then pulling that update and commiting it into the project's releases submodule).",
+	);
+	parser_release.add_argument(
+		"--version",
+		required=True,
+		help="specifies the name/number of the release version to be made.  This will be used in creating tags, commit messages, and the name of the snapshot repository.",
+	);
+	parser_release.add_argument(
+		"--files",
+		required=True,
+		help="specifies the directory to get artifact files from.  A single literal filename can be used, or basic shell globbing patterns (i.e. \"target/*\") can be used, or if a directory is provided, all files matching \"$files/*\" will be included.",
+	);
+	parser_release.add_argument(
+		"--repo",
+		help="specifies a local path to the releases repository for this project.  The new release snapshot repo will be added as raw data to this repository.  By default, it is assumed that the releases repo of this project is already a submodule in the ./releases/ directory, but using a path like '../projX-releases/' is also reasonable.  (default: '%(default)s')",
+		default="releases",
+	);
+
+def mdm_makeArgsParser_releaseinit(subparser):
+	parser_releaseinit = subparser.add_parser(
+		"release-init",
 		help="set up a releases repository for a new project.",
 	);
 
@@ -219,7 +219,7 @@ def mdm_doDependencyRemove(name):
 # depend
 #===============================================================================
 
-def mdm_depend_status(args):
+def mdm_cmd_status(args):
 	# check we're in a repo somewhere.
 	if (not cgw.cwdIsInRepo()):
 		return mdm_status(":(", "this command should be run from within a git repo.");
@@ -258,7 +258,7 @@ def mdm_promptForVersion(releasesUrl):
 
 
 
-def mdm_depend_add(args):
+def mdm_cmd_add(args):
 	# check we're in a repo root.  `git submodule` insists that we must be at the top.
 	if (not cgw.isRepoRoot(".")):
 		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");
@@ -317,7 +317,7 @@ def mdm_depend_add(args):
 
 
 
-def mdm_depend_alter(args):
+def mdm_cmd_alter(args):
 	# parse gitmodules, check that the name we were asked to alter actually exist, and get its data.
 	submodule = getMdmSubmodules("dependency", args.name);
 	if (submodule is None):
@@ -350,7 +350,7 @@ def mdm_depend_alter(args):
 
 
 
-def mdm_depend_remove(args):
+def mdm_cmd_remove(args):
 	# parse gitmodules, check that the name we were asked to alter actually exist, and get its data.
 	submodule = getMdmSubmodules("dependency", args.name);
 	if (submodule is None):
@@ -370,7 +370,7 @@ def mdm_depend_remove(args):
 # release
 #===============================================================================
 
-def mdm_release(args):
+def mdm_cmd_release(args):
 	retreat = os.getcwd();			# mind you that this command can be run from anywhere; it is not limited to the root of your project repo (though that's probably where I would almost always do it from).
 	snapdir = args.repo+"/"+args.version;	# args.repo may have been either a relative or absolute path... dodge the issue by always cd'ing back to retreat before cd'ing to this.
 	
@@ -462,7 +462,7 @@ def mdm_release(args):
 # update
 #===============================================================================
 
-def mdm_update(args):
+def mdm_cmd_update(args):
 	# check we're in a repo root.  `git submodule` insists that we must be at the top.
 	if (not cgw.isRepoRoot(".")):
 		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");
@@ -529,10 +529,10 @@ def mdm_update(args):
 
 
 #===============================================================================
-# init
+# release-init
 #===============================================================================
 
-def mdm_init(args):
+def mdm_cmd_releaseinit(args):
 	# am i at the root of a repo like I expect to be?		#XXX: i suppose we could do the first git-init as well if we're run in a void.  or better, with a name argument.
 	if (not cgw.isRepoRoot(".")):
 		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");
@@ -600,17 +600,15 @@ def mdm_init(args):
 # main
 #===============================================================================
 try:
-	args = mdm_make_argsparser().parse_args();
+	args = mdm_makeArgsParser().parse_args();
 	answer = {
-		 'depend': lambda args : {
-				'status': mdm_depend_status,
-				   'add': mdm_depend_add,
-				 'alter': mdm_depend_alter,
-				'remove': mdm_depend_remove,
-			}[args.subcommand_depend](args),
-		'release': mdm_release,
-		 'update': mdm_update,
-		   'init': mdm_init,
+		      'status': mdm_cmd_status,
+		      'update': mdm_cmd_update,
+		         'add': mdm_cmd_add,
+		       'alter': mdm_cmd_alter,
+		      'remove': mdm_cmd_remove,
+		     'release': mdm_cmd_release,
+		'release-init': mdm_cmd_releaseinit,
 	}[args.subcommand](args);
 	
 	if (isinstance(answer, dict)):

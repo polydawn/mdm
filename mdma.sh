@@ -113,13 +113,13 @@ awaitack;
 
 echo "${clblue}#  Initialize mdm release repositories for the upstream projects.${cnone}"
 (cd projUpstream1 &&
- $MDM init &&
+ $MDM release-init &&
  echo "${clblack}# in the project repo history: ${cnone}" && git log --oneline releases &&
  echo "${clblack}# in the release repo history: ${cnone}" && (cd releases && git log --oneline)
 )
 echo
 (cd projUpstream2 &&
- $MDM init &&
+ $MDM release-init &&
  echo "${clblack}# in the project repo history: ${cnone}" && git log --oneline releases &&
  echo "${clblack}# in the release repo history: ${cnone}" && (cd releases && git log --oneline)
 )
@@ -183,9 +183,9 @@ awaitack;
 
 
 
-echo "${clblue}#  Now before we go on... what does \`mdm depend status\` have to say about projAlpha?${cnone}"
+echo "${clblue}#  Now before we go on... what does \`mdm status\` have to say about projAlpha?${cnone}"
 (cd projAlpha
- $MDM depend status
+ $MDM status
 )
 echo -e "${clblue} ----------------------------${cnone}\n\n"
 
@@ -195,11 +195,11 @@ awaitack;
 
 echo "${clblue}#  Moment of truth: we can now use mdm to pull those releases into another project.${cnone}"
 (cd projAlpha
- echo "${clblack}# now to add the first project, we do \`mdm depend add \$demodir/hub/projUpstream1.git\`: ${cnone}"
- $MDM depend add $demodir/hub/projUpstream1-releases.git --version=v1.0
+ echo "${clblack}# now to add the first project, we do \`mdm add \$demodir/hub/projUpstream1.git\`: ${cnone}"
+ $MDM add $demodir/hub/projUpstream1-releases.git --version=v1.0
  echo
- echo "${clblack}# same thing to depend on another project: \`mdm depend add \$demodir/hub/projUpstream2.git\`: ${cnone}"
- $MDM depend add $demodir/hub/projUpstream2-releases.git --version=v1.0
+ echo "${clblack}# same thing to depend on another project: \`mdm add \$demodir/hub/projUpstream2.git\`: ${cnone}"
+ $MDM add $demodir/hub/projUpstream2-releases.git --version=v1.0
  echo
  echo "${clblack}# we gave a --version argument to mdm here as well to keep the demo script flying along,"
  echo "#  but of course you can not give the version argument and will recieve an interactive prompt.${cnone}"
@@ -213,7 +213,7 @@ awaitack;
 echo "${clblue}#  So did it work?${cnone}"
 (cd projAlpha
  echo "${clblack}# now here's what \`mdm depend status\` thinks of project alpha: ${cnone}"
- $MDM depend status
+ $MDM status
  echo
 )
 echo "${clblack}# and we can see the files from the dependency release in place right where we asked: ${cnone}"
@@ -246,15 +246,15 @@ awaitack;
 
 echo "${clblue}#  Behold, the clones of the project can pull all this:${cnone}"
 (cd clone/projAlpha
- $MDM depend status
+ $MDM status
  echo
  git pull
  echo
- $MDM depend status
+ $MDM status
  echo
  $MDM update
  echo
- $MDM depend status
+ $MDM status
 )
 echo -e "${clblue} ----------------------------${cnone}\n\n"
 
