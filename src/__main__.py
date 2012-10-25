@@ -31,8 +31,9 @@ from pbs.sh import git, cd, ls, cp, rm, pwd;
 from pbs.sh import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 from distutils.version import LooseVersion as fn_version_sort;
 
-from util import *;
-import cgw;
+from mdm.util import *;
+import mdm.cgw as cgw;
+import mdm.plumbing;
 
 __version__ = "1.0.0"
 __project_url__ = "https://github.com/heavenlyhash/mdm"
@@ -144,88 +145,16 @@ def mdm_makeArgsParser_releaseinit(subparser):
 
 
 #===============================================================================
-# helpers
-#===============================================================================
-
-def getMdmSubmodules(kind=None, name=None, gmFilename=None):
-	if (not gmFilename):
-		try: gmFilename = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
-		except ErrorReturnCode: return None;
-	dConf = cgw.getConfig(gmFilename);
-	if (dConf is None): return None;
-	if (not 'submodule' in dConf): return None;
-	dSubm = dConf['submodule'];
-	if (name):
-		if (not name in dSubm): return None;
-		subm = dSubm[name];
-		if (not 'mdm' in subm): return None;
-		if (kind and not subm['mdm'] == kind): return None;
-		return subm;
-	else:
-		for submName, submDat in dSubm.items():
-			if (not 'mdm' in submDat): del dSubm[submName]; continue;
-			if (kind and not submDat['mdm'] == kind): del dSubm[submName]; continue;
-		return dSubm;
-
-def mdm_status(happy, message):
-	try:
-		code = {
-			 ":D": 0,	# happy face is appropriate for great success
-			     # 1 is a catchall for general/unexpected errors.
-			     # 2 is for "misuse of shell builtins" in Bash.
-			 ":(": 3,	# sadness is appropriate for a misconfigured project or bad args or something
-			":'(": 4,	# tears is appropriate for major exceptions or subprocesses not doing well
-			 ":I": 0,	# cramped face is appropriate for when we sat on our hands because the request was awkward but the goal state is satisfied anyway
-		}[happy];
-	except: code = 128;
-	return {'happy':happy, 'message':message, 'code':code};
-
-def mdm_get_versionmanifest(releasesUrl):
-	# grab the gitmodules file (which may be either local, or remote over raw http transport!) and store as string
-	try:
-		with closing(urllib.urlopen(releasesUrl+"/.gitmodules")) as f:
-			remoteModulesStr = f.read();
-	except:
-		return None;
-	
-	# hand the gitmodules contents through `git-config` (via cgw.getConfig via getMdmSubmodules), get a proper dict of the conf back
-	dConf = getMdmSubmodules("release-snapshot", None, (remoteModulesStr,));
-	
-	# we only really need an array of the names back
-	return sorted(filter(lambda pythonYUNoHaveATrueFunctionAlready : True, dConf), key=fn_version_sort);
-
-def mdm_doDependencyAdd(name, url, version):
-	git.submodule("add", join(url, version+".git"), name);				# add us a submodule for great good!
-	git.submodule("init", name);							# i would've thought `git submodule add` would have already done this, but it seems sometimes it does not.  anyway, at worst, this is a redunant no-op.
-	git.config("-f", ".gitmodules", "submodule."+name+".mdm", "dependency");	# put a marker in the submodules config that this submodule is a dependency managed by mdm.
-	# git.config("-f", ".gitmodules", "submodule."+name+".mdm-version", version);	# we could add another marker to make the version name an explicit property, but what would be the point?  our purposes are served well enough by making the pathname have an extremely explicit connection to the version name.
-	git.add(".gitmodules");								# have to `git add` the gitmodules file again since otherwise the marker we just appended doesn't get staged
-	pass;
-
-def mdm_doDependencyRemove(name):
-	try: git.config("-f", ".gitmodules", "--remove-section", "submodule."+name);	# remove config lines for this submodule currently in gitmodules file.  also, note i'm assuming we're already at the pwd of the repo top here.
-	except: pass;									# errors because there was already no such config lines aren't really errors.
-	git.add(".gitmodules");								# stage the gitmodule file change into the index.
-	git.rm("--cached", name);							# mark submodule for removal in the index.  have to use the cached option and rm-rf it ourselves or git has a beef, seems silly to me but eh.
-	rm("-rf", name);								# clear out the actual files
-	rm("-rf", join(".git/modules",name));						# if this is one of the newer version of git (specifically, 1.7.8 or newer) that stores the submodule's data in the parent projects .git dir, clear that out forcefully as well or else git does some very silly things (you end up with the url changed but it recreates the old files and doesn't change the object id like it should).
-	try: git.config("-f", ".git/config", "--remove-section", "submodule."+name);	# remove conflig lines for this submodule currently in .git/config.	# environmental $GIT_DIR is not supported.	# i'm a little unhappy about doing this before trying to commit anything else for smooth error recovery reasons... but on the other hand, we want to use this function to compose with other things in the same commit, so.
-	except: pass;									# errors because there was already no such config lines aren't really errors.
-	pass;
-
-
-
-#===============================================================================
 # depend
 #===============================================================================
 
 def mdm_cmd_status(args):
 	# check we're in a repo somewhere.
 	if (not cgw.cwdIsInRepo()):
-		return mdm_status(":(", "this command should be run from within a git repo.");
+		return exitStatus(":(", "this command should be run from within a git repo.");
 	
 	# load config for all mdm dependencies
-	submodules = getMdmSubmodules("dependency");
+	submodules = mdm.plumbing.getMdmSubmodules("dependency");
 	
 	# generate a big string o' data
 	if (not submodules or len(submodules) is 0):
@@ -245,7 +174,7 @@ def mdm_cmd_status(args):
 
 
 def mdm_promptForVersion(releasesUrl):
-	versions = mdm_get_versionmanifest(releasesUrl);
+	versions = mdm.plumbing.getVersionManifest(releasesUrl);
 	if (versions is None): return None;
 	print "available versions: "+str(versions);
 	version = None;
@@ -261,11 +190,11 @@ def mdm_promptForVersion(releasesUrl):
 def mdm_cmd_add(args):
 	# check we're in a repo root.  `git submodule` insists that we must be at the top.
 	if (not cgw.isRepoRoot(".")):
-		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");
+		return exitStatus(":(", "this command should be run from the top level folder of your git repo.");
 	
 	# git's behavior of assuming relative urls should be relative to the remote origin instead of relative to the local filesystem is almost certainly not what you want.
 	if (args.url[:3] == "../" or args.url[:2] == "./"):
-		return mdm_status(":(", "you can't use a relative url to point to a dependency.  sorry.");
+		return exitStatus(":(", "you can't use a relative url to point to a dependency.  sorry.");
 	
 	# pick out the name.  if we can't find one yet, we'll prompt for it in a little bit (we try to check that something at least exists on the far side of the url before bothering with the name part).
 	name = None;
@@ -290,9 +219,9 @@ def mdm_cmd_add(args):
 	# check for presence of a submodule or other crap here already.  (`git submodule add` will also do this, but it's a more pleasant user experience to check this before popping up a prompt for version name.)
 	#  there are actually many things you could check here: presence of files, presence of entries in .git/config, presence of entries in .gitmodules, presence of data in the index.  we're going to just use our default pattern from isSubmodule() and then check for plain files.
 	if (cgw.isSubmodule(path)):
-		return mdm_status(":(", "there is already a submodule at "+path+" !");
+		return exitStatus(":(", "there is already a submodule at "+path+" !");
 	if (os.path.exists(path)):
-		return mdm_status(":(", "there are already files at "+path+" ; can't create a submodule there.");
+		return exitStatus(":(", "there are already files at "+path+" ; can't create a submodule there.");
 	
 	# if a specific version name was given, we'll skip checking for a manifest and just go straight at it; otherwise we look for a manifest and present options interactively.
 	version = None;
@@ -301,27 +230,27 @@ def mdm_cmd_add(args):
 	else:			# check the url.  whether or not we can get a version manifest determines its validity.
 		version = mdm_promptForVersion(args.url)
 		if (version is None):
-			return mdm_status(":(", "no version_manifest could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.");
+			return exitStatus(":(", "no version_manifest could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.");
 	
 	# check that the remote path is actually looking like a git repo before we call submodule add.
 	if (not cgw.isRepo(join(args.url, version+".git"),  "refs/tags/release/"+version)):
-		return mdm_status(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
+		return exitStatus(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
 	
 	# do the submodule/dependency adding
-	mdm_doDependencyAdd(path, args.url, version);
+	mdm.plumbing.doDependencyAdd(path, args.url, version);
 	
 	# commit the changes
 	git.commit("-m", "adding dependency on "+name+" at "+version+".");
 	
-	return mdm_status(":D", "added dependency on "+name+"-"+version+" successfully!");
+	return exitStatus(":D", "added dependency on "+name+"-"+version+" successfully!");
 
 
 
 def mdm_cmd_alter(args):
 	# parse gitmodules, check that the name we were asked to alter actually exist, and get its data.
-	submodule = getMdmSubmodules("dependency", args.name);
+	submodule = mdm.plumbing.getMdmSubmodules("dependency", args.name);
 	if (submodule is None):
-		return mdm_status(":(", "there is no mdm dependency by that name.");
+		return exitStatus(":(", "there is no mdm dependency by that name.");
 	
 	# parse the url pointing to the current snapshot repo and drop the last part off of it; if things are canonical, this should be the releases repo.
 	releasesUrl = submodule['url'][:submodule['url'].rindex("/")];
@@ -333,36 +262,36 @@ def mdm_cmd_alter(args):
 	else:			# look for a version manifest and prompt for choices
 		version = mdm_promptForVersion(releasesUrl);
 		if (version is None):
-			return mdm_status(":'(", "no version_manifest could be found where we expected a releases repository to be for the existing dependency.  maybe it has moved, or this dependency has an unusual/manual release structure, or the internet broke?");
+			return exitStatus(":'(", "no version_manifest could be found where we expected a releases repository to be for the existing dependency.  maybe it has moved, or this dependency has an unusual/manual release structure, or the internet broke?");
 	
 	# check that the remote path is actually looking like a git repo before we call submodule add
 	if (not cgw.isRepo(join(releasesUrl, version+".git"),  "refs/tags/release/"+version)):
-		return mdm_status(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
+		return exitStatus(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
 	
 	# do the submodule/dependency dancing
-	mdm_doDependencyRemove(args.name);
-	mdm_doDependencyAdd(args.name, releasesUrl, version);
+	mdm.plumbing.doDependencyRemove(args.name);
+	mdm.plumbing.doDependencyAdd(args.name, releasesUrl, version);
 	
 	# commit the changes
 	git.commit("-m", "shifting dependency on "+args.name+" to version "+version+".");
 	
-	return mdm_status(":D", "altered dependency on "+args.name+" to version "+version+" successfully!");
+	return exitStatus(":D", "altered dependency on "+args.name+" to version "+version+" successfully!");
 
 
 
 def mdm_cmd_remove(args):
 	# parse gitmodules, check that the name we were asked to alter actually exist, and get its data.
-	submodule = getMdmSubmodules("dependency", args.name);
+	submodule = mdm.plumbing.getMdmSubmodules("dependency", args.name);
 	if (submodule is None):
-		return mdm_status(":I", "there is no mdm dependency by that name.");
+		return exitStatus(":I", "there is no mdm dependency by that name.");
 	
 	# kill it
-	mdm_doDependencyRemove(args.name);
+	mdm.plumbing.doDependencyRemove(args.name);
 	
 	# commit the changes
 	git.commit("-m", "removing dependency on "+args.name+".");
 	
-	return mdm_status(":D", "removed dependency on "+args.name+"!");
+	return exitStatus(":D", "removed dependency on "+args.name+"!");
 
 
 
@@ -376,12 +305,12 @@ def mdm_cmd_release(args):
 	
 	# sanity check the releases-repo
 	if (not cgw.isRepoRoot(args.repo)):	# check that releases-repo is already a git repo
-		return mdm_status(":(", "releases-repo directory '"+args.repo+"' doesn't look like a git repo!  (Maybe you forgot to set up with `mdm init` before making your first release?)");
+		return exitStatus(":(", "releases-repo directory '"+args.repo+"' doesn't look like a git repo!  (Maybe you forgot to set up with `mdm init` before making your first release?)");
 	cd(args.repo);				# enter releases-repo
 	git.checkout("master");			# history of the releases-repo is supposed to be linear.  things get confusing to push if they're not, and in particular we want to make sure that if there's currently a detatched head because of submodule updating leaving the releases repo in that state, we don't start racking up commits in that unpleasant void.
 	try:					# check that nothing is already in the place where this version will be placed
 		ls(args.version);
-		return mdm_status(":(", "something already exists at '"+snapdir+"' !  Can't release there.");
+		return exitStatus(":(", "something already exists at '"+snapdir+"' !  Can't release there.");
 	except ErrorReturnCode_2:
 		pass;	#good
 	
@@ -396,7 +325,7 @@ def mdm_cmd_release(args):
 		else:				# if it wasn't anything we can take literally, we'll just toss it to glob() directly and see what it can do with it.
 			glom = glob(args.files);
 		if (not glom):
-			return mdm_status(":(", "no files were found at "+args.files+"\nrelease aborted.");
+			return exitStatus(":(", "no files were found at "+args.files+"\nrelease aborted.");
 	
 	# make the snapshot-repo
 	git.init(snapdir);						# create new snapshot-repo inside the releases-repo
@@ -404,7 +333,7 @@ def mdm_cmd_release(args):
 		cp("-nr", glom, snapdir);				# copy, and recursively if applicable.  also, no-clobber mode because we'd hate to ever accidentally overwrite the .git structures.
 	except Exception, e:
 		cd(args.repo); rm("-rf", args.version);
-		return mdm_status(":'(", "error during build: "+str(e));
+		return exitStatus(":'(", "error during build: "+str(e));
 	
 	# commit the snapshot-repo
 	cd(snapdir);
@@ -454,7 +383,7 @@ def mdm_cmd_release(args):
 	#  So, we're not going to push.  we're going to let the user get off and look around.
 	#  (Perhaps we'll add switches for this later, though.)
 	
-	return mdm_status(":D", "release version "+args.version+" complete");
+	return exitStatus(":D", "release version "+args.version+" complete");
 
 
 
@@ -465,13 +394,13 @@ def mdm_cmd_release(args):
 def mdm_cmd_update(args):
 	# check we're in a repo root.  `git submodule` insists that we must be at the top.
 	if (not cgw.isRepoRoot(".")):
-		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");
+		return exitStatus(":(", "this command should be run from the top level folder of your git repo.");
 	
 	# load all of the submodules in the git index
 	# load all the config that is for mdm dependencies from the submodules file
 	# (we do both instead of just iterating on what we see in the submodules file because otherwise we'd need to write a check somewhere in the loop coming up that the submodule config actually has a matching data in the git object store as well; this way is the minimum forking.)
 	submodules = cgw.getSubmodules();
-	submConf = getMdmSubmodules("dependency");
+	submConf = mdm.plumbing.getMdmSubmodules("dependency");
 	
 	# load all the mdm dependency submodules from gitmodules file, and only pay attention to the intersection of that and the git index
 	# and then act on them based on the difference between the filesystem state and the git index intention
@@ -524,7 +453,7 @@ def mdm_cmd_update(args):
 	if (len(removed) > 0):
 		status2 += "\n  removed: "+str(removed);
 	
-	return mdm_status(":D", "mdm dependencies have been updated ("+status+")"+status2);
+	return exitStatus(":D", "mdm dependencies have been updated ("+status+")"+status2);
 
 
 
@@ -535,7 +464,7 @@ def mdm_cmd_update(args):
 def mdm_cmd_releaseinit(args):
 	# am i at the root of a repo like I expect to be?		#XXX: i suppose we could do the first git-init as well if we're run in a void.  or better, with a name argument.
 	if (not cgw.isRepoRoot(".")):
-		return mdm_status(":(", "this command should be run from the top level folder of your git repo.");
+		return exitStatus(":(", "this command should be run from the top level folder of your git repo.");
 	projname = os.getcwd().split("/")[-1];
 	
 	# check to make sure this repo has more than zero commits in it to avoid awkwardness.
@@ -548,10 +477,10 @@ def mdm_cmd_releaseinit(args):
 	
 	# is the "releases" area free of clutter?  (we're not supporting other locations in this script, because if you want noncanonical here, you can go ahead and do it yourself.)
 	if (cgw.isSubmodule("releases")):					#  if it's a submodule already, we give a different error message.
-		return mdm_status(":I", "there's already a releases module!  No changes made.");
+		return exitStatus(":I", "there's already a releases module!  No changes made.");
 	try:
 		ls("releases");
-		return mdm_status(":(", "something already exists at the 'releases' location.  clear it out and try again.");
+		return exitStatus(":(", "something already exists at the 'releases' location.  clear it out and try again.");
 	except ErrorReturnCode_2:
 		pass;	#good
 	
@@ -592,7 +521,7 @@ def mdm_cmd_releaseinit(args):
 	# commit the changes
 	git.commit("-m", "initialize releases repo for "+projname+".");
 	
-	return mdm_status(":D", "releases repo and submodule initialized");
+	return exitStatus(":D", "releases repo and submodule initialized");
 
 
 
