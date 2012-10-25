@@ -1,6 +1,6 @@
 [submodule "lib/pbs"]
 	path = lib/pbs
-	url = https://github.com/amoffat/pbs.git
+	url = https://github.com/amoffat/sh.git
 [submodule "lib/exus-build"]
 	path = lib/exus-build
 	url = https://github.com/heavenlyhash/exus-build.git

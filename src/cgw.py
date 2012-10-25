@@ -1,8 +1,8 @@
 
 import os;
 from os import path;
-from pbs import git, cd, pwd;
-from pbs import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
+from sh import git, cd, pwd;
+from sh import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 
 from util import *;
 
