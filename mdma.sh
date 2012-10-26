@@ -212,7 +212,7 @@ awaitack;
 
 echo "${clblue}#  So did it work?${cnone}"
 (cd projAlpha
- echo "${clblack}# now here's what \`mdm depend status\` thinks of project alpha: ${cnone}"
+ echo "${clblack}# now here's what \`mdm status\` thinks of project alpha: ${cnone}"
  $MDM status
  echo
 )
