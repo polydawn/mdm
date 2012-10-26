@@ -1,11 +1,5 @@
 
-from os.path import join, relpath;
-from pbs.sh import git, cd, ls, cp, rm, pwd;
-from pbs.sh import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
-
-from mdm.util import *;
-import mdm.cgw as cgw;
-
+from mdm.imp import *;
 
 
 def getMdmSubmodules(kind=None, name=None, gmFilename=None):
