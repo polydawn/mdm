@@ -62,3 +62,11 @@ def getVersionManifest(releasesUrl):
 	return sorted(filter(lambda pythonYUNoHaveATrueFunctionAlready : True, dConf), key=fn_version_sort);
 
 
+
+convenv = {	# set up an env var that will make a git commit have uniform blob headers... if the history graph leading up to this is also controlled and consistent, and two different people running different repos commit the same artifacts, then the commits will actually converge to the same hash.
+		 'GIT_AUTHOR_NAME' : "mdm",				 'GIT_COMMITTER_NAME' : "mdm",
+		'GIT_AUTHOR_EMAIL' : "",				'GIT_COMMITTER_EMAIL' : "",
+		 'GIT_AUTHOR_DATE' : "Jan 01 1970 00:00 -0000",		 'GIT_COMMITTER_DATE' : "Jan 01 1970 00:00 -0000",
+}
+
+
