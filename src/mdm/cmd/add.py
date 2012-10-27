@@ -9,7 +9,7 @@ def add(args):
 	
 	# git's behavior of assuming relative urls should be relative to the remote origin instead of relative to the local filesystem is almost certainly not what you want.
 	if (args.url[:3] == "../" or args.url[:2] == "./"):
-		return exitStatus(":(", "you can't use a relative url to point to a dependency.  sorry.");
+		print >> stderr, "hey, heads up: when you use a relative url to describe a submodule location, git assumes it's relative to the remote origin of the parent project (NOT relative to the project location on the local filesystem, which is what you might have expected).  this... works, but it's not recommended because of the potential it has to surprise.\n";
 	
 	# pick out the name.  if we can't find one yet, we'll prompt for it in a little bit (we try to check that something at least exists on the far side of the url before bothering with the name part).
 	name = None;
