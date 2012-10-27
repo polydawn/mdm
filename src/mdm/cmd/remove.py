@@ -7,11 +7,14 @@ def remove(args):
 	if (submodule is None):
 		return exitStatus(":I", "there is no mdm dependency by that name.");
 	
+	
 	# kill it
 	mdm.plumbing.doDependencyRemove(args.name);
 	
+	
 	# commit the changes
 	git.commit("-m", "removing dependency on "+args.name+".");
+	
 	
 	return exitStatus(":D", "removed dependency on "+args.name+"!");
 
