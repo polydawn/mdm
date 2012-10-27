@@ -20,7 +20,7 @@ from distutils.version import LooseVersion as fn_version_sort;
 #
 # lib/pbs
 #
-from pbs.sh import git, cd, ls, cp, rm, pwd;
+from pbs.sh import git, cd, cp, rm, pwd;
 from pbs.sh import ErrorReturnCode, ErrorReturnCode_1, ErrorReturnCode_2;
 
 

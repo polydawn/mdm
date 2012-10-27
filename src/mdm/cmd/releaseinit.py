@@ -18,11 +18,8 @@ def releaseinit(args):
 	# is the "releases" area free of clutter?  (we're not supporting other locations in this script, because if you want noncanonical here, you can go ahead and do it yourself.)
 	if (cgw.isSubmodule("releases")):					#  if it's a submodule already, we give a different error message.
 		return exitStatus(":I", "there's already a releases module!  No changes made.");
-	try:
-		ls("releases");
+	if (path.lexists("releases")):
 		return exitStatus(":(", "something already exists at the 'releases' location.  clear it out and try again.");
-	except ErrorReturnCode_2:
-		pass;	#good
 	
 	# check the state of this repo for a remote origin.  trying to add a submodule with a relative repository url (as we're about to) will fail if that's not set.
 	try:
