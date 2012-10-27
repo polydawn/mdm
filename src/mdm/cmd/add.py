@@ -37,10 +37,10 @@ def add(args):
 	
 	# check for presence of a submodule or other crap here already.  (`git submodule add` will also do this, but it's a more pleasant user experience to check this before popping up a prompt for version name.)
 	#  there are actually many things you could check here: presence of files, presence of entries in .git/config, presence of entries in .gitmodules, presence of data in the index.  we're going to just use our default pattern from isSubmodule() and then check for plain files.
-	if (cgw.isSubmodule(path)):
-		return exitStatus(":(", "there is already a submodule at "+path+" !");
 	if (os.path.exists(path)):
-		return exitStatus(":(", "there are already files at "+path+" ; can't create a submodule there.");
+		return exitStatus(":'(", "there are already files at "+path+" !\nWe can't pull down a dependency there until this conflict is cleared away.");
+	if (cgw.isSubmodule(path)):
+		return exitStatus(":'(", "there is already a submodule in the git index at "+path+" !\nWe can't pull down a dependency there until this conflict is cleared away.");
 	
 	
 	# if a specific version name was given, we'll skip checking for a manifest and just go straight at it; otherwise we look for a manifest and present options interactively.
