@@ -37,6 +37,9 @@ def releaseinit(args):
 	with open("README", 'w') as f: f.write("This is the releases repo for "+projname+".\n");
 	git.add("README");
 	git.commit("-m", "initialize releases repo for "+projname+".");
+	
+	# label this root commit as a branch, because all releases in the future will come back to branch off of this again.
+	git.checkout("-b", "mdm/init");
 	cd("..");
 	
 	# add the new releases-repo as a submodule to the project repo.
