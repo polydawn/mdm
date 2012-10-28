@@ -10,11 +10,8 @@ def release(args):
 		return exitStatus(":(", "releases-repo directory '"+args.repo+"' doesn't look like a git repo!  (Maybe you forgot to set up with `mdm release-init` before making your first release?)");
 	cd(args.repo);				# enter releases-repo
 	git.checkout("master");			# history of the releases-repo is supposed to be linear.  things get confusing to push if they're not, and in particular we want to make sure that if there's currently a detatched head because of submodule updating leaving the releases repo in that state, we don't start racking up commits in that unpleasant void.
-	try:					# check that nothing is already in the place where this version will be placed
-		ls(args.version);
+	if (path.lexists(args.version)):	# check that nothing is already in the place where this version will be placed
 		return exitStatus(":(", "something already exists at '"+snapdir+"' !  Can't release there.");
-	except ErrorReturnCode_2:
-		pass;	#good
 	
 	
 	# select the artifact files that we'll be copying in
