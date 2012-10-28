@@ -170,11 +170,11 @@ awaitack;
 
 echo "${clblue}#  Check it out, we can push those release snapshots to our hub repos.${cnone}"
 (cd projUpstream1 && 
- (cd releases && git push && git push --tags) &&
+ (cd releases && git push --all && git push --tags) &&
  git push && git push --tags
 )
 (cd projUpstream2 && 
- (cd releases && git push && git push --tags) &&
+ (cd releases && git push --all && git push --tags) &&
  git push && git push --tags
 )
 echo -e "${clblue} ----------------------------${cnone}\n\n"
