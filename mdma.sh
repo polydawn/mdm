@@ -246,14 +246,20 @@ awaitack;
 
 echo "${clblue}#  Behold, the clones of the project can pull all this:${cnone}"
 (cd clone/projAlpha
+ echo "${clblack}# \`mdm status\` in the clone repo doesn't show anything until we pull, of course.${cnone}"
  $MDM status
  echo
+ echo "${clblack}# pulling the commits to projAlpha that added the dependencies...${cnone}"
  git pull
  echo
+ echo "${clblack}# \`mdm status\` should now show that we do have managed dependencies${cnone}"
+ echo "${clblack}#  (but they aren't checked out here yet): ${cnone}"
  $MDM status
  echo
+ echo "${clblack}# we run \`mdm update\` to fetch the dependencies: ${cnone}"
  $MDM update
  echo
+ echo "${clblack}# huzzah, \`mdm status\` now shows us happy little dependencies! ${cnone}"
  $MDM status
 )
 echo -e "${clblue} ----------------------------${cnone}\n\n"
@@ -292,6 +298,9 @@ echo "${clblue}#   to switch it to using new release versions of the upstream pr
 (cd projAlpha
  echo "${clblack}# now to add the first project, we do \`mdm add \$demodir/hub/projUpstream1.git\`: ${cnone}"
  $MDM alter lib/projUpstream1 --version=v2.0
+ echo
+ echo "${clblack}# \`mdm status\` should show us the change: ${cnone}"
+ $MDM status
 )
 echo -e "${clblue} ----------------------------${cnone}\n\n"
 
