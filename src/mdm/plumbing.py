@@ -38,21 +38,40 @@ def getMdmSubmodules(kind=None, name=None, gmFilename=None):
 
 
 def doDependencyAdd(name, url, version):
-	git.init(name);									# create a new empty repository.  we will pull down only the data we need, which is not possible when cloning.
+	git.init(name);									# create a new empty repository (we will pull down only the data we need, which is not possible when cloning).  is a no-op if repo already exists there.
 	git.submodule("add", url, name);						# add us a submodule for great good!  (git will set up the url as the remote origin, but it won't clone since there's already stuff locally.)
 	git.submodule("init", name);							# i would've thought `git submodule add` would have already done this, but it seems sometimes it does not.  anyway, at worst, this is a redunant no-op.
 	retreat = os.getcwd();
 	cd(name);
 	try:
 		git.remote("add", "origin", url);					# the `git submodule add` above doesn't set up the remote origin; that would make too much sense.  so we do it here.  it's worth noting that we could use the "-t" option here to limit what would be automatically dragged down from the network if one goes into the submodule and manually pulls.  but i suspect the possible use as a safeguard against accidental large downloads is probably not worth the confusion it might cause to users who aren't deeply familiar with how remotes work (also, giving a null -t causes git itself to break down in confusion completely when it tries to do any fetching at all).
-		git.fetch("origin", "+mdm/release/"+version+":mdm/release/"+version);	# this fetch command pulls down only the branch labelled with the version requested.
-		git.checkout("mdm/release/"+version);					# now we have it, just check it out and let it drop the files into the working tree.
+		_doDependencyFetch(version);
 	finally:
 		cd(retreat);
 	git.config("-f", ".gitmodules", "submodule."+name+".mdm", "dependency");	# put a marker in the submodules config that this submodule is a dependency managed by mdm.
-	# git.config("-f", ".gitmodules", "submodule."+name+".mdm-version", version);	# we could add another marker to make the version name an explicit property, but what would be the point?  it wouldn't have any real binding to what objects are pointed at by the git index nor what's actually checked out.
-	git.add("--", name, ".gitmodules");						# have to `git add` submodule itself since `git submodule add` disrupted by an existing repo won't stage that, and also the gitmodules file again since otherwise the marker we just appended doesn't get staged
+	git.config("-f", ".gitmodules", "submodule."+name+".mdm-version", version);	# add a marker to make the version name an explicit property, so mdm can know what branch names to pull down in the future.  note that this doesn't have a strictly enforcable binding to what objects are pointed at by the git index nor what's actually checked out, but if the mdm script is the only thing acting on these submodules then we enforce bindings by contract to the best of our ability.
+	git.add("--", name, ".gitmodules");						# have to `git add` submodule itself since `git submodule add` disrupted by an existing repo won't stage that, and also the gitmodules file again since otherwise the markers we just appended don't get staged
 	pass;
+
+
+
+def doDependencyLoad(name, version):
+	# note that of course the submodule name alone is enough that we could load up the version information, but as it turns out, this function is only ever being need in places where we already have that information loaded.
+	git.init(name);									# create a new empty repository (we will pull down only the data we need, which is not possible when cloning).  is a no-op if repo already exists there.
+	retreat = os.getcwd();
+	cd(name);
+	try:
+		_doDependencyFetch(version);
+	finally:
+		cd(retreat);
+
+
+
+def _doDependencyFetch(version):
+	# must already be in the submodule's dir, it must already be init'd, it must already have a remote added, etc.
+	#TODO: i'd quite like to wrap this entire function in a try block to clean up if the remote repo doesn't sing.  will have to gather state ahead of time to do that though: did we init, and if not what do we checkout back to?  also it's not yet clear if the that logic would fit better here in the plumbing functions, or if the additional context knowledge in the caller (or the caller's caller, at this point) would let us act smarter.
+	git.fetch("origin", "+mdm/release/"+version+":mdm/release/"+version);	# this fetch command pulls down only the branch labelled with the version requested.
+	git.checkout("mdm/release/"+version);					# now we have it, just check it out and let it drop the files into the working tree.
 
 
 
