@@ -89,8 +89,11 @@ def _statusData(submodules):
 		try:
 			cd(attribs['path']);
 			attribs['branchActual'] = str(git.describe("--tags")).strip().split("/");
-			if (attribs['branchActual'][0] == "release"): attribs['branchActual'] = attribs['branchActual'][1:];
-			attribs['branchActual'] = "/".join(attribs['branchActual']);
+			if (attribs['branchActual'][0] == "release"):		# if it's a release tag, parse out just the version name itself.
+				attribs['branchActual'] = attribs['branchActual'][1:];
+				attribs['branchActual'] = "/".join(attribs['branchActual']);
+			else:							# ain't one of ours.
+				attribs['branchActual'] = None;
 		except ErrorReturnCode, e: pass;	# leave attribs['branchActual'] = None.
 		finally: cd(retreat);
 	
