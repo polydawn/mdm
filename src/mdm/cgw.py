@@ -19,9 +19,11 @@ def isRepoRoot(dirname):
 		cd(retreat);
 
 
+
 def cwdIsInRepo():
 	try: git("rev-parse"); return True;
 	except: return False;
+
 
 
 def isRepo(url, ref="refs/heads/master"):
@@ -37,6 +39,7 @@ def isRepo(url, ref="refs/heads/master"):
 		return False;
 
 
+
 def isSubmodule(path):
 	"""
 	Test if the given path is a submodule root for the git repo that the cwd is currently within.
@@ -50,6 +53,7 @@ def isSubmodule(path):
 		return path == submodstr[2 if (submodstr[0] == "") else 1];
 	finally:
 		cd(retreat);
+
 
 
 def getSubmodules():
@@ -77,6 +81,7 @@ def getSubmodules():
 		return subs;
 	finally:
 		cd(retreat);
+
 
 
 def getConfig(filename):

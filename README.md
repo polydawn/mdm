@@ -102,7 +102,7 @@ When you're setting up a project to perform releases with ```mdm```, you need to
 ```mdm``` will happily automate this too:
 
 ```
-	mdm init
+	mdm release-init
 ```
 
 This automatically creates a new repository for releases, and adds it as a submodule to your current project in the ```./releases/``` dir.
@@ -122,7 +122,7 @@ doing releases for example just requires that you run ```mdm``` with an extra ar
 Usage: Adding a Dependency:
 ---------------------------
 
-```mdm depend add [URL]``` is the general form.
+```mdm add [URL]``` is the general form.
 Specifying a version is optional, because ```mdm``` will look for the available versions and interactively prompt you to choose one.
 A local name and local path for the dependency can optionally be specified as well.
 
@@ -138,31 +138,31 @@ Run this command whenever you clone a new repo, or pull changes that add or remo
 Usage: Looking at Dependencies:
 -------------------------------
 
-```mdm depend status``` will list the all of the dependencies managed by mdm in the current project.
+```mdm status``` will list the all of the dependencies managed by mdm in the current project.
 
 
 Usage: Changing a Dependency Version:
 -------------------------------------
 
-```mdm depend alter [NAME]``` looks at the releases repository for something you already depend on and lets you switch which version your project specifies.
+```mdm alter [NAME]``` looks at the releases repository for something you already depend on and lets you switch which version your project specifies.
 
 
 Usage: Dropping a Dependency:
 -----------------------------
 
-```mdm depend remove [NAME]``` removes a dependency from the repo's submodule config and the git hash tree, and tosses that repo.
+```mdm remove [NAME]``` removes a dependency from the repo's submodule config and the git hash tree, and tosses that repo.
 
 
 Usage: just in general...
 -------------------------
 
 You can add a ```-h``` to any of these commands and get specific help and a full list of all available options, including descriptions of behaviors and default values.
-So for example, ```mdm -h``` will tell you all of the subcommands of mdm; ```mdm depend add -h``` will list all possible options of the ```add``` subcommand in detail.
+So for example, ```mdm -h``` will tell you all of the subcommands of mdm; ```mdm add -h``` will list all possible options of the ```add``` subcommand in detail.
 
 Most of mdm commands (and this really shouldn't be suprising!) generate git commits when you ask them to do something.
 So, there's a couple of implications of that:
 
-1. you should probably only do things in a relatively clean working tree.  Like, if you're in the middle of doing changes to submodules, you probably shouldn't also use ```mdm depend alter```, because it'll commit the .gitmodules file.
+1. you should probably only do things in a relatively clean working tree.  Like, if you're in the middle of doing changes to submodules, you probably shouldn't also use ```mdm alter```, because it'll commit the .gitmodules file.
 1. notice I said "commit" and not "push"!  That means anything mdm does is actually totally easy to back out of if it doesn't quite go according to plan.
 
 
