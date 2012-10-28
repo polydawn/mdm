@@ -25,7 +25,10 @@ def status(args):
 		# choose our words for this row
 		warnings = [];
 		if (attribs['isCheckedOut'] is True):
-			version = attribs['branchActual'];
+			if (attribs['branchActual'] is not None):
+				version = attribs['branchActual'];
+			else:
+				version = "__UNKNOWN_VERSION__";
 			if (attribs['branchActual'] != attribs['mdm-version']):
 				warnings.append("intended version is "+attribs['mdm-version']+", run `mdm update` to get it");
 			if (attribs['isAtLinkedCommit'] is False):
@@ -54,8 +57,8 @@ def _statusData(submodules):
 	submStatus = cgw.getSubmodules();
 	
 	# ask the parent repo the same question in a different way to see if there's any untracked changes in any submodules.  (this does miss out on .gitignore'd things, but if your project is depending on the state of things in a gitignore file, then you've got bigger problems.)
-	git.status("--porcelain", "-z", "--ignore-submodule=none", "--", map(lambda row: row[1]['path'], submodules.items()));
-	#TODO: parse this and use it to answer part 2 of the isContorted question down in the loop
+	submWithUntracked = git.status("--porcelain", "-z", "--ignore-submodule=none", "--", map(lambda row: row[1]['path'], submodules.items()));
+	submWithUntracked = map(lambda line: line[3:], submWithUntracked.split('\0'));		# if it shows up at all, it's a mess of some kind.  whether that be because it's deleted from the index, or there's untracked content, or god knows what, i don't particularly care; all are worthing of emitting a warning.
 	
 	# go across every mdm dependency submodule and parse all the data into salient info
 	retreat = os.getcwd();
@@ -69,19 +72,29 @@ def _statusData(submodules):
 		# is there anything at this path at all, much less a repo?
 		if (not path.lexists(attribs['path'])):
 			continue;
-		attribs['isCheckedOut'] = True;
 		
 		# what does parent repo think of the commit?
 		if (submStatus[modname] == " "):				# the submodule is initialized in .git/config, and why yes indeedy it has exactly the commit checked out that the parent wants it pointing to.  huzzah!
+			attribs['isCheckedOut'] = True;
 			attribs['isAtLinkedCommit'] = True;
 		elif (submStatus[modname] == "-"):				# .git/config is not initialized
-			#XXX: i'm not entirely sure how much we care about this...?
 			attribs['isCheckedOut'] = False;
-			continue;
+			pass; # we can't tell if we're at the linked commit or not from this.  we'll let the submWithUntracked list speak for that.
 		elif (submStatus[modname] == "+"):				# submodule repo on the filesystem has a different commit hash checked out than index intentions
+			attribs['isCheckedOut'] = True;
 			attribs['isAtLinkedCommit'] = False;
 		else:								# what?  could be a merge conflicted submodule or something, but you shouldn't have that with mdm dependency submodules unless you were doing something manual that was asking for trouble.
+			attribs['isCheckedOut'] = True;
 			attribs['isContorted'] = True;
+		
+		if (attribs['isAtLinkedCommit'] is False):
+			if (modname not in submWithUntracked):
+				# since `git submodule` couldn't tell us if we were on the right commit hash, we take the absense of comment from `git status` as a sign we're on the right one.
+				attribs['isAtLinkedCommit'] = True;
+			else: continue; # skip any branch/version detection
+		else:
+			if (modname in submWithUntracked):
+				attribs['isContorted'] = True;
 		
 		# what version are we actually on?  by branch
 		#TODO: not actually clear if we should use the methodology of looking at the current branch or not.  `mdm` itself will always checkout the submodule by branch name, but it's not "wrong" per se to check out the same commit by hash name and have a detatched head state.  dealing with tags may also prove simpler and more stable, since those never get mussed around with any "origin/blahblah" prefixes.
