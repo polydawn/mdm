@@ -195,10 +195,10 @@ awaitack;
 
 echo "${clblue}#  Moment of truth: we can now use mdm to pull those releases into another project.${cnone}"
 (cd projAlpha
- echo "${clblack}# now to add the first project, we do \`mdm add \$demodir/hub/projUpstream1.git\`: ${cnone}"
+ echo "${clblack}# now to add the first project, we do \`mdm add \$demodir/hub/projUpstream1-releases.git\`: ${cnone}"
  $MDM add $demodir/hub/projUpstream1-releases.git --version=v1.0
  echo
- echo "${clblack}# same thing to depend on another project: \`mdm add \$demodir/hub/projUpstream2.git\`: ${cnone}"
+ echo "${clblack}# same thing to depend on another project: \`mdm add \$demodir/hub/projUpstream2-releases.git\`: ${cnone}"
  $MDM add $demodir/hub/projUpstream2-releases.git --version=v1.0
  echo
  echo "${clblack}# we gave a --version argument to mdm here as well to keep the demo script flying along,"
@@ -257,6 +257,45 @@ echo "${clblue}#  Behold, the clones of the project can pull all this:${cnone}"
  $MDM status
 )
 echo -e "${clblue} ----------------------------${cnone}\n\n"
+
+awaitack;
+
+
+
+echo "${clblue}#  Let's release a few more versions of an upstream project.${cnone}"
+echo "${clblack}# make some updates to the upstream project's source files: ${cnone}"
+(cd projUpstream1 &&
+ echo "koalas are BASTARDS!" > proj1.txt &&
+ git add proj1.txt &&
+ git commit proj1.txt -m "updated data file." &&
+ git show
+)
+echo
+echo "${clblack}# make a release of projUpstream1's files: ${cnone}"
+(cd projUpstream1/ &&
+ $MDM release --version=v2.0 --files="*.txt"
+)
+echo
+echo "${clblack}# and publish that release to the hub repos.${cnone}"
+(cd projUpstream1 &&
+ (cd releases && git push --all && git push --tags) &&
+ git push && git push --tags
+)
+echo -e "${clblue} ----------------------------${cnone}\n\n"
+
+awaitack;
+
+
+
+echo "${clblue}#  Moment of truth, Part II: we can now use \`mdm alter\` on projAlpha${cnone}"
+echo "${clblue}#   to switch it to using new release versions of the upstream project.${cnone}"
+(cd projAlpha
+ echo "${clblack}# now to add the first project, we do \`mdm add \$demodir/hub/projUpstream1.git\`: ${cnone}"
+ $MDM alter lib/projUpstream1 --version=v2.0
+)
+echo -e "${clblue} ----------------------------${cnone}\n\n"
+
+awaitack;
 
 
 
