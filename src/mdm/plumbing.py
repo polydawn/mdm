@@ -61,18 +61,11 @@ def doDependencyRemove(name):
 
 
 def getVersionManifest(releasesUrl):
-	# grab the gitmodules file (which may be either local, or remote over raw http transport!) and store as string
+	# wield `git ls-remote` to get a list of branches matching the labelling pattern mdm releases use.  works local or remote over any transport git itself supports.
 	try:
-		with closing(urllib.urlopen(releasesUrl+"/.gitmodules")) as f:
-			remoteModulesStr = f.read();
+		return sorted(map(lambda x: x.split()[1][23:], git("ls-remote", releasesUrl, "-h", "refs/heads/mdm/release/*").split("\n")[:-1]), key=fn_version_sort);
 	except:
 		return None;
-	
-	# hand the gitmodules contents through `git-config` (via cgw.getConfig via getMdmSubmodules), get a proper dict of the conf back
-	dConf = getMdmSubmodules("release-snapshot", None, (remoteModulesStr,));
-	
-	# we only really need an array of the names back
-	return sorted(filter(lambda pythonYUNoHaveATrueFunctionAlready : True, dConf), key=fn_version_sort);
 
 
 
