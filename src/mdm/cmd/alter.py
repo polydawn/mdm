@@ -4,6 +4,7 @@ from mdm.cmd.helper import *;
 
 def alter(args):
 	# parse gitmodules, check that the name we were asked to alter actually exist, and get its data.
+	if (args.name[-1] == "/"): args.name = args.name[:-1];			# tab completion in the terminal tends to suggest what you want, but with a trailing slash because it's a directory, and git doesn't like that slash.  so, we'll sand down that sharp corner a bit.
 	submodule = mdm.plumbing.getMdmSubmodules("dependency", args.name);
 	if (submodule is None):
 		return exitStatus(":(", "there is no mdm dependency by that name.");
