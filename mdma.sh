@@ -195,10 +195,10 @@ awaitack;
 
 echo "${clblue}#  Moment of truth: we can now use mdm to pull those releases into another project.${cnone}"
 (cd projAlpha
- echo "${clblack}# now to add the first project, we do \`mdm add \$demodir/hub/projUpstream1.git\`: ${cnone}"
+ echo "${clblack}# now to add the first project, we do \`mdm add \$demodir/hub/projUpstream1-releases.git\`: ${cnone}"
  $MDM add $demodir/hub/projUpstream1-releases.git --version=v1.0
  echo
- echo "${clblack}# same thing to depend on another project: \`mdm add \$demodir/hub/projUpstream2.git\`: ${cnone}"
+ echo "${clblack}# same thing to depend on another project: \`mdm add \$demodir/hub/projUpstream2-releases.git\`: ${cnone}"
  $MDM add $demodir/hub/projUpstream2-releases.git --version=v1.0
  echo
  echo "${clblack}# we gave a --version argument to mdm here as well to keep the demo script flying along,"
