@@ -55,12 +55,14 @@ def doDependencyAdd(name, url, version):
 
 
 
-def doDependencyLoad(name, version):
+def doDependencyLoad(name, version, url=None):
 	# note that of course the submodule name alone is enough that we could load up the version information, but as it turns out, this function is only ever being need in places where we already have that information loaded.
 	git.init(name);									# create a new empty repository (we will pull down only the data we need, which is not possible when cloning).  is a no-op if repo already exists there.
 	retreat = os.getcwd();
 	cd(name);
 	try:
+		if (url is not None):
+			git.remote("add", "origin", url);
 		_doDependencyFetch(version);
 	finally:
 		cd(retreat);
