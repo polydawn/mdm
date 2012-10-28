@@ -38,11 +38,20 @@ def getMdmSubmodules(kind=None, name=None, gmFilename=None):
 
 
 def doDependencyAdd(name, url, version):
-	git.submodule("add", join(url, version+".git"), name);				# add us a submodule for great good!
+	git.init(name);									# create a new empty repository.  we will pull down only the data we need, which is not possible when cloning.
+	git.submodule("add", url, name);						# add us a submodule for great good!  (git will set up the url as the remote origin, but it won't clone since there's already stuff locally.)
 	git.submodule("init", name);							# i would've thought `git submodule add` would have already done this, but it seems sometimes it does not.  anyway, at worst, this is a redunant no-op.
+	retreat = os.getcwd();
+	cd(name);
+	try:
+		git.remote("add", "origin", url);					# the `git submodule add` above doesn't set up the remote origin; that would make too much sense.  so we do it here.  it's worth noting that we could use the "-t" option here to limit what would be automatically dragged down from the network if one goes into the submodule and manually pulls.  but i suspect the possible use as a safeguard against accidental large downloads is probably not worth the confusion it might cause to users who aren't deeply familiar with how remotes work (also, giving a null -t causes git itself to break down in confusion completely when it tries to do any fetching at all).
+		git.fetch("origin", "+mdm/release/"+version+":mdm/release/"+version);	# this fetch command pulls down only the branch labelled with the version requested.
+		git.checkout("mdm/release/"+version);					# now we have it, just check it out and let it drop the files into the working tree.
+	finally:
+		cd(retreat);
 	git.config("-f", ".gitmodules", "submodule."+name+".mdm", "dependency");	# put a marker in the submodules config that this submodule is a dependency managed by mdm.
 	# git.config("-f", ".gitmodules", "submodule."+name+".mdm-version", version);	# we could add another marker to make the version name an explicit property, but what would be the point?  it wouldn't have any real binding to what objects are pointed at by the git index nor what's actually checked out.
-	git.add(".gitmodules");								# have to `git add` the gitmodules file again since otherwise the marker we just appended doesn't get staged
+	git.add("--", name, ".gitmodules");						# have to `git add` submodule itself since `git submodule add` disrupted by an existing repo won't stage that, and also the gitmodules file again since otherwise the marker we just appended doesn't get staged
 	pass;
 
 
