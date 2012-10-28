@@ -3,6 +3,19 @@ from mdm.imp import *;
 
 
 def getMdmSubmodules(kind=None, name=None, gmFilename=None):
+	"""
+	Generate a dict of data about submodules listed in the .gitmodules file of the cwd's repo (or some other file if specified).
+	Otherwise returns None if there are no submodules, or if a specific submodule is asked for and there's no data for a submodule by that name.
+	
+	For a submodule to be reported, there must be a field attached to that submodule keyed by "mdm"; this field is to report that this submodule is managed by mdm, and the value is what kind of submodule mdm considers it.
+	
+	Asking for a specific kind of submodule will return only submodules where the "mdm" key matches the requsted kind.
+	
+	One submodule may be asked for by name, in which case all the returned dict will be one level shallower since there's only one submodule worth of data to return;
+	 otherwise the same conditions as above apply (i.e., if there is one submodule by that name, but it's either not labled an mdm module of any kind, or a specific kind was asked for and this isn't it, then None will be returned).
+	
+	If "gmFilename" argument is provided, the cgw.getConfig() function is used internally to resolve that, so all the same rules for that function's argument apply to the gmFilename argument.
+	"""
 	if (not gmFilename):
 		try: gmFilename = git("rev-parse", "--show-toplevel").strip()+"/.gitmodules";
 		except ErrorReturnCode: return None;
