@@ -56,7 +56,7 @@ def getVersionManifest(releasesUrl):
 		return None;
 	
 	# hand the gitmodules contents through `git-config` (via cgw.getConfig via getMdmSubmodules), get a proper dict of the conf back
-	dConf = mdm.plumbing.getMdmSubmodules("release-snapshot", None, (remoteModulesStr,));
+	dConf = getMdmSubmodules("release-snapshot", None, (remoteModulesStr,));
 	
 	# we only really need an array of the names back
 	return sorted(filter(lambda pythonYUNoHaveATrueFunctionAlready : True, dConf), key=fn_version_sort);

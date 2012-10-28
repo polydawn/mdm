@@ -2,7 +2,7 @@
 from mdm.imp import *;
 
 
-def _promptForVersion(releasesUrl):
+def promptForVersion(releasesUrl):
 	versions = mdm.plumbing.getVersionManifest(releasesUrl);
 	if (versions is None): return None;
 	print "available versions: "+str(versions);
