@@ -9,6 +9,13 @@ def mdaa(dct, tup, val):
 
 
 
+def cons(lst, moar):
+	""" like list.append, but less annoying because it returns the same damn list instead of returning None. """
+	lst.append(moar);
+	return lst;
+
+
+
 def exitStatus(happy, message):
 	try:
 		code = {
