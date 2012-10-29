@@ -87,11 +87,10 @@ def _statusData(submodules):
 			attribs['isCheckedOut'] = True;
 			attribs['isContorted'] = True;
 		
-		if (attribs['isAtLinkedCommit'] is False):
+		if (attribs['isCheckedOut'] is False):
 			if (modname not in submWithUntracked):
 				# since `git submodule` couldn't tell us if we were on the right commit hash, we take the absense of comment from `git status` as a sign we're on the right one.
 				attribs['isAtLinkedCommit'] = True;
-			else: continue; # skip any branch/version detection
 		else:
 			if (modname in submWithUntracked):
 				attribs['isContorted'] = True;
