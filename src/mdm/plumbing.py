@@ -44,12 +44,13 @@ def doDependencyAdd(name, url, version):
 	retreat = os.getcwd();
 	cd(name);
 	try:
-		git.remote("add", "origin", url);					# the `git submodule add` above doesn't set up the remote origin; that would make too much sense.  so we do it here.  it's worth noting that we could use the "-t" option here to limit what would be automatically dragged down from the network if one goes into the submodule and manually pulls.  but i suspect the possible use as a safeguard against accidental large downloads is probably not worth the confusion it might cause to users who aren't deeply familiar with how remotes work (also, giving a null -t causes git itself to break down in confusion completely when it tries to do any fetching at all).
+		git.remote("add", "-t", "mdm/init", "origin", url);			# the `git submodule add` above doesn't set up the remote origin; that would make too much sense.  so we do it here.  we use the "-t" option here to limit what can be automatically dragged down from the network by a `git pull` (this is necessary because even pulling in the parent project will recurse to fetching submodule content as well).
 		_doDependencyFetch(version);
 	finally:
 		cd(retreat);
 	git.config("-f", ".gitmodules", "submodule."+name+".mdm", "dependency");	# put a marker in the submodules config that this submodule is a dependency managed by mdm.
 	git.config("-f", ".gitmodules", "submodule."+name+".mdm-version", version);	# add a marker to make the version name an explicit property, so mdm can know what branch names to pull down in the future.  note that this doesn't have a strictly enforcable binding to what objects are pointed at by the git index nor what's actually checked out, but if the mdm script is the only thing acting on these submodules then we enforce bindings by contract to the best of our ability.
+	git.config("-f", ".gitmodules", "submodule."+name+".update", "none");		# since almost all git commands by default will pull down waaaay too much data if they operate naively on our dependencies, we tell them to ignore all dependencies by default.  And of course, commands like `git pull` just steamroll right ahead and ignore this anyway, so those require even more drastic counters.
 	git.add("--", name, ".gitmodules");						# have to `git add` submodule itself since `git submodule add` disrupted by an existing repo won't stage that, and also the gitmodules file again since otherwise the markers we just appended don't get staged
 	pass;
 
@@ -62,7 +63,7 @@ def doDependencyLoad(name, version, url=None):
 	cd(name);
 	try:
 		if (url is not None):
-			git.remote("add", "origin", url);
+			git.remote("add", "-t", "mdm/init", "origin", url);
 		_doDependencyFetch(version);
 	finally:
 		cd(retreat);
