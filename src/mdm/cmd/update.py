@@ -38,6 +38,7 @@ def update(args):
 			
 			# clear out the files and .git/config and reinit.  if we don't do the clear before updating, `git submodule init` doesn't change the url, and the url still pointing to the old version will cause `git submodule update` to clone it again but nothing will end up checked out and a hash error is reported.
 			rm("-rf", subm);								# clear out the actual files
+			rm("-rf", join(".git/modules",subm));						# if this is one of the newer version of git (specifically, 1.7.8 or newer) that stores the submodule's data in the parent projects .git dir, clear that out forcefully as well or else git does some very silly things (you end up with the url changed but it recreates the old files and doesn't change the object id like it should).
 			try: git.config("-f", ".git/config", "--remove-section", "submodule."+subm);	# remove config lines for this submodule currently in .git/config.
 			except: pass;									# errors because there was already no such config lines aren't really errors.
 			git.submodule("init", subm);							# initialize again.
