@@ -301,6 +301,33 @@ echo "${clblue}#   to switch it to using new release versions of the upstream pr
  echo
  echo "${clblack}# \`mdm status\` should show us the change: ${cnone}"
  $MDM status
+ echo
+ echo "${clblack}# \`git push\` the dependency version change to the hub repo: ${cnone}"
+ git push
+)
+echo -e "${clblue} ----------------------------${cnone}\n\n"
+
+awaitack;
+
+
+
+echo "${clblue}#  Moment of truth, Part III: projAlpha's clone can pull the new changes${cnone}"
+echo "${clblue}#   from the hub repo, and smoothly switch to the new dependency version.${cnone}"
+(cd clone/projAlpha
+ echo "${clblack}# we haven't pulled yet, so \`mdm status\` should show all clear: ${cnone}"
+ $MDM status
+ echo
+ echo "${clblack}# \`git pull\`: ${cnone}"
+ git pull
+ echo
+ echo "${clblack}# Now \`mdm status\` should tell us that our last pull demands a dependency update: ${cnone}"
+ $MDM status
+ echo
+ echo "${clblack}# And we can do that.  \`mdm update\`: ${cnone}"
+ $MDM update
+ echo
+ echo "${clblack}# Huzzah?  Huzzah! ${cnone}"
+ $MDM status
 )
 echo -e "${clblue} ----------------------------${cnone}\n\n"
 
