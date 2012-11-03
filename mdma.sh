@@ -287,6 +287,22 @@ echo "${clblack}# and publish that release to the hub repos.${cnone}"
  (cd releases && git push --all && git push --tags) &&
  git push && git push --tags
 )
+echo
+sleep 1
+echo "${clblack}# ...okay, one more for fun (and to see a bigger graph):${cnone}"
+(cd projUpstream1 &&
+ echo "One ate my hat!" >> proj1.txt &&
+ git add proj1.txt &&
+ git commit proj1.txt -m "updated data file (more backstory)." &&
+ git show
+)
+echo
+echo "${clblack}# make a release of projUpstream1's files: ${cnone}"
+(cd projUpstream1/ &&
+ $MDM release --version=v2.1 --files="*.txt"
+)
+echo
+
 echo -e "${clblue} ----------------------------${cnone}\n\n"
 
 awaitack;
