@@ -234,7 +234,7 @@ Downloading a release
 
 Browse the releases repo!
 
-https://raw.github.com/heavenlyhash-releases/mdm-releases/master/
+https://github.com/heavenlyhash-releases/mdm-releases/
 
 
 Testing MDM
