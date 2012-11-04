@@ -8,3 +8,4 @@
 	path = releases
 	url = https://github.com/heavenlyhash-releases/mdm-releases.git
 	mdm = releases
+	update = none
