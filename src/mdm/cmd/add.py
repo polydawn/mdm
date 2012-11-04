@@ -43,19 +43,17 @@ def add(args):
 		return exitStatus(":'(", "there is already a submodule in the git index at "+path+" !\nWe can't pull down a dependency there until this conflict is cleared away.");
 	
 	
+	# give a look at the remote path and see what versions are physically available.
+	versions = mdm.plumbing.getVersionManifest(args.url);
+	if (not versions):							# blow up if there's nothing matching there.
+		return exitStatus(":(", "no releases could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.");
+	
+	
 	# if a specific version name was given, we'll skip checking for a manifest and just go straight at it; otherwise we look for a manifest and present options interactively.
-	version = None;
 	if (args.version):	# well that was easy
 		version = args.version;
-	else:			# check the url.  whether or not we can get a version manifest determines its validity.
-		version = promptForVersion(args.url)
-		if (version is None):
-			return exitStatus(":(", "no version_manifest could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.");
-	
-	
-	# check that the remote path is actually looking like a git repo before we call submodule add.
-	if (not cgw.isRepo(join(args.url, version+".git"),  "refs/tags/release/"+version)):
-		return exitStatus(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
+	else:			# prompt the user for a choice from the versions we found available from the remote.
+		version = promptForVersion(versions)
 	
 	
 	# do the submodule/dependency adding

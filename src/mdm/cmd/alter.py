@@ -10,28 +10,22 @@ def alter(args):
 		return exitStatus(":(", "there is no mdm dependency by that name.");
 	
 	
-	# parse the url pointing to the current snapshot repo and drop the last part off of it; if things are canonical, this should be the releases repo.
-	releasesUrl = submodule['url'][:submodule['url'].rindex("/")];
+	# give a look at the remote path and see what versions are physically available.
+	versions = mdm.plumbing.getVersionManifest(submodule['url']);
+	if (not versions):							# blow up if there's nothing there.
+		return exitStatus(":(", "could be found where we expected a releases repository to be for the existing dependency.  maybe it has moved, or the internet broke?");
 	
 	
 	# decide what version we're switching to
-	version = None;
 	if (args.version):	# well that was easy
 		version = args.version;
-	else:			# look for a version manifest and prompt for choices
-		version = promptForVersion(releasesUrl);
-		if (version is None):
-			return exitStatus(":'(", "no version_manifest could be found where we expected a releases repository to be for the existing dependency.  maybe it has moved, or this dependency has an unusual/manual release structure, or the internet broke?");
-	
-	
-	# check that the remote path is actually looking like a git repo before we call submodule add
-	if (not cgw.isRepo(join(releasesUrl, version+".git"),  "refs/tags/release/"+version)):
-		return exitStatus(":'(", "failed to find a release snapshot repository where we looked for it in the releases repository.");
+	else:			# prompt the user for a choice from the versions we found available from the remote.
+		version = promptForVersion(versions);
 	
 	
 	# do the submodule/dependency dancing
-	mdm.plumbing.doDependencyRemove(args.name);
-	mdm.plumbing.doDependencyAdd(args.name, releasesUrl, version);
+	mdm.plumbing.doDependencyRemove(args.name);				#TODO: this is a little more aggressive than necessary.  we could improve this so that it doesn't reorder the gitmodules file unnecessarly, and also there should be options for whether or not to discard history that will be extraneous after the alter.
+	mdm.plumbing.doDependencyAdd(args.name, submodule['url'], version);
 	
 	
 	# commit the changes

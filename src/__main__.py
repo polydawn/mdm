@@ -21,7 +21,7 @@ from mdm.imp import *;
 import argparse;
 import mdm.cmd;
 
-__version__ = "1.0.1"
+__version__ = "2.0.0"
 __project_url__ = "https://github.com/heavenlyhash/mdm"
 
 
@@ -61,8 +61,8 @@ def mdm_makeArgsParser_add(subparser):
 	);
 	parser_add.add_argument(
 		"url",
-		help="url pointing to the mdm-style releases repository that contains snapshots.  This url should provide direct access to the contents of the master branch of the releases repository (i.e. for a project that clones from https://github.com/heavenlyhash/mdm.git, what you want here is https://raw.github.com/heavenlyhash/mdm-releases/master ).",
-	);	# these URLs are really troublingly unrelated to any other urls in use.  I can write a special parser that takes a normal repo url for github and parses it into the expected releases raw-readable url, and another one for redmine, and another one for gitweb, but it's all very gross.  I guess for the present I'm going to rely on people using mdm patterns to put the raw url in their project's readme and leave a manual step here.  But in the future, perhaps it would be pleasant to make a central repo site that could lookup names into release-repo raw-read urls.
+		help="url pointing to an mdm-style releases repository.  Any kind of url that `git clone` understands will fly here too.",
+	);
 	parser_add.add_argument(
 		"--lib",
 		help="specifies the directory which shall contain the dependency module.  (default: '%(default)s')",
@@ -74,7 +74,7 @@ def mdm_makeArgsParser_add(subparser):
 	);
 	parser_add.add_argument(
 		"--version",
-		help="the version name of the dependency to set up.  If not provided, a mdm will try to obtain a list of available versions and prompt you to choose one interactively."
+		help="the version name of the dependency to set up.  If not provided, a mdm will obtain a list of available versions and prompt you to choose one interactively."
 	);
 
 def mdm_makeArgsParser_alter(subparser):
@@ -88,7 +88,7 @@ def mdm_makeArgsParser_alter(subparser):
 	);
 	parser_alter.add_argument(
 		"--version",
-		help="the version name of the dependency to set up.  If not provided, mdm will search for a list of options."
+		help="the version name of the dependency to set up.  If not provided, a mdm will obtain a list of available versions and prompt you to choose one interactively."
 	);
 
 def mdm_makeArgsParser_remove(subparser):
@@ -104,28 +104,28 @@ def mdm_makeArgsParser_remove(subparser):
 def mdm_makeArgsParser_release(subparser):
 	parser_release = subparser.add_parser(
 		"release",
-		help="generates a new release (creating and committing a new bare repo into your project's releases repo, then pulling that update and commiting it into the project's releases submodule).",
+		help="generates a new release (adding commits to a releases repository; then, if this command was issued from inside a project's repository and the releases repository is a submodule in the canonical location, the new head commit of the master branch of the releases repo will be committed to the project repo along with a release tag).",
 	);
 	parser_release.add_argument(
 		"--version",
 		required=True,
-		help="specifies the name/number of the release version to be made.  This will be used in creating tags, commit messages, and the name of the snapshot repository.",
+		help="specifies the name/number of the release version to be made.  This will be used in naming tags/branches, and also mentioned in commit messages.",
 	);
 	parser_release.add_argument(
 		"--files",
 		required=True,
-		help="specifies the directory to get artifact files from.  A single literal filename can be used, or basic shell globbing patterns (i.e. \"target/*\") can be used, or if a directory is provided, all files matching \"$files/*\" will be included.",
+		help="specifies the artifact files to commit in the release.  A single literal filename can be used, or basic shell globbing patterns (i.e. \"target/*\") can be used, or if a directory is provided, all files matching \"$files/*\" will be included.",
 	);
 	parser_release.add_argument(
 		"--repo",
-		help="specifies a local path to the releases repository for this project.  The new release snapshot repo will be added as raw data to this repository.  By default, it is assumed that the releases repo of this project is already a submodule in the ./releases/ directory, but using a path like '../projX-releases/' is also reasonable.  (default: '%(default)s')",
+		help="specifies a local path to the releases repository for this project.  The new release commits will be added to this repository.  By default, it is assumed that the releases repo of this project is already a submodule in the ./releases/ directory, but using a path like '../projX-releases/' is also reasonable.  (default: '%(default)s')",
 		default="releases",
 	);
 
 def mdm_makeArgsParser_releaseinit(subparser):
 	parser_releaseinit = subparser.add_parser(
 		"release-init",
-		help="set up a releases repository for a new project.",
+		help="set up a releases repository for a new project.  A new repository will be created as a submodule of the current repository in the \"releases\" directory; future invocations of `mdm release` will generate commits into this repository.",
 	);
 
 

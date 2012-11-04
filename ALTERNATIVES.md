@@ -47,7 +47,9 @@ Maven introduces network latency into pretty much every single thing it does.
 It also updates its own internal components in the same way as it checks for updates to other artifacts,
 which means that even when doing something as simple as asking it to delete a local directory can cause maven to contact the network and perform time consuming operations.  
 **Contrast to ```mdm```**:
-mdm contacts the network when you ask it to and *only* when you ask it to, so if you mdm together with a build tool that also doesn't have this problem, then you're golden; and if you use a build tool that hits the network whenever it feels like it, then you must really like waiting around.
+mdm contacts the network when you ask it to and *only* when you ask it to.
+Thus, if you mdm together with a build tool that also doesn't have this problem, then you're golden;
+if you use mdm together with a build tool that hits the network whenever it feels like it, then you must really like waiting around.
 
 
 ### Ant+Ivy
@@ -94,9 +96,6 @@ For some projects, this isn't a very serious practical concern.
 However, if your project has large dependencies or updates them more than a handful of times in the project's lifetime, then the amount of disk space and network bandwidth you're wasting when someone does new clone of your project gets pretty big.
 Whether or not you're using a DVCS (like git) changes whether these costs are heavier on a central server or on clients, but regardless of where you push the problem you're still accumulating waste somewhere.
 
-On the other hand, if you regularly do need to check out very old versions of your project that use dependencies other than the modern ones, dodging the problem like this can actually work great,
-since those binaries are available instantaneously and locally (assuming you use a DVCS like git).
-
 
 
 Weak Points in ```mdm```
@@ -109,43 +108,11 @@ If your project doesn't use git, you're going to have a really hard time extract
 This isn't any more or less of an assumption than maven projects make, though, and the maven ecosystem has done just fine.
 If a project doesn't support ```mdm```-style releases yet, just make a releases repo for that project yourself (or better yet, fork the original project and give them a pull request so that in the future there's a central authority for that project's ```mdm``` releases).
 
-If you want to ```git checkout``` back and forth between two branches that use different versions of a dependency, it's a little messy.
-Since you're effectively switching between two different snapshot repositories (which by design have no history in common), ```mdm``` is going to be a little confused.
-In practice, this doesn't seem come up as a major issue very often in normal workflows, and if it does, there are two fairly simple ways to work around it:
-you can just have two clones of your project repository,
-or you can pull down the releases repository for your dependency to local (or just nearby) and thus make the copies cheap.  A local copy of the releases repository means that git will actually resort to hardlinks, which will be both extremely fast and not even cause duplicated disk space usage.
-
-The use of git submodules introduces very tight coupling of a program to specific versions of its dependencies.  Some have argued this is a Bad Thing, and you should always aim to specify the widest possible range of acceptable dependencies.
-Then again, since the onus of choosing the exact version of dependencies is given to every project with ```mdm``` (as opposed to systems that invoke automatic and recursive dependency resolution), the problem doesn't seem to be pronounced in quite the same way.
-
-
-
-Alternatives to MDM's submodule patterns
-========================================
-
-```mdm```'s way of putting bare git data structures in a repository with the expectation of cloning them back out from the working tree over a dumb/raw transport is... admittedly a little indirect.
-There are other interesting ways to put git to use to solve related problems; ```mdm```'s way was chosen over several considered alternatives as the most powerful and general way to solve the problem, but for some specific situations these other options may be of interest.
-
-In particular, if you're working with a language where you never ever deal with compiled artifacts and only ever bring libraries in as source, then while ```mdm``` will still work for you, it may be overkill.
-
-
-
-Just Using Submodules
----------------------
-
-Just using git submodules directly is totally fine if your project can work by just bringing things in as source.
-You might notice that mdm does this itself!  Since it's convenience to bring in the pbs library that mdm uses as a source thing, that's how it's done.
-Where mdm shines is when you're dealing with large or binary artifacts, or some other situation where the releases don't diff well from one another.
-
-Btw, note that running `git submodule update --init` on a freshly cloned repo will happily load up all of mdm dependencies as well as deal with normal submodules in one motion, which just has kind of a tingling joy of simplicity to it.
-
-
-
-Using Branches instead of Sneaky Repos
---------------------------------------
-
-I wish this worked!  Your heart might have given a quiver of hope when you noticed that there's a "-b" option for `git submodule add`.  Alas, it's not so simple.
-Adding a submodule with a branch argument still clones all the branches, which means it wouldn't be possible to use branches to avoid bandwidth issues.
-Furthermore, no mention of the branch ends up as even so much as a footnote in .submodules or in .git/config, which means more exotic configuration would have to be contrived and a project using mdm would lose the venerable ability to be built by a newcomer with nothing more than ```git submodule update --init```.
+The use of git submodules introduces very tight coupling of a program to specific versions of its dependencies.
+Some have argued this is a Bad Thing, and you should always aim to specify the widest possible range of acceptable dependencies.
+Then again, since the onus of choosing the exact version of dependencies is given to every project with ```mdm``` (as opposed to systems that invoke automatic and recursive dependency resolution),
+ the problem doesn't seem to be pronounced in quite the same way.
+Also, keep in mind that ```mdm```'s design around commit hashes provides a cryptographically valid assurance that the dependencies you pull are *exactly* what the project's author intended;
+ there's no way to have loose matching to version numbers like "1.x" without abandoning the safety, precision, and guarantees that are provided by a system based on hashing.
 
 

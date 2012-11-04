@@ -9,6 +9,26 @@ def mdaa(dct, tup, val):
 
 
 
+def cons(lst, moar):
+	""" like list.append, but less annoying because it returns the same damn list instead of returning None. """
+	lst.append(moar);
+	return lst;
+
+
+
+def chooseFieldWidth(samples, policy=8):
+	"""
+	Return the smallest number of characters that a printf should reserve when printing a table
+	with a columnn containing the given sample of values, if the next field must start aligned 
+	to the given 'policy' multiple of characters.
+	"""
+	width = 0;
+	for val in samples:
+		width = max(width, len(val));
+	return (width/policy)*policy+policy;	# divide into blocks of size 'policy', then turn that back into characters and add one more block.
+
+
+
 def exitStatus(happy, message):
 	try:
 		code = {
