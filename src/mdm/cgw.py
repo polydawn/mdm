@@ -15,6 +15,8 @@ def isRepoRoot(dirname):
 	cd(dirname);
 	try:
 		return git("rev-parse", "--show-toplevel") == pwd("-P");
+	except:
+		return False;
 	finally:
 		cd(retreat);
 
