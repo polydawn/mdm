@@ -25,7 +25,7 @@ def alter(args):
 	
 	# do the submodule/dependency dancing
 	mdm.plumbing.doDependencyRemove(args.name);				#TODO: this is a little more aggressive than necessary.  we could improve this so that it doesn't reorder the gitmodules file unnecessarly, and also there should be options for whether or not to discard history that will be extraneous after the alter.
-	mdm.plumbing.doDependencyAdd(args.name, submodule['url'], version);
+	mdm.plumbing.doDependencyAdd(args.name, version, submodule['url']);
 	
 	
 	# commit the changes

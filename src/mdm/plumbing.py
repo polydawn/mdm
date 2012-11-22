@@ -37,7 +37,7 @@ def getMdmSubmodules(kind=None, name=None, gmFilename=None):
 
 
 
-def doDependencyAdd(name, url, version):
+def doDependencyAdd(name, version, url):
 	git.init(name);									# create a new empty repository (we will pull down only the data we need, which is not possible when cloning).  is a no-op if repo already exists there.
 	git.submodule("add", url, name);						# add us a submodule for great good!  (git will set up the url as the remote origin, but it won't clone since there's already stuff locally.)
 	git.submodule("init", name);							# i would've thought `git submodule add` would have already done this, but it seems sometimes it does not.  anyway, at worst, this is a redunant no-op.
