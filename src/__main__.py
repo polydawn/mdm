@@ -125,7 +125,15 @@ def mdm_makeArgsParser_release(subparser):
 def mdm_makeArgsParser_releaseinit(subparser):
 	parser_releaseinit = subparser.add_parser(
 		"release-init",
-		help="set up a releases repository for a new project.  A new repository will be created as a submodule of the current repository in the \"releases\" directory; future invocations of `mdm release` will generate commits into this repository.",
+		help="set up a releases repository for a new project.  Future invocations of `mdm release` will generate commits into this repository.",
+	);
+	parser_releaseinit.add_argument(
+		"--name",
+		help="the name of the project.  If not provided, either the path of the parent project will be parsed to determine the appropriate name, or failing that, mdm will prompt you to choose one interactively."
+	);
+	parser_releaseinit.add_argument(
+		"--repo",
+		help="specifies a path where the releases repository should be created.  If not provided, the default varies depending on if this command is issued from the root of an existing git repo: if so, it is assumed the releases repo should be a submodule in the \"./releases/\" directory; otherwise, the default behavior is to initialize the release repo in the current directory.",
 	);
 
 

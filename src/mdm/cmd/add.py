@@ -57,7 +57,7 @@ def add(args):
 	
 	
 	# do the submodule/dependency adding
-	mdm.plumbing.doDependencyAdd(path, args.url, version);
+	mdm.plumbing.doDependencyAdd(path, version, args.url);
 	
 	
 	# commit the changes
