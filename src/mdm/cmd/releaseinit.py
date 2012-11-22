@@ -8,15 +8,6 @@ def releaseinit(args):
 	projname = os.getcwd().split("/")[-1];
 	
 	
-	# check to make sure this repo has more than zero commits in it to avoid awkwardness.
-	## I take it back; this doesn't appear to be as problematic as I at first worried.
-	#try:
-	#	git.log("-n 1");
-	#except ErrorReturnCode:
-	#	print >> stderr, "please make at least one commit before initializing your releases repo.  (git can behave surprisingly in repositories with no history.)\n:(";
-	#	exit(3);
-	
-	
 	# is the "releases" area free of clutter?  (we're not supporting other locations in this script, because if you want noncanonical here, you can go ahead and do it yourself.)
 	if (cgw.isSubmodule("releases")):					#  if it's a submodule already, we give a different error message.
 		return exitStatus(":I", "there's already a releases module!  No changes made.");
