@@ -33,9 +33,17 @@ def release(args):
 			return exitStatus(":(", "no files were found at "+args.files+"\nrelease aborted.");
 	
 	
-	# branch from the init commit
+	# create a branch for the release commit.  depending on whether or not infix mode is enabled, this is either branching from the infix branch, or it's founding a new root of history.
 	cd(args.repo);
-	git.checkout("-b", "mdm/release/"+args.version, "mdm/init");
+	infixMode = cgw.isRepo(".", ref="refs/heads/mdm/infix");
+	if (infixMode):
+		git.checkout("-b", "mdm/release/"+args.version, "mdm/infix");
+	else:
+		git.checkout("--orphan", "mdm/release/"+args.version);
+		git.rm("-rf",".");
+	
+	
+	# enumerate and copy in artifact files.
 	unartifacts = os.listdir(".");
 	try:
 		cd(retreat);							# make sure we're back where the command started again, so any relative paths make sense
@@ -51,12 +59,15 @@ def release(args):
 	
 	
 	# remind me what we just did?  (we'll be referring to everything by its path in the repo from now on, so we can discard all path prefixes.)
-	artifacts = filter(lambda x: not x in unartifacts, os.listdir("."));	# incidentally, note this means if your release artifacts went to paths that already had files from the mdm/init branch, those are going to be ignored!  if you put a readme.txt in your mdm/init branch, then you shouldn't put one in the release too; attempting to do so is unsupported.  other implementations were considered (namely, asking git to just add everything to the index, and then asking it again what that brings out), but these have their own potentially surprising behaviors, such as the `git mv` command coming up meaning that things added in teh mdm/init branch might appear to be merged into the master branch looking at the history graph after a release, but they wouldn't be at all where you'd expect them to be, and older version of the same files from the init branch might persist unchanged, and so on.  there's no unsurprising way to thread this needle.
+	artifacts = filter(lambda x: not x in unartifacts, os.listdir("."));	# incidentally, note this means if your release artifacts went to paths that already had files from the mdm/infix branch, those are going to be ignored!  if you put a readme.txt in your mdm/infix branch, then you shouldn't put one in the release too; attempting to do so is unsupported.  other implementations were considered (namely, asking git to just add everything to the index, and then asking it again what that brings out), but these have their own potentially surprising behaviors, such as the `git mv` command coming up meaning that things added in teh mdm/init branch might appear to be merged into the master branch looking at the history graph after a release, but they wouldn't be at all where you'd expect them to be, and older version of the same files from the init branch might persist unchanged, and so on.  there's no unsurprising way to thread this needle.
 	
 	
 	# add the artifact files to the index and make the "point" commit
 	git.add("--", artifacts);						# add the artifacts to the repo
-	git.commit("-m","release version "+args.version);			# commit the artifacts to the repo
+	if (infixMode):
+		git.commit("-m","release version "+args.version);		# commit the artifacts to the repo
+	else:
+		git.commit("-m","release version "+args.version, _env=mdm.plumbing.convenv);	# commit the artifacts to the repo, using null headers
 	git.tag("release/"+args.version);					# tag the release commit in the repo (this is arguably redundant since there's also a branch name we leave pointing at this place, but it's still a reasonable tag to make, and also as a sideeffect it causes github to offer really lovely tarballs.)		#TODO: there should be a signing option here.
 	
 	

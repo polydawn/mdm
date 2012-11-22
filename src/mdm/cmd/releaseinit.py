@@ -36,8 +36,13 @@ def releaseinit(args):
 	git.add("README");
 	git.commit("-m", "initialize releases repo for "+projname+".");
 	
-	# label this root commit as a branch, because all releases in the future will come back to branch off of this again.
-	git.checkout("-b", "mdm/init");
+	
+	# label this root commit in order to declare this repo as a valid mdm releases repo.
+	git.checkout("-b", "mdm/init");		# considered changing this to a tag instead of a branch, but you can't actually do that.  there's some crap with the fetching where you needed an essentially empty branch, and we need this init branch of that.  init is clearly more appropriate for that than infix, since infix doesn't necessarily even exist.
+	# if infix mode was required, check out this root commit as the infix branch.  this will cause all future releases to be branched from here instead of being roots of their own new (short) history trees, and also cause those commits to use the current date instead of a null date.
+	#  actually, just don't.  the user can do this themselves if desired.  it's a single git command that can be issued at absolutely any time.
+	#if (args.infix):
+	#	git.checkout("-b", "mdm/infix");
 	cd(retreat);
 	
 	
