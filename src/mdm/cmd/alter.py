@@ -24,12 +24,12 @@ def alter(args):
 	
 	
 	# do the submodule/dependency dancing
-	mdm.plumbing.doDependencyRemove(args.name);				#TODO: this is a little more aggressive than necessary.  we could improve this so that it doesn't reorder the gitmodules file unnecessarly, and also there should be options for whether or not to discard history that will be extraneous after the alter.
-	mdm.plumbing.doDependencyAdd(args.name, version, submodule['url']);
+	git.config("-f", ".gitmodules", "--replace-all", "submodule."+args.name+".mdm-version", version);
+	mdm.plumbing.doDependencyLoad(args.name, version);
 	
 	
 	# commit the changes
-	git.commit("-m", "shifting dependency on "+args.name+" to version "+version+".");
+	git.commit("-m", "shifting dependency on "+args.name+" to version "+version+".", "--", ".gitmodules", args.name);
 	
 	
 	return exitStatus(":D", "altered dependency on "+args.name+" to version "+version+" successfully!");
