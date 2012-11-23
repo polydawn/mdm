@@ -84,6 +84,10 @@ def releaseinit(args):
 	git.commit("-m", "initialize releases repo for "+projname+".");
 	
 	
+	# if someone intends to make more commits before starting releasing... well, the first release will leave the master branch checked out, so let's make sure to do the same here so as not to be surprising.
+	git.checkout("master");
+	
+	
 	return exitStatus(":D", "releases repo and submodule initialized");
 
 
