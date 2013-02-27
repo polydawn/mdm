@@ -45,31 +45,31 @@ it's impossible for anyone to be hoodwinked into getting anything other than the
 |
 *               <-- commit=07  tag="mdm/master/v2.1"
 |\                      moved artifact.jar -> v2.1/artifact.jar
-| \   .                 moved artifact.so -> v2.1/artifact.so
-|  |  .
-|  *  .         <-- commit=06  branch="mdm/release/v2.1"
-|  |  |                 added artifact.jar
-|  |  |                 added artifact.so
-|   \ |
-*    \|         <-- commit=05  tag="mdm/master/v2.0"
-|\    |                 moved artifact.jar -> v2.0/artifact.jar
-| \   |                 moved artifact.so -> v2.0/artifact.so
-|  |  |
-|  *  |         <-- commit=04  branch="mdm/release/v2.0"
-|  |  |                 added artifact.jar
-|  |  |                 added artifact.so
-|   \ |
-*    \|         <-- commit=03  tag="mdm/master/v1.0"
-|\    |                 moved artifact.jar -> v1.0/artifact.jar
-| \   |                 moved artifact.so -> v1.0/artifact.so
-|  |  |
-|  *  |         <-- commit=02  branch="mdm/release/v1.0"
-|  |  |                 added artifact.jar
-|  | /                  added artifact.so
-|  |/
-|  /
-| /
-|/
+| \                     moved artifact.so -> v2.1/artifact.so
+|  |   
+|  *            <-- commit=06  branch="mdm/release/v2.1"
+|                       added artifact.jar
+|                       added artifact.so
+|      
+*               <-- commit=05  tag="mdm/master/v2.0"
+|\                      moved artifact.jar -> v2.0/artifact.jar
+| \                     moved artifact.so -> v2.0/artifact.so
+|  |   
+|  *            <-- commit=04  branch="mdm/release/v2.0"
+|                       added artifact.jar
+|                       added artifact.so
+|      
+*               <-- commit=03  tag="mdm/master/v1.0"
+|\                      moved artifact.jar -> v1.0/artifact.jar
+| \                     moved artifact.so -> v1.0/artifact.so
+|  |   
+|  *            <-- commit=02  branch="mdm/release/v1.0"
+|                       added artifact.jar
+|                       added artifact.so
+|    
+|   
+|  
+| 
 *               <-- commit=01  branch="mdm/init"
                         Nothing really to see here.  This is just the commit
                         created to inaugurate the releases repository.
