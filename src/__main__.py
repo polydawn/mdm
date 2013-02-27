@@ -21,7 +21,7 @@ from mdm.imp import *;
 import argparse;
 import mdm.cmd;
 
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 __project_url__ = "https://github.com/heavenlyhash/mdm"
 
 
