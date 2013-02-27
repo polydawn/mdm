@@ -1,4 +1,7 @@
 
+from mdm.imp import *;
+
+
 def mdaa(dct, tup, val):
 	""" merge a value into a multidimentional ragged array.  I feel like this is something there certainly ought to be a more pythonic convenient syntax for, but if so I haven't found it yet. """
 	for k in tup[:-1]:
@@ -41,5 +44,17 @@ def exitStatus(happy, message):
 		}[happy];
 	except: code = 128;
 	return {'happy':happy, 'message':message, 'code':code};
+
+
+
+from contextlib import contextmanager;
+@contextmanager
+def working_directory(directory):
+	retreat = os.getcwd();
+	try:
+		os.chdir(directory);
+		yield directory;
+	finally:
+		os.chdir(retreat);
 
 
