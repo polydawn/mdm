@@ -3,7 +3,7 @@ from mdm.imp import *;
 
 
 def promptForVersion(versions):
-	print "available versions: "+str(versions);
+	print "available versions: "+"\n\t"+"\n\t".join(versions);
 	version = None;
 	while (not version):
 		version = raw_input("select a version: ");

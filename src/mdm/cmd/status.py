@@ -61,53 +61,52 @@ def _statusData(submodules):
 	submWithUntracked = map(lambda line: line[3:], submWithUntracked.split('\0'));		# if it shows up at all, it's a mess of some kind.  whether that be because it's deleted from the index, or there's untracked content, or god knows what, i don't particularly care; all are worthing of emitting a warning.
 	
 	# go across every mdm dependency submodule and parse all the data into salient info
-	retreat = os.getcwd();
-	for modname, attribs in submodules.items():
-		# initialize default values for every trait we're about to consider
-		attribs['isCheckedOut'] = False;
-		attribs['isAtLinkedCommit'] = False;
-		attribs['isContorted'] = False;					# 'contorted' means there's untracked content there, or a merge conflict, or anything at all where there's files there, but they're not pegged down.
-		attribs['branchActual'] = None;
-		
-		# is there anything at this path at all, much less a repo?
-		if (not path.lexists(attribs['path'])):
-			continue;
-		
-		# what does parent repo think of the commit?
-		if (submStatus[modname] == " "):				# the submodule is initialized in .git/config, and why yes indeedy it has exactly the commit checked out that the parent wants it pointing to.  huzzah!
-			attribs['isCheckedOut'] = True;
-			attribs['isAtLinkedCommit'] = True;
-		elif (submStatus[modname] == "-"):				# .git/config is not initialized
+	with working_directory(cgw.getRepoRootPath()):
+		for modname, attribs in submodules.items():
+			# initialize default values for every trait we're about to consider
 			attribs['isCheckedOut'] = False;
-			pass; # we can't tell if we're at the linked commit or not from this.  we'll let the submWithUntracked list speak for that.
-		elif (submStatus[modname] == "+"):				# submodule repo on the filesystem has a different commit hash checked out than index intentions
-			attribs['isCheckedOut'] = True;
 			attribs['isAtLinkedCommit'] = False;
-		else:								# what?  could be a merge conflicted submodule or something, but you shouldn't have that with mdm dependency submodules unless you were doing something manual that was asking for trouble.
-			attribs['isCheckedOut'] = True;
-			attribs['isContorted'] = True;
-		
-		if (attribs['isCheckedOut'] is False):
-			if (modname not in submWithUntracked):
-				# since `git submodule` couldn't tell us if we were on the right commit hash, we take the absense of comment from `git status` as a sign we're on the right one.
+			attribs['isContorted'] = False;					# 'contorted' means there's untracked content there, or a merge conflict, or anything at all where there's files there, but they're not pegged down.
+			attribs['branchActual'] = None;
+			
+			# is there anything at this path at all, much less a repo?
+			if (not path.lexists(attribs['path'])):
+				continue;
+			
+			# what does parent repo think of the commit?
+			if (submStatus[modname] == " "):				# the submodule is initialized in .git/config, and why yes indeedy it has exactly the commit checked out that the parent wants it pointing to.  huzzah!
+				attribs['isCheckedOut'] = True;
 				attribs['isAtLinkedCommit'] = True;
-		else:
-			if (modname in submWithUntracked):
+			elif (submStatus[modname] == "-"):				# .git/config is not initialized
+				attribs['isCheckedOut'] = False;
+				pass; # we can't tell if we're at the linked commit or not from this.  we'll let the submWithUntracked list speak for that.
+			elif (submStatus[modname] == "+"):				# submodule repo on the filesystem has a different commit hash checked out than index intentions
+				attribs['isCheckedOut'] = True;
+				attribs['isAtLinkedCommit'] = False;
+			else:								# what?  could be a merge conflicted submodule or something, but you shouldn't have that with mdm dependency submodules unless you were doing something manual that was asking for trouble.
+				attribs['isCheckedOut'] = True;
 				attribs['isContorted'] = True;
-		
-		# what version are we actually on?  by branch
-		#TODO: not actually clear if we should use the methodology of looking at the current branch or not.  `mdm` itself will always checkout the submodule by branch name, but it's not "wrong" per se to check out the same commit by hash name and have a detatched head state.  dealing with tags may also prove simpler and more stable, since those never get mussed around with any "origin/blahblah" prefixes.
-		#TODO: `git describe` takes waaaaaaay too many liberties.  another alternative would be preferable.
-		try:
-			cd(attribs['path']);
-			attribs['branchActual'] = str(git.describe("--tags")).strip().split("/");
-			if (attribs['branchActual'][0] == "release"):		# if it's a release tag, parse out just the version name itself.
-				attribs['branchActual'] = attribs['branchActual'][1:];
-				attribs['branchActual'] = "/".join(attribs['branchActual']);
-			else:							# ain't one of ours.
-				attribs['branchActual'] = None;
-		except ErrorReturnCode, e: pass;	# leave attribs['branchActual'] = None.
-		finally: cd(retreat);
+			
+			if (attribs['isCheckedOut'] is False):
+				if (modname not in submWithUntracked):
+					# since `git submodule` couldn't tell us if we were on the right commit hash, we take the absense of comment from `git status` as a sign we're on the right one.
+					attribs['isAtLinkedCommit'] = True;
+			else:
+				if (modname in submWithUntracked):
+					attribs['isContorted'] = True;
+			
+			# what version are we actually on?  by branch
+			#TODO: not actually clear if we should use the methodology of looking at the current branch or not.  `mdm` itself will always checkout the submodule by branch name, but it's not "wrong" per se to check out the same commit by hash name and have a detatched head state.  dealing with tags may also prove simpler and more stable, since those never get mussed around with any "origin/blahblah" prefixes.
+			#TODO: `git describe` takes waaaaaaay too many liberties.  another alternative would be preferable.
+			try:
+				with working_directory(attribs['path']):
+					attribs['branchActual'] = str(git.describe("--tags")).strip().split("/");
+					if (attribs['branchActual'][0] == "release"):		# if it's a release tag, parse out just the version name itself.
+						attribs['branchActual'] = attribs['branchActual'][1:];
+						attribs['branchActual'] = "/".join(attribs['branchActual']);
+					else:							# ain't one of ours.
+						attribs['branchActual'] = None;
+			except ErrorReturnCode, e: pass;	# leave attribs['branchActual'] = None.
 	
 	return submodules;
 

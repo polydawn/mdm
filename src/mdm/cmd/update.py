@@ -48,11 +48,11 @@ def update(args):
 		status += ", "+str(len(removed))+" removed";
 	status2 = "";
 	if (len(impacted) > 0):
-		status2 += "\n  changed: "+str(impacted);
+		status2 += "\n  changed: "  +"\t"+"\n\t\t".join(impacted);
 	if (len(contorted) > 0):
-		status2 += "\n  contorted: "+str(contorted);
+		status2 += "\n  contorted: "+"\t"+"\n\t\t".join(contorted);
 	if (len(removed) > 0):
-		status2 += "\n  removed: "+str(removed);
+		status2 += "\n  removed: "  +"\t"+"\n\t\t".join(removed);
 	
 	
 	return exitStatus(":D", "mdm dependencies have been updated ("+status+")"+status2);

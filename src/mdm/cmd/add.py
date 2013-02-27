@@ -46,7 +46,7 @@ def add(args):
 	# give a look at the remote path and see what versions are physically available.
 	versions = mdm.plumbing.getVersionManifest(args.url);
 	if (not versions):							# blow up if there's nothing matching there.
-		return exitStatus(":(", "no releases could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.");
+		return exitStatus(":(", "no releases could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.\nare you sure this is the releases repo?  keep in mind that the release repo and the source repo isn't the same for most projects -- check the project readme for the location of their release repo.");
 	
 	
 	# if a specific version name was given, we'll skip checking for a manifest and just go straight at it; otherwise we look for a manifest and present options interactively.

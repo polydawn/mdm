@@ -5,20 +5,31 @@ from mdm.imp import *;
 
 
 
+def getRepoRootPath(dirname="."):
+	"""
+	Return the path of the top directory of the git repo in the given dir, or false if there isn't one there.
+	"""
+	if (not path.isdir(dirname)):
+		return False;
+	with working_directory(dirname):
+		try:
+			return str(git("rev-parse", "--show-toplevel"))[:-1]
+		except:
+			return False;
+
+
+
 def isRepoRoot(dirname):
 	"""
 	Returns True if the given dirname is the root directory of a git repo, False otherwise.
 	"""
 	if (not path.isdir(dirname)):
 		return False;
-	retreat = os.getcwd();
-	cd(dirname);
-	try:
-		return git("rev-parse", "--show-toplevel") == pwd("-P");
-	except:
-		return False;
-	finally:
-		cd(retreat);
+	with working_directory(dirname):
+		try:
+			return getRepoRootPath() == str(pwd("-P"))[:-1];
+		except:
+			return False;
 
 
 
