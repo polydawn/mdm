@@ -27,7 +27,7 @@ def isRepoRoot(dirname):
 		return False;
 	with working_directory(dirname):
 		try:
-			return getRepoRootPath() == pwd("-P");
+			return getRepoRootPath() == str(pwd("-P"))[:-1];
 		except:
 			return False;
 
