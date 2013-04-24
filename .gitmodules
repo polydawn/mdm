@@ -1,3 +1,9 @@
 [submodule "lib/exus-build"]
 	path = lib/exus-build
 	url = https://github.com/heavenlyhash/exus-build
+[submodule "lib/ahslib"]
+	path = lib/ahslib
+	url = https://github.com/mdm-releases/ahslib-releases
+	mdm = dependency
+	mdm-version = v0.6.5
+	update = none
