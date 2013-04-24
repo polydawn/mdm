@@ -7,3 +7,9 @@
 	mdm = dependency
 	mdm-version = v0.6.5
 	update = none
+[submodule "lib/slf4j"]
+	path = lib/slf4j
+	url = https://github.com/mdm-releases/slf4j-releases
+	mdm = dependency
+	mdm-version = v1.6.6
+	update = none
