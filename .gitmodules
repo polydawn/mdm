@@ -19,3 +19,9 @@
 	mdm = dependency
 	mdm-version = v1.0.7
 	update = none
+[submodule "lib/jgit"]
+	path = lib/jgit
+	url = https://github.com/mdm-releases/jgit-releases
+	mdm = dependency
+	mdm-version = 2.3.1.201302201838-r
+	update = none
