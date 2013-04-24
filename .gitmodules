@@ -13,3 +13,9 @@
 	mdm = dependency
 	mdm-version = v1.6.6
 	update = none
+[submodule "lib/logback"]
+	path = lib/logback
+	url = https://github.com/mdm-releases/logback-releases
+	mdm = dependency
+	mdm-version = v1.0.7
+	update = none
