@@ -1,0 +1,3 @@
+[submodule "lib/exus-build"]
+	path = lib/exus-build
+	url = https://github.com/heavenlyhash/exus-build
