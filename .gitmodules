@@ -25,3 +25,9 @@
 	mdm = dependency
 	mdm-version = 2.3.1.201302201838-r
 	update = none
+[submodule "lib/argparse4j"]
+	path = lib/argparse4j
+	url = https://github.com/mdm-releases/argparse4j-releases
+	mdm = dependency
+	mdm-version = v0.4.0
+	update = none
