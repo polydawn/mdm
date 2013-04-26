@@ -26,7 +26,6 @@ import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.submodule.*;
-import us.exultant.ahs.util.*;
 
 public class MdmModule {
 	public MdmModule(SubmoduleWalk generator, Config gitmodulesCfg) throws IOException, IsntOne {
@@ -131,32 +130,6 @@ public class MdmModule {
 	/** Are there uncommitted for changed files in the module? */
 	private final boolean dirtyFiles;
 
-	public MdmModuleStatus status() {
-		MdmModuleStatus s = new MdmModuleStatus();
-
-		if (!handle.equals(path))
-			s.errors.add("Handle and path are not the same.  This is very strange and may cause issues with other git tools.");
-		if (urlHistoric == null)
-			s.errors.add("No url for remote repo is set in gitmodules.");
-
-		if (type == MdmModuleType.DEPENDENCY) {
-			if (versionName == null)
-				s.errors.add("Version name not specified in gitmodules file!");
-			if (headId == null) {
-				s.version = "-- uninitialized --";
-			} else {
-				s.version = (versionActual == null) ? "__UNKNOWN_VERSION__" : versionActual;
-				if (!versionActual.equals(versionName))
-					s.warnings.add("intended version is "+versionName+", run `mdm update` to get it");
-				if (!indexId.equals(headId))
-					s.warnings.add("commit currently checked out does not match hash in parent project");
-				if (dirtyFiles)
-					s.warnings.add("there are uncommitted changes in this submodule");
-			}
-		}
-		return s;
-	}
-
 	public String getHandle() {
 		return this.handle;
 	}
@@ -175,6 +148,10 @@ public class MdmModule {
 
 	public String getVersionName() {
 		return this.versionName;
+	}
+
+	public String getVersionActual() {
+		return this.versionActual;
 	}
 
 	public ObjectId getIndexId() {
@@ -211,7 +188,6 @@ public class MdmModule {
 			.append("\n    urlHistoric =\t").append(this.urlHistoric)
 			.append("\n       urlLocal =\t").append(this.urlLocal)
 			.append("\n     dirtyFiles =\t").append(this.dirtyFiles)
-			.append("\n         status =").append(Strings.indent(this.status()))
 			.append("\n}").toString();
 	}
 }
