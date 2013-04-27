@@ -145,7 +145,7 @@ public class Mdm {
 	public static MdmCommand getCommand(String name, Repository repo) {
 		switch (name) {
 			case "status": return new MdmStatusCommand(repo);
-			case "update": throw new NotYetImplementedException();
+			case "update": return new MdmUpdateCommand(repo);
 			case "add": throw new NotYetImplementedException();
 			case "alter": throw new NotYetImplementedException();
 			case "remove": throw new NotYetImplementedException();

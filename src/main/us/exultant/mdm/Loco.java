@@ -22,4 +22,10 @@ package us.exultant.mdm;
 import java.util.*;
 
 public class Loco {
+	public static List<String> toHandles(List<MdmModule> modules) {
+		List<String> v = new ArrayList<>(modules.size());
+		for (MdmModule module : modules)
+			v.add(module.getHandle());
+		return v;
+	}
 }

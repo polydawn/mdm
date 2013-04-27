@@ -126,7 +126,7 @@ public class MdmModule {
 	private final String path;
 
 	/** The submodule repository. */
-	private final Repository repo;
+	Repository repo;
 
 	/** The purpose of this module to mdm as specified in .gitmodules. */
 	private final MdmModuleType type;
@@ -147,7 +147,7 @@ public class MdmModule {
 	private final String urlHistoric;
 
 	/** Remote url as listed in the local .git/config file. */
-	private final String urlLocal;
+	String urlLocal;
 
 	/** Are there uncommitted for changed files in the module? */
 	private final boolean dirtyFiles;
