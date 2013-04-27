@@ -31,7 +31,13 @@ import us.exultant.mdm.commands.*;
 public class Mdm {
 	public static final String VERSION = "2.10.0";
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
+		MdmExitMessage answer = main(args, null);
+		answer.print(System.err);
+		answer.exit();
+	}
+
+	public static MdmExitMessage main(String[] args, Repository repo) {
 		ArgumentParser parser = ArgumentParsers.newArgumentParser("mdm").version(VERSION);
 
 		parser.addArgument("--version").action(Arguments.version());
@@ -114,10 +120,13 @@ public class Mdm {
 			.help("specifies a path where the releases repository should be created.  If not provided, the default varies depending on if this command is issued from the root of an existing git repo: if so, it is assumed the releases repo should be a submodule in the \"./releases/\" directory; otherwise, the default behavior is to initialize the release repo in the current directory.");
 
 
-
-		Repository repo = new FileRepositoryBuilder()
-			.findGitDir()
-			.build();
+		if (repo == null) try {
+			repo = new FileRepositoryBuilder()
+				.findGitDir()
+				.build();
+		} catch (IOException e) {
+			return new MdmExitMessage(":(", "this command should be run from inside your git repo.");
+		}
 
 		Namespace parsedArgs = null;
 		try {
@@ -127,13 +136,13 @@ public class Mdm {
 			System.exit(1);
 		}
 		try {
-			getCommand(parsedArgs.getString("subcommand"), repo).call();
+			return getCommand(parsedArgs.getString("subcommand"), repo).call();
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			return new MdmExitMessage(":'(", "An unexpected error occurred!\n"+X.toString(e));
 		}
 	}
 
-	public static MdmCommand<?> getCommand(String name, Repository repo) {
+	public static MdmCommand getCommand(String name, Repository repo) {
 		switch (name) {
 			case "status": return new MdmStatusCommand(repo);
 			case "update": throw new NotYetImplementedException();

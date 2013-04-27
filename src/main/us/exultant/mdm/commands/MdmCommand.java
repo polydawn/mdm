@@ -21,8 +21,9 @@ package us.exultant.mdm.commands;
 
 import java.util.concurrent.*;
 import org.eclipse.jgit.lib.*;
+import us.exultant.mdm.*;
 
-public abstract class MdmCommand<T> implements Callable<T> {
+public abstract class MdmCommand implements Callable<MdmExitMessage> {
 	/** The repository this command is working with */
 	final protected Repository repo;
 

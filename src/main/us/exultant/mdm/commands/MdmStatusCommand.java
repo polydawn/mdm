@@ -25,7 +25,7 @@ import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import us.exultant.mdm.*;
 
-public class MdmStatusCommand extends MdmCommand<Void> {
+public class MdmStatusCommand extends MdmCommand {
 	public MdmStatusCommand(Repository repo) {
 		super(repo);
 	}
@@ -36,7 +36,7 @@ public class MdmStatusCommand extends MdmCommand<Void> {
 		this.os = os;
 	}
 
-	public Void call() throws IOException, ConfigInvalidException {
+	public MdmExitMessage call() throws IOException, ConfigInvalidException {
 		MdmModuleSet moduleSet = new MdmModuleSet(repo);
 		Map<String,MdmModule> modules = moduleSet.getDependencyModules();
 
@@ -58,7 +58,7 @@ public class MdmStatusCommand extends MdmCommand<Void> {
 			for (String warning : status.warnings)
 				os.printf("  %-"+width1+"s \t   %s\n", "", "  !! "+warning);
 		}
-		return null;
+		return new MdmExitMessage(0);
 	}
 
 	public StatusTuple status(MdmModule module) {
