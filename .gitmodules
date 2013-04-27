@@ -31,3 +31,9 @@
 	mdm = dependency
 	mdm-version = v0.4.0
 	update = none
+[submodule "lib/jsch"]
+	path = lib/jsch
+	url = https://github.com/mdm-releases/jsch-releases
+	mdm = dependency
+	mdm-version = v0.1.49
+	update = none
