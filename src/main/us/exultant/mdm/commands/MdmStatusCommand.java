@@ -23,6 +23,7 @@ import java.io.*;
 import java.util.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
+import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
 
 public class MdmStatusCommand extends MdmCommand {
@@ -47,7 +48,7 @@ public class MdmStatusCommand extends MdmCommand {
 
 		Collection<String> row1 = new ArrayList<>(modules.keySet());
 		row1.add("dependency:");
-		int width1 = Loco.chooseFieldWidth(row1);
+		int width1 = Strings.chooseFieldWidth(row1);
 
 		os.printf("%-"+width1+"s   \t %s\n", "dependency:", "version:");
 		os.printf("%-"+width1+"s   \t %s\n", "-----------", "--------");
