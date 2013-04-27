@@ -63,8 +63,8 @@ public class Plumbing {
 				try {
 					RefSpec ref = new RefSpec()
 						.setForceUpdate(true)
-						.setSource(versionBranchName)
-						.setDestination(versionBranchName);
+						.setSource("refs/heads/"+versionBranchName)
+						.setDestination("refs/heads/"+versionBranchName);
 					new Git(module.getRepo()).fetch()
 						.setRemote("origin")
 						.setRefSpecs(ref)
