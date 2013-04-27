@@ -61,12 +61,17 @@ public class Plumbing {
 
 				/* Fetch only the branch labelled with the version requested. */
 				try {
+					String fetchUrl = module.urlLocal;
+					if (isGithubHttpUrl(fetchUrl) && !fetchUrl.endsWith(".git")) {
+						// Github 404's unknown user agents only from some urls, so in order to have jgit accept the same urls that cgit will accept, we rewrite to the url that always responds correctly.
+						fetchUrl += ".git";
+					}
 					RefSpec ref = new RefSpec()
 						.setForceUpdate(true)
 						.setSource("refs/heads/"+versionBranchName)
 						.setDestination("refs/heads/"+versionBranchName);
 					new Git(module.getRepo()).fetch()
-						.setRemote("origin")
+						.setRemote(fetchUrl)
 						.setRefSpecs(ref)
 						.call();
 				} catch (InvalidRemoteException e) {
@@ -115,7 +120,6 @@ public class Plumbing {
 			// Github 404's unknown user agents only from some urls, so in order to have jgit accept the same urls that cgit will accept, we rewrite to the url that always responds correctly.
 			module.urlLocal += ".git";
 		}
-		//FIXME: this isn't always happening when you might wish it is... you think you're going to reset this by rm-rf'ing the submodule dir?  nooope, that url is saved in the parent .git/config as well as the submodule/.git/config.  and if nothing else, the condition above would *fail* to work as intended when trying to use mdmj on a repo that had already been using the old python mdm.
 		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_URL, module.getUrlLocal());
 		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_UPDATE, "none");
 		return true;
