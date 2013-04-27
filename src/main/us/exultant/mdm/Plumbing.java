@@ -111,9 +111,26 @@ public class Plumbing {
 
 		// Copy 'url' and 'update' fields to local repo config
 		module.urlLocal = module.getUrlHistoric();
+		if (isGithubHttpUrl(module.urlLocal) && !module.urlLocal.endsWith(".git")) {
+			// Github 404's unknown user agents only from some urls, so in order to have jgit accept the same urls that cgit will accept, we rewrite to the url that always responds correctly.
+			module.urlLocal += ".git";
+		}
+		//FIXME: this isn't always happening when you might wish it is... you think you're going to reset this by rm-rf'ing the submodule dir?  nooope, that url is saved in the parent .git/config as well as the submodule/.git/config.  and if nothing else, the condition above would *fail* to work as intended when trying to use mdmj on a repo that had already been using the old python mdm.
 		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_URL, module.getUrlLocal());
 		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_UPDATE, "none");
 		return true;
+	}
+
+	/**
+	 * Check if a url is an http(s) url for github. Github's http API will 404 user
+	 * agents it doesn't recognize as git, and they don't recognize jgit.
+	 */
+	public static boolean isGithubHttpUrl(String url) {
+		if (url.startsWith("http://github.com")) return true;
+		if (url.startsWith("http://www.github.com")) return true;
+		if (url.startsWith("https://github.com")) return true;
+		if (url.startsWith("https://www.github.com")) return true;
+		return false;
 	}
 
 	/**
