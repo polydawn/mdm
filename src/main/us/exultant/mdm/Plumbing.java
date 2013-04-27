@@ -70,7 +70,7 @@ public class Plumbing {
 						.setRefSpecs(ref)
 						.call();
 				} catch (InvalidRemoteException e) {
-					throw new MdmException("why doesn't submodule "+module.getHandle()+" have an 'origin' remote?  this shouldn't happen if you're only using mdm to manage this submodule.", e);
+					throw new MdmException("could not find remote repository for module "+module.getHandle(), e);
 				} catch (TransportException e) {
 					throw new MdmException("transport failed!  check your connectivity and try again?", e);
 				} catch (GitAPIException e) {

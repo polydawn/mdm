@@ -79,6 +79,6 @@ public class MdmUpdateCommand extends MdmCommand {
 		if (contorted.size() > 0)
 			status.append("\n  contorted: \t").append(join(toHandles(contorted), "\n\t\t"));
 
-		return new MdmExitMessage(":D", status.toString());
+		return new MdmExitMessage(contorted.size() > 0 ? ":(" : ":D", status.toString());
 	}
 }
