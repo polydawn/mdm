@@ -78,6 +78,28 @@ public class MdmModule {
 
 			urlHistoric = generator.getModulesUrl();
 			urlLocal = generator.getConfigUrl();
+
+
+			SubmoduleStatusType statusType;
+			if (path == null)
+				// jgit report SubmoduleStatusType.MISSING if no path in .gitmodules file, but I don't even want to deal with that.
+				throw new IsntOne("no path for module listed in gitmodules file.");
+			else if (urlLocal == null)
+				// Report uninitialized if no URL in config file
+				statusType = SubmoduleStatusType.UNINITIALIZED;
+			else if (repo == null)
+				// Report uninitialized if no submodule repository
+				statusType = SubmoduleStatusType.UNINITIALIZED;
+			else if (headId == null)
+				// Report uninitialized if no HEAD commit in submodule repository
+				statusType = SubmoduleStatusType.UNINITIALIZED;
+			else if (!headId.equals(indexId))
+				// Report checked out if HEAD commit is different than index commit
+				statusType = SubmoduleStatusType.REV_CHECKED_OUT;
+			else
+				// Report initialized if HEAD commit is the same as the index commit
+				statusType = SubmoduleStatusType.INITIALIZED;
+			status = new SubmoduleStatus(statusType, path, indexId, headId);
 		} catch (ConfigInvalidException e) {
 			throw new IsntOne("unreadable configuration file", e);
 		}
@@ -130,12 +152,18 @@ public class MdmModule {
 	/** Are there uncommitted for changed files in the module? */
 	private final boolean dirtyFiles;
 
+	private final SubmoduleStatus status;
+
 	public String getHandle() {
 		return this.handle;
 	}
 
 	public String getPath() {
 		return this.path;
+	}
+
+	public SubmoduleStatus getStatus() {
+		return status;
 	}
 
 	public Repository getRepo() {
@@ -179,6 +207,7 @@ public class MdmModule {
 			.append("MdmModule{")
 			.append("\n         handle =\t").append(this.handle)
 			.append("\n           path =\t").append(this.path)
+			.append("\n         status =\t").append(this.status.getType())
 			.append("\n           repo =\t").append(this.repo)
 			.append("\n           type =\t").append(this.type)
 			.append("\n    versionName =\t").append(this.versionName)
