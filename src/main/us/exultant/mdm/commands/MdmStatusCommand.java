@@ -81,7 +81,7 @@ public class MdmStatusCommand extends MdmCommand {
 				s.version = "-- uninitialized --";
 			} else {
 				s.version = (module.getVersionActual() == null) ? "__UNKNOWN_VERSION__" : module.getVersionActual();
-				if (!module.getVersionActual().equals(module.getVersionName()))
+				if (module.getVersionName() != null && !module.getVersionName().equals(module.getVersionActual()))
 					s.warnings.add("intended version is "+module.getVersionName()+", run `mdm update` to get it");
 				if (!module.getIndexId().equals(module.getHeadId()))
 					s.warnings.add("commit currently checked out does not match hash in parent project");
