@@ -111,11 +111,6 @@ public class Plumbing {
 
 		// Copy 'url' and 'update' fields to local repo config
 		module.urlLocal = module.getUrlHistoric();
-		if (isGithubHttpUrl(module.urlLocal) && !module.urlLocal.endsWith(".git")) {
-			// Github 404's unknown user agents only from some urls, so in order to have jgit accept the same urls that cgit will accept, we rewrite to the url that always responds correctly.
-			module.urlLocal += ".git";
-		}
-		//FIXME: this isn't always happening when you might wish it is... you think you're going to reset this by rm-rf'ing the submodule dir?  nooope, that url is saved in the parent .git/config as well as the submodule/.git/config.  and if nothing else, the condition above would *fail* to work as intended when trying to use mdmj on a repo that had already been using the old python mdm.
 		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_URL, module.getUrlLocal());
 		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_UPDATE, "none");
 		return true;
@@ -139,9 +134,21 @@ public class Plumbing {
 	 * automatically dragged down from the network by a `git pull` (this is necessary
 	 * because even pulling in the parent project will recurse to fetching submodule
 	 * content as well).
+	 * <p>
+	 * The url is taken from the parent repo's local .git/config entry for this
+	 * submodule (which should have already been initialized by a call to
+	 * {@link #initLocalConfig(Repository, MdmModule)}), and may be subject to some
+	 * transformations before it is saved to the submodule's .git/config (namely,
+	 * github urls may be altered to make sure we don't hit their user-agent-sensitive
+	 * http API).
 	 */
 	public static void setMdmRemote(MdmModule module) {
-		module.getRepo().getConfig().setString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", ConfigConstants.CONFIG_KEY_URL, module.getUrlLocal());
+		String url = module.getUrlLocal();
+		if (isGithubHttpUrl(url) && !url.endsWith(".git")) {
+			// Github 404's unknown user agents only from some urls, so in order to have jgit accept the same urls that cgit will accept, we rewrite to the url that always responds correctly.
+			url += ".git";
+		}
+		module.getRepo().getConfig().setString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", ConfigConstants.CONFIG_KEY_URL, url);
 		module.getRepo().getConfig().setString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", "fetch", "+refs/heads/mdm/init:refs/remotes/origin/mdm/init");
 	}
 }
