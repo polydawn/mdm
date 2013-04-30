@@ -32,12 +32,6 @@ public class MdmUpdateCommand extends MdmCommand {
 		super(repo);
 	}
 
-	private PrintStream os = System.out;
-
-	public void setPrintStream(PrintStream os) {
-		this.os = os;
-	}
-
 	public MdmExitMessage call() throws IOException, ConfigInvalidException {
 		MdmModuleSet moduleSet = new MdmModuleSet(repo);
 		Map<String,MdmModule> modules = moduleSet.getDependencyModules();

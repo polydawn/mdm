@@ -19,6 +19,7 @@
 
 package us.exultant.mdm.commands;
 
+import java.io.*;
 import java.util.concurrent.*;
 import org.eclipse.jgit.lib.*;
 import us.exultant.mdm.*;
@@ -26,9 +27,15 @@ import us.exultant.mdm.*;
 public abstract class MdmCommand implements Callable<MdmExitMessage> {
 	/** The repository this command is working with */
 	final protected Repository repo;
+	final protected PrintStream os;
 
 	protected MdmCommand(Repository repo) {
+		this(repo, System.err);
+	}
+
+	protected MdmCommand(Repository repo, PrintStream os) {
 		this.repo = repo;
+		this.os = os;
 	}
 
 	public Repository getRepository() {

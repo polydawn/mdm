@@ -27,6 +27,10 @@ import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
 
 public class MdmStatusCommand extends MdmCommand {
+	public MdmStatusCommand(Repository repo, PrintStream os) {
+		super(repo, os);
+	}
+
 	public MdmStatusCommand(Repository repo) {
 		super(repo);
 	}
