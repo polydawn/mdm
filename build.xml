@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ant-project>
+<project name="mdm" basedir="." default="dist">
+	<description>
+  Modern Dependancy Management automates the organization of a project and the 
+  libraries it depends on with clever git submodules, giving you a project
+  structure that is:
+   - strongly versioned and guaranteed repeatable builds!
+   - checking out a project gives you exactly everything you need to do a build!
+   - your repository doesn't bloat over time and doing a fresh clone ships you 
+     the bare minimum number of bytes that you need!
+	</description>
+	<property name="app" value="mdm"/>
+
+	<property name="exus.build.java.version.source" value="1.7"/>
+	<property name="exus.build.java.version.target" value="1.7"/>
+
+	<import file="lib/exus-build/build-exultant.xml"/>
+
+
+	<target name="init" depends="exusInit">
+	</target>
+
+
+	<target name="compile"
+		depends="init"
+		description="compile the source">
+		<exusJavac
+			classes="us/exultant/${app}/Mdm.java"
+			depends="
+				  ${lib}/jgit/jgit.jar
+				: ${lib}/ahslib/ahslib-core.jar
+				: ${lib}/argparse4j/argparse4j.jar
+				: ${lib}/jsch/jsch.jar
+			"
+		/>
+	</target>
+	<target name="dist"
+		depends="compile"
+		description="pack distributable artifacts">
+		<exusPack destfile="${dist}/${app}.jar">
+			<manifest>
+				<attribute name="Main-Class" value="us.exultant.${app}.Mdm"/>
+			</manifest>
+			<fileset file="${build}/main/**"/>
+			<zipfileset src="${lib}/jgit/jgit.jar" includes="**/*.class org/**/*.properties"/>
+			<zipfileset src="${lib}/ahslib/ahslib-core.jar" includes="**/*.class"/>
+			<zipfileset src="${lib}/argparse4j/argparse4j.jar" includes="**/*.class"/>
+			<zipfileset src="${lib}/jsch/jsch.jar" includes="**/*.class"/>
+		</exusPack>
+		<chmod file="${dist}/${app}.jar" perm="755"/>
+	</target>
+
+
+	<target name="clean" description="clean up">
+		<delete dir="${build}"/>
+		<delete dir="${dist}"/>
+		<delete dir="demo"/>
+	</target>
+
+
+	<target name="release" depends="clean, dist">
+		<exec executable="mdm">
+			<arg value="release" />
+			<arg value="--version=${version}" />
+			<arg value="--files=${dist}" />
+		</exec>
+	</target>
+</project>
