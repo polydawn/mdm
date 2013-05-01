@@ -59,7 +59,10 @@ public class MdmAlterCommand extends MdmCommand {
 		List<String> versions;
 		try {
 			//XXX: here the triplicate-and-then-some configuration is a tanglefuck again.  do we use the origin, or the url in the submodule config, or the url that's initialized in the parent .git/config, or the url in the .gitmodules file, or some complicated fallback pattern that covers all of them, or initialize the ones that aren't yet, or...??  Original mdm took the value from .gitmodules, which is the least likely to be uninitialized, but also not the most correct.
-			versions = Plumbing.getVersionManifest(module.getRepo(), "origin");
+			if (module.getRepo() == null)
+				versions = Plumbing.getVersionManifest(repo, module.getUrlHistoric());
+			else
+				versions = Plumbing.getVersionManifest(module.getRepo(), "origin");
 		} catch (InvalidRemoteException e) {
 			return new MdmExitMessage(":(", "the submodule remote origin url isn't initialized.  maybe run `mdm update` first so there's something in place before we alter?");
 		} catch (TransportException e) {
