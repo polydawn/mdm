@@ -19,7 +19,9 @@
 
 package us.exultant.mdm;
 
+import java.io.*;
 import java.util.*;
+import us.exultant.ahs.util.*;
 
 public class Loco {
 	public static List<String> toHandles(List<MdmModule> modules) {
@@ -28,4 +30,22 @@ public class Loco {
 			v.add(module.getHandle());
 		return v;
 	}
+
+	public static String promptForVersion(PrintStream os, List<String> knownVersions) throws IOException {
+		os.println("available versions:");
+		os.println(Strings.join(knownVersions, "\n\t", "\t", ""));
+		String version = null;
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		while (version == null) {
+			os.print("select a version: ");
+			version = br.readLine();
+			if (version == null) throw new IOException("failed to read line from stdin");
+			if (!knownVersions.contains(version)) {
+				os.println("\""+version+"\" is not in the list of available versions; double check your typing.");
+				version = null;
+			}
+		}
+		return version;
+	}
+
 }

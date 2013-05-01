@@ -136,17 +136,17 @@ public class Mdm {
 			System.exit(1);
 		}
 		try {
-			return getCommand(parsedArgs.getString("subcommand"), repo).call();
+			return getCommand(parsedArgs.getString("subcommand"), repo, parsedArgs).call();
 		} catch (Exception e) {
 			return new MdmExitMessage(":'(", "An unexpected error occurred!\n"+X.toString(e));
 		}
 	}
 
-	public static MdmCommand getCommand(String name, Repository repo) {
+	public static MdmCommand getCommand(String name, Repository repo, Namespace args) {
 		switch (name) {
 			case "status": return new MdmStatusCommand(repo, System.out);
 			case "update": return new MdmUpdateCommand(repo);
-			case "add": throw new NotYetImplementedException();
+			case "add":    return new MdmAddCommand(repo, args);
 			case "alter": throw new NotYetImplementedException();
 			case "remove": throw new NotYetImplementedException();
 			case "release": throw new NotYetImplementedException();
