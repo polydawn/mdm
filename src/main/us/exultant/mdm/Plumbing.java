@@ -20,11 +20,13 @@
 package us.exultant.mdm;
 
 import java.io.*;
+import java.util.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.transport.*;
 import us.exultant.ahs.util.*;
+import us.exultant.mdm.util.*;
 
 public class Plumbing {
 	public static void fetch(Repository repo, MdmModule module) throws MdmException {
@@ -150,5 +152,32 @@ public class Plumbing {
 		}
 		module.getRepo().getConfig().setString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", ConfigConstants.CONFIG_KEY_URL, url);
 		module.getRepo().getConfig().setString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", "fetch", "+refs/heads/mdm/init:refs/remotes/origin/mdm/init");
+	}
+
+	/**
+	 * wield `git ls-remote` to get a list of branches matching the labelling pattern
+	 * mdm releases use. works locally or remote over any transport git itself
+	 * supports.
+	 *
+	 * @param repo
+	 *                this argument is completely stupid and should not be required.
+	 *                The jgit api for ls-remote is wrong. Go ahead and use the parent
+	 *                repo.
+	 * @throws GitAPIException
+	 * @throws TransportException
+	 * @throws InvalidRemoteException
+	 */
+	public static List<String> getVersionManifest(Repository repo, String releasesUrl) throws InvalidRemoteException, TransportException, GitAPIException {
+		Collection<Ref> refs = new Git(repo).lsRemote()
+			.setRemote(releasesUrl)
+			.call();
+		final String mdmReleaseRefPrefix = "refs/heads/mdm/release/";
+		List<String> v = new ArrayList<String>();
+		for (Ref ref : refs) {
+			if (ref.getName().startsWith(mdmReleaseRefPrefix))
+				v.add(ref.getName().substring(mdmReleaseRefPrefix.length()));
+		}
+		Collections.sort(v, new VersionComparator());
+		return v;
 	}
 }
