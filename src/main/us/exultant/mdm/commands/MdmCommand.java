@@ -52,4 +52,23 @@ public abstract class MdmCommand implements Callable<MdmExitMessage> {
 	public Repository getRepository() {
 		return repo;
 	}
+
+	/**
+	 * Check we're in a repo.
+	 */
+	protected void assertInRepo() throws MdmExitMessage {
+		if (repo == null)
+			throw new MdmExitMessage(":(", "this command should be run from inside your git repo.");
+	}
+
+	/**
+	 * Check we're in a repo root. `git submodule` insists on similar behavior. This
+	 * seems generally reasonable for several commands in order to avoid the
+	 * possibilities for confusion regarding relative paths, since submodule names
+	 * typically look quite exactly like relative paths.
+	 */
+	protected void assertInRepoRoot() throws MdmExitMessage {
+		if (repo == null || !repo.getWorkTree().equals(new File(System.getProperty("user.dir"))))
+			throw new MdmExitMessage(":(", "this command should be run from the top level folder of your git repo.");
+	}
 }

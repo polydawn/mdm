@@ -125,7 +125,7 @@ public class Mdm {
 				.findGitDir()
 				.build();
 		} catch (IOException e) {
-			return new MdmExitMessage(":(", "this command should be run from inside your git repo.");
+			throw new RuntimeException(e);
 		}
 
 		Namespace parsedArgs = null;

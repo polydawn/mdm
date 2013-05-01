@@ -37,9 +37,9 @@ public class MdmAlterCommand extends MdmCommand {
 	}
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
-		// check we're in a repo root.  `git submodule` insists on similar behavior.  this seems generally reasonable to avoid the possibilities for confusion regarding relative paths, since submodule names typically look quite exactly like relative paths.
-		if (!repo.getWorkTree().equals(new File(System.getProperty("user.dir"))))
-			return new MdmExitMessage(":(", "this command should be run from the top level folder of your git repo.");
+		try {
+			assertInRepoRoot();
+		} catch (MdmExitMessage e) { return e; }
 
 		// touch up args a tad.  tab completion in the terminal tends to suggest *almost* what you want, but with a trailing slash because it's a directory, and git doesn't like that slash.  so, we'll sand down that sharp corner a bit.
 		String name = args.getString("name");

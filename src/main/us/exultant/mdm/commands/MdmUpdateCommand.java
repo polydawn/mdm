@@ -33,6 +33,10 @@ public class MdmUpdateCommand extends MdmCommand {
 	}
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException {
+		try {
+			assertInRepo();
+		} catch (MdmExitMessage e) { return e; }
+
 		MdmModuleSet moduleSet = new MdmModuleSet(repo);
 		Map<String,MdmModule> modules = moduleSet.getDependencyModules();
 

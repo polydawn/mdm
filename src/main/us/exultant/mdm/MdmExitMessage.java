@@ -22,22 +22,22 @@ package us.exultant.mdm;
 import java.io.*;
 import java.util.*;
 
-public class MdmExitMessage {
+public class MdmExitMessage extends RuntimeException {
 	public MdmExitMessage(String happy, String message) {
+		super(message, null);
 		this.happy = happy;
-		this.message = message;
 		this.code = happyref.containsKey(happy) ? happyref.get(happy) : 128;
 	}
 
 	public MdmExitMessage(int code, String message) {
+		super(message, null);
 		this.happy = null;
-		this.message = message;
 		this.code = code;
 	}
 
 	public MdmExitMessage(int code) {
+		super(null, null);
 		this.happy = null;
-		this.message = null;
 		this.code = code;
 	}
 
@@ -50,11 +50,10 @@ public class MdmExitMessage {
 			put( ":I", 0);	/* cramped face is appropriate for when we sat on our hands because the request was awkward but the goal state is satisfied anyway */
 	}};
 	public final String happy;
-	public final String message;
 	public final int code;
 
 	public void print(PrintStream os) {
-		if (message != null) os.println(message);
+		if (getMessage() != null) os.println(getMessage());
 		if (happy != null) os.println(happy);
 	}
 

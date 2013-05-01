@@ -42,9 +42,9 @@ public class MdmAddCommand extends MdmCommand {
 	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("^(.*)-releases(?:.git)?$");
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
-		// check we're in a repo root.  `git submodule` insists on similar behavior.  this seems generally reasonable to avoid the possibilities for confusion regarding relative paths, since submodule names typically look quite exactly like relative paths.
-		if (!repo.getWorkTree().equals(new File(System.getProperty("user.dir"))))
-			return new MdmExitMessage(":(", "this command should be run from the top level folder of your git repo.");
+		try {
+			assertInRepoRoot();
+		} catch (MdmExitMessage e) { return e; }
 
 		// git's behavior of assuming relative urls should be relative to the remote origin instead of relative to the local filesystem is almost certainly not what you want.
 		String url = args.getString("url");
