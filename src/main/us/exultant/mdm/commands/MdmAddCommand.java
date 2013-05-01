@@ -91,10 +91,13 @@ public class MdmAddCommand extends MdmCommand {
 
 		// if a specific version name was given, we'll just go straight at it; otherwise we present options interactively from the manifest of versions the remote reported.
 		String version;
-		if (args.getString("version") != null)
+		if (args.getString("version") != null) {
 			version = args.getString("version");
-		else
+			if (!versions.contains(version))
+				return new MdmExitMessage(":(", "no version labelled "+version+" available from the provided remote url.");
+		} else {
 			version = Loco.promptForVersion(os, versions);
+		}
 
 		// finally, let's actually do the submodule/dependency adding
 		doAdd(name, path, version, url);
