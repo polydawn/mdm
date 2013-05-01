@@ -39,7 +39,7 @@ public class MdmAddCommand extends MdmCommand {
 		super(repo, args);
 	}
 
-	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("(.*)-releases");
+	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("^(.*)-releases(?:.git)?$");
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
 		// check we're in a repo root.  `git submodule` insists on similar behavior.  this seems generally reasonable to avoid the possibilities for confusion regarding relative paths, since submodule names typically look quite exactly like relative paths.
@@ -57,15 +57,10 @@ public class MdmAddCommand extends MdmCommand {
 			name = args.getString("name");
 		} else {				// look for a discernable project name in the url chunks
 			String[] urlchunks = url.split("/");
-			for (int i = urlchunks.length-1; i > 0; i--) {
-				Matcher tehMatch = RELEASE_URL_NAME_EXTRACT.matcher(urlchunks[i]);
-				if (tehMatch.find()) {
-					name = tehMatch.group(1);
-					break;
-				}
-			}
-			// prompt for a name if we don't have one picked yet.
-			if (name == null) {
+			Matcher tehMatch = RELEASE_URL_NAME_EXTRACT.matcher(urlchunks[urlchunks.length-1]);
+			if (tehMatch.find()) {
+				name = tehMatch.group(1);
+			} else {			// prompt for a name if we don't have one picked yet.
 				os.print("dependency name: ");
 				name = new BufferedReader(new InputStreamReader(System.in)).readLine();
 				if (name == null) throw new IOException("failed to read line from stdin");
