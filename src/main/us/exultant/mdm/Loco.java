@@ -31,15 +31,20 @@ public class Loco {
 		return v;
 	}
 
+	public static String inputPrompt(PrintStream output, String prompt) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		output.print(prompt);
+		String answer = br.readLine();
+		if (answer == null) throw new IOException("failed to read line from stdin");
+		return answer;
+	}
+
 	public static String promptForVersion(PrintStream os, List<String> knownVersions) throws IOException {
 		os.println("available versions:");
 		os.println(Strings.join(knownVersions, "\n\t", "\t", ""));
 		String version = null;
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		while (version == null) {
-			os.print("select a version: ");
-			version = br.readLine();
-			if (version == null) throw new IOException("failed to read line from stdin");
+			version = inputPrompt(os, "select a version: ");
 			if (!knownVersions.contains(version)) {
 				os.println("\""+version+"\" is not in the list of available versions; double check your typing.");
 				version = null;

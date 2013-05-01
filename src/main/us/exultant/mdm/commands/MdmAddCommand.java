@@ -33,6 +33,7 @@ import org.eclipse.jgit.submodule.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
+import static us.exultant.mdm.Loco.*;
 
 public class MdmAddCommand extends MdmCommand {
 	public MdmAddCommand(Repository repo, Namespace args) {
@@ -61,9 +62,7 @@ public class MdmAddCommand extends MdmCommand {
 			if (tehMatch.find()) {
 				name = tehMatch.group(1);
 			} else {			// prompt for a name if we don't have one picked yet.
-				os.print("dependency name: ");
-				name = new BufferedReader(new InputStreamReader(System.in)).readLine();
-				if (name == null) throw new IOException("failed to read line from stdin");
+				name = inputPrompt(os, "dependency name: ");
 			}
 		}
 
