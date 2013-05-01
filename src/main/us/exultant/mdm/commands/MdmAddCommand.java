@@ -133,32 +133,23 @@ public class MdmAddCommand extends MdmCommand {
 		return new MdmExitMessage(":D", "added dependency on "+name+"-"+version+" successfully!");
 	}
 
-	private void doAdd(String name, File path, String version, String url) throws IOException, MdmException {
-		// create a new empty repository (we will pull down only the data we need, which is not possible when cloning).
-		//FIXME: Plumbing.fetch may be already able to do this for us
-		RepositoryBuilder builder = new RepositoryBuilder();
-		builder.setWorkTree(new File(repo.getWorkTree()+"/"+path));
-		Repository module_repo = builder.build();
-		module_repo.create(false);
-
+	private void doAdd(String name, File path, String version, String url) throws IOException, MdmException, ConfigInvalidException {
 		// write gitmodule config for the new submodule
 		StoredConfig gitmodulesCfg = new FileBasedConfig(new File(repo.getWorkTree(), Constants.DOT_GIT_MODULES), repo.getFS());
+		gitmodulesCfg.load();
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), ConfigConstants.CONFIG_KEY_PATH, path.getPath());
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), ConfigConstants.CONFIG_KEY_URL, url);
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), MdmConfigConstants.Module.MODULE_TYPE.toString(), MdmModuleType.DEPENDENCY.toString());
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), MdmConfigConstants.Module.DEPENDENCY_VERSION.toString(), version);
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), ConfigConstants.CONFIG_KEY_UPDATE, "none"); // since almost all git commands by default will pull down waaaay too much data if they operate naively on our dependencies, we tell them to ignore all dependencies by default.  And of course, commands like `git pull` just steamroll right ahead and ignore this anyway, so those require even more drastic counters.
+		gitmodulesCfg.save();
 
 		// fetch the release data to our local submodule repo
-		SubmoduleWalk sw = SubmoduleWalk.forIndex(repo).setFilter(PathFilter.create(path.getPath()));
-		//FIXME: this entire use of SubmoduleWalk to define an MdmModule is cracking badly.  SubmoduleWalk will never accept the idea of a submodule that doesn't have a committed gitlink, and we're still working up to that at this point in execution, so something needs serious refactor here.
-		if (!sw.next()) throw new MajorBug();
-		MdmModule module;
 		try {
-			module = new MdmModule(sw, gitmodulesCfg);
+			MdmModule module = new MdmModule(repo, path.getPath(), gitmodulesCfg);
+			Plumbing.fetch(repo, module);
 		} catch (MdmModule.IsntOne e) {
 			throw new MajorBug(e);
 		}
-		Plumbing.fetch(repo, module);
 	}
 }

@@ -28,81 +28,85 @@ import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.submodule.*;
 
 public class MdmModule {
-	public MdmModule(SubmoduleWalk generator, Config gitmodulesCfg) throws IOException, IsntOne {
-		try {
-			handle = generator.getPath();
-			path = generator.getModulesPath();
+	public MdmModule(Repository parent, SubmoduleWalk generator, Config gitmodulesCfg) throws IOException, IsntOne {
+		this(parent, generator.getPath(), gitmodulesCfg, generator.getObjectId());
+	}
 
-			type = MdmModuleType.fromString(gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, MdmConfigConstants.Module.MODULE_TYPE.toString()));
-			if (type == null) throw new IsntOne("no recognized type of mdm module listed in gitmodules file.");
-			versionName = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, MdmConfigConstants.Module.DEPENDENCY_VERSION.toString());
+	public MdmModule(Repository parent, String handle, Config gitmodulesCfg) throws IOException, IsntOne {
+		this(parent, handle, gitmodulesCfg, null);
+	}
 
-			repo = generator.getRepository();
-			indexId = generator.getObjectId();
+	private MdmModule(Repository parent, String handle, Config gitmodulesCfg, ObjectId objectId) throws IOException, IsntOne {
+		this.handle = handle;
+		path = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, ConfigConstants.CONFIG_KEY_PATH);
 
-			if (repo == null) {
-				headId = null;
-				versionActual = null;
-				dirtyFiles = false;
-			} else {
-				headId = repo.resolve(Constants.HEAD);
+		type = MdmModuleType.fromString(gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, MdmConfigConstants.Module.MODULE_TYPE.toString()));
+		if (type == null) throw new IsntOne("no recognized type of mdm module listed in gitmodules file.");
+		versionName = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, MdmConfigConstants.Module.DEPENDENCY_VERSION.toString());
 
-				String versionActual = null;
-				try {
-					List<Ref> tags = new Git(repo).tagList().call();
-					for (Ref tag : tags) {
-						if (tag.getObjectId().equals(headId)) {
-							String[] tagChunks = tag.getName().split("/");
-							// for all tags, index 0 is 'refs', and 1 is 'tags'.
-							if (tagChunks[2].equals("release") && tagChunks.length > 2) {
-								versionActual = "";
-								for (int i = 3; i < tagChunks.length; i++)
-									versionActual += tagChunks[i];
-								break;
-							}
+		repo = SubmoduleWalk.getSubmoduleRepository(parent,  path);
+		indexId = objectId;
+
+		if (repo == null) {
+			headId = null;
+			versionActual = null;
+			dirtyFiles = false;
+		} else {
+			headId = repo.resolve(Constants.HEAD);
+
+			String versionActual = null;
+			try {
+				List<Ref> tags = new Git(repo).tagList().call();
+				for (Ref tag : tags) {
+					if (tag.getObjectId().equals(headId)) {
+						String[] tagChunks = tag.getName().split("/");
+						// for all tags, index 0 is 'refs', and 1 is 'tags'.
+						if (tagChunks[2].equals("release") && tagChunks.length > 2) {
+							versionActual = "";
+							for (int i = 3; i < tagChunks.length; i++)
+								versionActual += tagChunks[i];
+							break;
 						}
 					}
-				} catch (GitAPIException e) {}
-				this.versionActual = versionActual;
-
-				boolean dirtyFiles;
-				try {
-					dirtyFiles = !new Git(repo).status().call().isClean();
-				} catch (NoWorkTreeException e) {
-					throw new RuntimeException("wat", e);
-				} catch (GitAPIException e) {
-					dirtyFiles = false;
 				}
-				this.dirtyFiles = dirtyFiles;
+			} catch (GitAPIException e) {}
+			this.versionActual = versionActual;
+
+			boolean dirtyFiles;
+			try {
+				dirtyFiles = !new Git(repo).status().call().isClean();
+			} catch (NoWorkTreeException e) {
+				throw new RuntimeException("wat", e);
+			} catch (GitAPIException e) {
+				dirtyFiles = false;
 			}
-
-			urlHistoric = generator.getModulesUrl();
-			urlLocal = generator.getConfigUrl();
-
-
-			SubmoduleStatusType statusType;
-			if (path == null)
-				// jgit report SubmoduleStatusType.MISSING if no path in .gitmodules file, but I don't even want to deal with that.
-				throw new IsntOne("no path for module listed in gitmodules file.");
-			else if (urlLocal == null)
-				// Report uninitialized if no URL in config file
-				statusType = SubmoduleStatusType.UNINITIALIZED;
-			else if (repo == null)
-				// Report uninitialized if no submodule repository
-				statusType = SubmoduleStatusType.UNINITIALIZED;
-			else if (headId == null)
-				// Report uninitialized if no HEAD commit in submodule repository
-				statusType = SubmoduleStatusType.UNINITIALIZED;
-			else if (!headId.equals(indexId))
-				// Report checked out if HEAD commit is different than index commit
-				statusType = SubmoduleStatusType.REV_CHECKED_OUT;
-			else
-				// Report initialized if HEAD commit is the same as the index commit
-				statusType = SubmoduleStatusType.INITIALIZED;
-			status = new SubmoduleStatus(statusType, path, indexId, headId);
-		} catch (ConfigInvalidException e) {
-			throw new IsntOne("unreadable configuration file", e);
+			this.dirtyFiles = dirtyFiles;
 		}
+
+		urlHistoric = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, ConfigConstants.CONFIG_KEY_URL);
+		urlLocal = parent.getConfig().getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, ConfigConstants.CONFIG_KEY_URL);
+
+
+		SubmoduleStatusType statusType;
+		if (path == null)
+			// jgit report SubmoduleStatusType.MISSING if no path in .gitmodules file, but I don't even want to deal with that.
+			throw new IsntOne("no path for module listed in gitmodules file.");
+		else if (urlLocal == null)
+			// Report uninitialized if no URL in config file
+			statusType = SubmoduleStatusType.UNINITIALIZED;
+		else if (repo == null)
+			// Report uninitialized if no submodule repository
+			statusType = SubmoduleStatusType.UNINITIALIZED;
+		else if (headId == null)
+			// Report uninitialized if no HEAD commit in submodule repository
+			statusType = SubmoduleStatusType.UNINITIALIZED;
+		else if (!headId.equals(indexId))
+			// Report checked out if HEAD commit is different than index commit
+			statusType = SubmoduleStatusType.REV_CHECKED_OUT;
+		else
+			// Report initialized if HEAD commit is the same as the index commit
+			statusType = SubmoduleStatusType.INITIALIZED;
+		status = new SubmoduleStatus(statusType, path, indexId, headId);
 	}
 
 	public static class IsntOne extends Exception {

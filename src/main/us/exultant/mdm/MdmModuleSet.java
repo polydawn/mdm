@@ -42,7 +42,7 @@ public class MdmModuleSet {
 		SubmoduleWalk generator = SubmoduleWalk.forIndex(repo);
 		while (generator.next()) {
 			try {
-				MdmModule status = new MdmModule(generator, gitmodulesCfg);
+				MdmModule status = new MdmModule(repo, generator, gitmodulesCfg);
 				allModules.put(status.getHandle(), status);
 				switch (status.getType()) {
 					case DEPENDENCY:
