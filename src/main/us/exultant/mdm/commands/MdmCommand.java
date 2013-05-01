@@ -21,21 +21,32 @@ package us.exultant.mdm.commands;
 
 import java.io.*;
 import java.util.concurrent.*;
+import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.lib.*;
 import us.exultant.mdm.*;
 
 public abstract class MdmCommand implements Callable<MdmExitMessage> {
 	/** The repository this command is working with */
 	final protected Repository repo;
+	final protected Namespace args;
 	final protected PrintStream os;
 
 	protected MdmCommand(Repository repo) {
-		this(repo, System.err);
+		this(repo, null, null);
+	}
+
+	protected MdmCommand(Repository repo, Namespace args) {
+		this(repo, args, null);
 	}
 
 	protected MdmCommand(Repository repo, PrintStream os) {
+		this(repo, null, os);
+	}
+
+	protected MdmCommand(Repository repo, Namespace args, PrintStream os) {
 		this.repo = repo;
-		this.os = os;
+		this.args = args;
+		this.os = (os == null) ? System.err : os;
 	}
 
 	public Repository getRepository() {
