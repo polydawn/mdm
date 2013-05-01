@@ -26,6 +26,7 @@ import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.submodule.*;
+import org.eclipse.jgit.treewalk.filter.*;
 
 public class MdmModule {
 	public MdmModule(Repository parent, SubmoduleWalk generator, Config gitmodulesCfg) throws IOException, IsntOne {
@@ -44,8 +45,14 @@ public class MdmModule {
 		if (type == null) throw new IsntOne("no recognized type of mdm module listed in gitmodules file.");
 		versionName = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, MdmConfigConstants.Module.DEPENDENCY_VERSION.toString());
 
+		if (objectId != null) {
+			indexId = objectId;
+		} else {
+			SubmoduleWalk generator = SubmoduleWalk.forIndex(parent).setFilter(PathFilter.create(path));
+			indexId = generator.next() ? generator.getObjectId() : null;
+		}
+
 		repo = SubmoduleWalk.getSubmoduleRepository(parent,  path);
-		indexId = objectId;
 
 		if (repo == null) {
 			headId = null;

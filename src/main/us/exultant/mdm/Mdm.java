@@ -147,7 +147,7 @@ public class Mdm {
 			case "status": return new MdmStatusCommand(repo, System.out);
 			case "update": return new MdmUpdateCommand(repo);
 			case "add":    return new MdmAddCommand(repo, args);
-			case "alter": throw new NotYetImplementedException();
+			case "alter":  return new MdmAlterCommand(repo, args);
 			case "remove": throw new NotYetImplementedException();
 			case "release": throw new NotYetImplementedException();
 			case "release-init": throw new NotYetImplementedException();
