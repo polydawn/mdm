@@ -33,7 +33,7 @@ public class VersionComparatorTest {
 				"1.5.1",
 				"1.5.1+1",
 				"1.5.2b2",
-				//"3.10A",	// java String.compareTo thinks that 'a' < 'b' (correct), but 'A' > 'a' (what?!).  python (rightfully, i daresay) disagrees.
+				"3.10A",
 				"161",
 				"3.10b",
 				"3.10a",
@@ -71,7 +71,7 @@ public class VersionComparatorTest {
 				"3.1.1.6",
 				"3.2.pl0",
 				"3.4j",
-				//"3.10A",
+				"3.10A",
 				"3.10a",
 				"3.10b",
 				"5.5.kw",
@@ -79,6 +79,26 @@ public class VersionComparatorTest {
 				"11g",
 				"161",
 				"1996.07.12",
+		});
+
+		assertEquals(expected, list);
+	}
+
+	/** A few other assertions on which distutil's LooseVersion differs. */
+	@Test
+	public void test2() {
+		List<String> list = Arrays.asList(new String[] {
+				"3.10b",
+				"3.10a",
+				"3.10A",	// LooseVersion's regexp had opinions about case which lead them to tokenize this string differently.
+		});
+
+		Collections.sort(list, new VersionComparator());
+
+		List<String> expected = Arrays.asList(new String[] {
+				"3.10A",
+				"3.10a",
+				"3.10b",
 		});
 
 		assertEquals(expected, list);

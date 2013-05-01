@@ -26,7 +26,7 @@ public class VersionComparator implements Comparator<String> {
 		return a1.length - a2.length;
 	}
 
-	private static final Pattern COMPONENT_PATTERN = Pattern.compile("(\\d+|[a-z]+|\\.)");
+	private static final Pattern COMPONENT_PATTERN = Pattern.compile("(\\d+|[A-Za-z]+|\\.)");
 
 	/**
 	 * Retains capture groups when splitting, like python re's split method.
