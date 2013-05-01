@@ -41,20 +41,13 @@ public class MdmUpdateCommand extends MdmCommand {
 		List<MdmModule> unphased = new ArrayList<>();
 		List<MdmModule> contorted = new ArrayList<>();
 		for (MdmModule module : modules.values()) {
-			switch (module.getStatus().getType()) {
-				case INITIALIZED:
+			try {
+				if (Plumbing.fetch(repo, module))
+					impacted.add(module);
+				else
 					unphased.add(module);
-					break;
-				case MISSING:
-				case UNINITIALIZED:
-				case REV_CHECKED_OUT:
-					try {
-						Plumbing.fetch(repo, module);
-						impacted.add(module);
-					} catch (MdmException e) {
-						contorted.add(module);
-					}
-					break;
+			} catch (MdmException e) {
+				contorted.add(module);
 			}
 			//rm("-rf", join(".git/modules",subm));	# if this is one of the newer version of git (specifically, 1.7.8 or newer) that stores the submodule's data in the parent projects .git dir, clear that out forcefully as well or else git does some very silly things (you end up with the url changed but it recreates the old files and doesn't change the object id like it should).
 			//XXX: we have no special detection or handling for when submodule deletes are pulled from upstream.  what you end up with after that is just untracked files.  that's a little suprising, in my mind, but it's not exactly wrong, either.

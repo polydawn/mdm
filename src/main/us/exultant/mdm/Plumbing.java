@@ -29,10 +29,8 @@ import us.exultant.ahs.util.*;
 import us.exultant.mdm.util.*;
 
 public class Plumbing {
-	public static void fetch(Repository repo, MdmModule module) throws MdmException {
+	public static boolean fetch(Repository repo, MdmModule module) throws MdmException {
 		switch (module.getStatus().getType()) {
-			case INITIALIZED:
-				return;
 			case MISSING:
 				throw new MajorBug();
 			case UNINITIALIZED:
@@ -58,6 +56,9 @@ public class Plumbing {
 				} catch (IOException e) {
 					throw new MdmException("failed to save changes to submodule git configuration file for "+module.getHandle(), e);
 				}
+			case INITIALIZED:
+				if (module.getVersionName() == null || module.getVersionName().equals(module.getVersionActual()))
+					return false;
 			case REV_CHECKED_OUT:
 				final String versionBranchName = "mdm/release/"+module.getVersionName();
 
@@ -100,6 +101,9 @@ public class Plumbing {
 				} catch (GitAPIException e) {
 					throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 				}
+				return true;
+			default:
+				throw new MajorBug();
 		}
 	}
 
