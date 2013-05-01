@@ -37,3 +37,9 @@
 	mdm = dependency
 	mdm-version = v0.1.49
 	update = none
+[submodule "lib/junit"]
+	path = lib/junit
+	url = https://github.com/mdm-releases/junit-releases
+	mdm = dependency
+	mdm-version = v4.10
+	update = none
