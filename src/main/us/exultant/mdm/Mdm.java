@@ -118,6 +118,16 @@ public class Mdm {
 		parser_releaseinit
 			.addArgument("--repo")
 			.help("specifies a path where the releases repository should be created.  If not provided, the default varies depending on if this command is issued from the root of an existing git repo: if so, it is assumed the releases repo should be a submodule in the \"./releases/\" directory; otherwise, the default behavior is to initialize the release repo in the current directory.");
+		parser_releaseinit
+			.addArgument("--use-defaults")
+			.action(Arguments.storeTrue())
+			.help("tell mdm to make its best guess for name based on local folders, and use relative paths for remote urls as necessary.  No interactive prompts for missing parameters.");
+		parser_releaseinit
+			.addArgument("--remote-url")
+			.help("assign a remote url where this repo will be accessible.  If creating this release repo as submodule of an existing project, this will be committed to the superproject's .gitmodules file, and so should be a publicly accessible url.");
+		parser_releaseinit
+			.addArgument("--remote-publish-url")
+			.help("assign a remote url you'll push this repo to when making releases.  This will not be committed to the project; just set in the the release repo's local config (therefore, if not creating this release repo as submodule of an existing project, specifying --remote-url at the same time as this option is useless).");
 
 
 		if (repo == null) try {
