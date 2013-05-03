@@ -150,7 +150,7 @@ public class Mdm {
 			case "alter":  return new MdmAlterCommand(repo, args);
 			case "remove": throw new NotYetImplementedException();
 			case "release": throw new NotYetImplementedException();
-			case "release-init": throw new NotYetImplementedException();
+			case "release-init": return new MdmReleaseInitCommand(repo, args);
 			default: throw new MajorBug();
 		}
 	}

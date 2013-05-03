@@ -61,6 +61,10 @@ public abstract class MdmCommand implements Callable<MdmExitMessage> {
 			throw new MdmExitMessage(":(", "this command should be run from inside your git repo.");
 	}
 
+	protected boolean isInRepoRoot() {
+		return (repo != null && repo.getWorkTree().equals(new File(System.getProperty("user.dir"))));
+	}
+
 	/**
 	 * Check we're in a repo root. `git submodule` insists on similar behavior. This
 	 * seems generally reasonable for several commands in order to avoid the
@@ -68,7 +72,7 @@ public abstract class MdmCommand implements Callable<MdmExitMessage> {
 	 * typically look quite exactly like relative paths.
 	 */
 	protected void assertInRepoRoot() throws MdmExitMessage {
-		if (repo == null || !repo.getWorkTree().equals(new File(System.getProperty("user.dir"))))
+		if (!isInRepoRoot())
 			throw new MdmExitMessage(":(", "this command should be run from the top level folder of your git repo.");
 	}
 }
