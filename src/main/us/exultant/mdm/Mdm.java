@@ -101,7 +101,7 @@ public class Mdm {
 			.required(true);
 		parser_release
 			.addArgument("--files")
-			.help("specifies the artifact files to commit in the release.  A single literal filename can be used, or basic shell globbing patterns (i.e. \"target/*\") can be used, or if a directory is provided, all files matching \"$files/*\" will be included.")
+			.help("specifies the artifact files to commit in the release.  If a directory, all non-hidden contents of the directory will be included.")
 			.required(true);
 		parser_release
 			.addArgument("--repo")
@@ -159,7 +159,7 @@ public class Mdm {
 			case "add":    return new MdmAddCommand(repo, args);
 			case "alter":  return new MdmAlterCommand(repo, args);
 			case "remove": throw new NotYetImplementedException();
-			case "release": throw new NotYetImplementedException();
+			case "release": return new MdmReleaseCommand(repo, args);
 			case "release-init": return new MdmReleaseInitCommand(repo, args);
 			default: throw new MajorBug();
 		}
