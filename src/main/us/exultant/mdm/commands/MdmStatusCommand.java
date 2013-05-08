@@ -51,7 +51,7 @@ public class MdmStatusCommand extends MdmCommand {
 
 		if (modules.size() == 0) {
 			os.println(" --- no managed dependencies --- ");
-			return null;
+			return new MdmExitMessage(0);
 		}
 
 		Collection<String> row1 = new ArrayList<>(modules.keySet());
