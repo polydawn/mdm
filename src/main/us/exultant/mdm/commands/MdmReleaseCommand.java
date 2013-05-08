@@ -157,6 +157,7 @@ public class MdmReleaseCommand extends MdmCommand {
 			commit.call();
 			new Git(relRepo).tag()
 				.setName("release/"+version)
+				.setAnnotated(false)
 				.call();
 		} catch (NoHeadException e) {
 			throw new MdmException("your repository is in an invalid state!", e);
@@ -239,6 +240,7 @@ public class MdmReleaseCommand extends MdmCommand {
 				.call();
 			new Git(relRepo).tag()
 				.setName("mdm/master/"+version)
+				.setAnnotated(false)
 				.call();
 		} catch (NoHeadException e) {
 			throw new MdmException("your repository is in an invalid state!", e);
@@ -263,6 +265,7 @@ public class MdmReleaseCommand extends MdmCommand {
 					.call();
 				new Git(repo).tag()
 					.setName("release/"+version)
+					.setAnnotated(false)
 					.call();
 			} catch (NoHeadException e) {
 				throw new MdmException("your repository is in an invalid state!", e);
