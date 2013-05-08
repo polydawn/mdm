@@ -5,7 +5,7 @@
 	path = lib/ahslib
 	url = https://github.com/mdm-releases/ahslib-releases
 	mdm = dependency
-	mdm-version = v0.6.6
+	mdm-version = v0.6.7
 	update = none
 [submodule "lib/slf4j"]
 	path = lib/slf4j
