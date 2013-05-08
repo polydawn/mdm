@@ -76,7 +76,9 @@ public class MdmStatusCommand extends MdmCommand {
 		if (!module.getHandle().equals(module.getPath()))
 			s.errors.add("Handle and path are not the same.  This is very strange and may cause issues with other git tools.");
 		if (module.getUrlHistoric() == null)
-			s.errors.add("No url for remote repo is set in gitmodules.");
+			s.errors.add("Incomplete configuration: No url for remote repo is set in gitmodules.");
+		if (module.getIndexId() == null)
+			s.errors.add("Incomplete configuration: No committed gitlink in history matches this gitmodules entry.");	// we could let `mdm update` mention these as well and accept an argument to pull and commit the named versions.
 
 		if (module.getType() == MdmModuleType.DEPENDENCY) {
 			if (module.getVersionName() == null)
