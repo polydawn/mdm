@@ -158,7 +158,7 @@ public class Mdm {
 			case "update": return new MdmUpdateCommand(repo);
 			case "add":    return new MdmAddCommand(repo, args);
 			case "alter":  return new MdmAlterCommand(repo, args);
-			case "remove": throw new NotYetImplementedException();
+			case "remove": return new MdmRemoveCommand(repo, args);
 			case "release": return new MdmReleaseCommand(repo, args);
 			case "release-init": return new MdmReleaseInitCommand(repo, args);
 			default: throw new MajorBug();
