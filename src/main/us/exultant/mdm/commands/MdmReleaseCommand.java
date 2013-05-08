@@ -54,7 +54,7 @@ public class MdmReleaseCommand extends MdmCommand {
 		String snapshotPath = relRepoPath+"/"+version;
 
 		Repository relRepo = new FileRepositoryBuilder()
-			.setWorkTree(new File(relRepoPath))
+			.setWorkTree(new File(relRepoPath).getCanonicalFile())	// must use getCanonicalFile to work around https://bugs.eclipse.org/bugs/show_bug.cgi?id=407478
 			.build();
 
 		// sanity check the releases-repo
