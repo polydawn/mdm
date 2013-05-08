@@ -86,7 +86,6 @@ public class MdmAlterCommand extends MdmCommand {
 
 		// do the submodule/dependency dancing
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getHandle(), MdmConfigConstants.Module.DEPENDENCY_VERSION.toString(), version);
-		gitmodulesCfg.save();
 		try {
 			// reload the MdmModule completely because it's not yet implmented intelligently enough to be able to refresh a bunch of its cached state
 			module = new MdmModule(repo, module.getPath(), gitmodulesCfg);
@@ -94,6 +93,7 @@ public class MdmAlterCommand extends MdmCommand {
 		} catch (MdmModule.IsntOne e) {
 			throw new MajorBug(e);
 		}
+		gitmodulesCfg.save();	// don't do this save until after the fetch: if the fetch blows up, it's better that we don't have this mutated, because that leaves you with slightly stranger output from your next `mdm status` query.
 
 		// commit the changes
 		try {
