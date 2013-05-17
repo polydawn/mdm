@@ -38,7 +38,7 @@
 	<target name="dist"
 		depends="compile"
 		description="pack distributable artifacts">
-		<exusPack destfile="${dist}/${app}.jar">
+		<exusPack destfile="${dist}/${app}">
 			<manifest>
 				<attribute name="Main-Class" value="us.exultant.${app}.Mdm"/>
 			</manifest>
@@ -48,7 +48,7 @@
 			<zipfileset src="${lib}/argparse4j/argparse4j.jar" includes="**/*.class"/>
 			<zipfileset src="${lib}/jsch/jsch.jar" includes="**/*.class"/>
 		</exusPack>
-		<chmod file="${dist}/${app}.jar" perm="755"/>
+		<chmod file="${dist}/${app}" perm="755"/>
 	</target>
 
 
