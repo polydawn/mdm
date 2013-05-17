@@ -41,9 +41,9 @@ public class MdmUpdateCommand extends MdmCommand {
 		Map<String,MdmModule> modules = moduleSet.getDependencyModules();
 
 		// Go over every module and do what we can to it, keeping a list of who each kind of operation was performed on for summary output later.
-		List<MdmModule> impacted = new ArrayList<>();
-		List<MdmModule> unphased = new ArrayList<>();
-		List<MdmModule> contorted = new ArrayList<>();
+		List<MdmModule> impacted = new ArrayList<MdmModule>();
+		List<MdmModule> unphased = new ArrayList<MdmModule>();
+		List<MdmModule> contorted = new ArrayList<MdmModule>();
 		for (MdmModule module : modules.values()) {
 			try {
 				if (Plumbing.fetch(repo, module))

@@ -25,7 +25,7 @@ import us.exultant.ahs.util.*;
 
 public class Loco {
 	public static List<String> toHandles(List<MdmModule> modules) {
-		List<String> v = new ArrayList<>(modules.size());
+		List<String> v = new ArrayList<String>(modules.size());
 		for (MdmModule module : modules)
 			v.add(module.getHandle());
 		return v;

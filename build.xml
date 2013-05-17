@@ -12,8 +12,8 @@
 	</description>
 	<property name="app" value="mdm"/>
 
-	<property name="exus.build.java.version.source" value="1.7"/>
-	<property name="exus.build.java.version.target" value="1.7"/>
+	<property name="exus.build.java.version.source" value="1.6"/>
+	<property name="exus.build.java.version.target" value="1.6"/>
 
 	<import file="lib/exus-build/build-exultant.xml"/>
 

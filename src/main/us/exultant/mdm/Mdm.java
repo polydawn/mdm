@@ -20,6 +20,7 @@
 package us.exultant.mdm;
 
 import java.io.*;
+import java.util.*;
 import net.sourceforge.argparse4j.*;
 import net.sourceforge.argparse4j.impl.*;
 import net.sourceforge.argparse4j.inf.*;
@@ -158,16 +159,15 @@ public class Mdm {
 		}
 	}
 
-	public static MdmCommand getCommand(String name, Repository repo, Namespace args) {
-		switch (name) {
-			case "status": return new MdmStatusCommand(repo, System.out);
-			case "update": return new MdmUpdateCommand(repo);
-			case "add":    return new MdmAddCommand(repo, args);
-			case "alter":  return new MdmAlterCommand(repo, args);
-			case "remove": return new MdmRemoveCommand(repo, args);
-			case "release": return new MdmReleaseCommand(repo, args);
-			case "release-init": return new MdmReleaseInitCommand(repo, args);
-			default: throw new MajorBug();
-		}
+	public static MdmCommand getCommand(String name, final Repository repo, final Namespace args) {
+		return new HashMap<String,MdmCommand>() {{
+			put("status",           new MdmStatusCommand(repo, System.out));
+			put("update",           new MdmUpdateCommand(repo));
+			put("add",              new MdmAddCommand(repo, args));
+			put("alter",            new MdmAlterCommand(repo, args));
+			put("remove",           new MdmRemoveCommand(repo, args));
+			put("release",          new MdmReleaseCommand(repo, args));
+			put("release-init",     new MdmReleaseInitCommand(repo, args));
+		}}.get(name);
 	}
 }

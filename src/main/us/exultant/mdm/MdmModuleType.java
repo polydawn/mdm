@@ -19,6 +19,8 @@
 
 package us.exultant.mdm;
 
+import java.util.*;
+
 public enum MdmModuleType {
 	DEPENDENCY,
 	RELEASES;
@@ -27,12 +29,11 @@ public enum MdmModuleType {
 		return super.toString().toLowerCase();
 	}
 
+	private static final Map<String,MdmModuleType> fromString_switch = new HashMap<String,MdmModuleType>() {{
+		put("dependency", DEPENDENCY);
+		put("releases", RELEASES);
+	}};
 	public static MdmModuleType fromString(String value) {
-		if (value == null) return null;
-		switch (value) {
-			case "dependency": return DEPENDENCY;
-			case "releases": return RELEASES;
-			default: return null;
-		}
+		return fromString_switch.get(value);
 	}
 }

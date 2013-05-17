@@ -54,7 +54,7 @@ public class MdmStatusCommand extends MdmCommand {
 			return new MdmExitMessage(0);
 		}
 
-		Collection<String> row1 = new ArrayList<>(modules.keySet());
+		Collection<String> row1 = new ArrayList<String>(modules.keySet());
 		row1.add("dependency:");
 		int width1 = Strings.chooseFieldWidth(row1);
 
@@ -101,8 +101,8 @@ public class MdmStatusCommand extends MdmCommand {
 	public class StatusTuple {
 		public String version;
 		/** Major notifications about the state of a module -- things that mean your build probably won't work. */
-		public List<String> warnings = new ArrayList<>();
+		public List<String> warnings = new ArrayList<String>();
 		/** Errors so bad that we can't even tell what's supposed to be going on with this module. */
-		public List<String> errors = new ArrayList<>();
+		public List<String> errors = new ArrayList<String>();
 	}
 }
