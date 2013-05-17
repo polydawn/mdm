@@ -27,11 +27,16 @@ import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.storage.file.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.commands.*;
+import us.exultant.mdm.jgit.*;
 
 public class Mdm {
 	public static final String VERSION = "2.10.0";
 
 	public static void main(String[] args) {
+		// apply fixes for questionable jgit behavior
+		SystemReaderFilteringProxy.apply();
+
+		// go
 		MdmExitMessage answer = main(args, null);
 		answer.print(System.err);
 		answer.exit();
