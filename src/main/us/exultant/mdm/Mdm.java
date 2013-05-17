@@ -136,9 +136,10 @@ public class Mdm {
 
 
 		if (repo == null) try {
-			repo = new FileRepositoryBuilder()
-				.findGitDir()
-				.build();
+			FileRepositoryBuilder builder = new FileRepositoryBuilder();
+			builder.findGitDir();
+			if (builder.getGitDir() != null)
+				repo = builder.build();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
