@@ -55,7 +55,19 @@
 	<target name="clean" description="clean up">
 		<delete dir="${build}"/>
 		<delete dir="${dist}"/>
-		<delete dir="demo"/>
+	</target>
+
+
+	<target name="run-mdma" depends="dist">
+		<!-- actually, just running this in a shell can be nicer since then you don't have ant dicking up your output buffering in strange ways:
+			ant clean dist && export MDM=$(pwd)/dist/mdm MDMA=$(pwd)/mdma.sh && ( cd /tmp/ ;  rm -rf mdm-demo/ ; $MDMA -t )
+		-->
+		<delete dir="mdm-demo" />
+		<exec executable="mdma.sh" failonerror="true">
+			<env key="MDM" value="${basedir}/${dist}/${app}" />
+			<arg value="-t" />
+		</exec>
+		<delete dir="mdm-demo" />
 	</target>
 
 
