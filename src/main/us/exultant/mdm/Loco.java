@@ -33,7 +33,7 @@ public class Loco {
 
 	public static String inputPrompt(PrintStream output, String prompt) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		output.print(prompt);
+		output.print(prompt+" ");
 		String answer = br.readLine();
 		if (answer == null) throw new IOException("failed to read line from stdin");
 		return answer;
