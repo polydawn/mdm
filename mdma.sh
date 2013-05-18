@@ -30,7 +30,7 @@ EOF
 
 if [ -z $MDM ]; then MDM=`which mdm`; fi;
 if [ "$1" != "-t" ]; then straight=true; fi; export straight;
-demodir="demo";
+demodir="mdm-demo";
 
 awaitack() {
 	[ "$straight" != true ] && return;
@@ -113,13 +113,13 @@ awaitack;
 
 echo "${clblue}#  Initialize mdm release repositories for the upstream projects.${cnone}"
 (cd projUpstream1 &&
- $MDM release-init &&
+ $MDM release-init --use-defaults &&
  echo "${clblack}# in the project repo history: ${cnone}" && git log --oneline releases &&
  echo "${clblack}# in the release repo history: ${cnone}" && (cd releases && git log --oneline)
 )
 echo
 (cd projUpstream2 &&
- $MDM release-init &&
+ $MDM release-init --use-defaults &&
  echo "${clblack}# in the project repo history: ${cnone}" && git log --oneline releases &&
  echo "${clblack}# in the release repo history: ${cnone}" && (cd releases && git log --oneline)
 )
@@ -155,12 +155,12 @@ awaitack;
 echo "${clblue}#  Alright, let's make some releases in our upstream projects:${cnone}"
 echo "${clblack}# make a release of projUpstream1's files: ${cnone}"
 (cd projUpstream1/ && 
- $MDM release --version=v1.0 --files="*.txt"
+ $MDM release --version=v1.0 --files=.
 )
 echo
 echo "${clblack}# make a release of projUpstream2's files: ${cnone}"
 (cd projUpstream2/ && 
- $MDM release --version=v1.0 --files="*.txt"
+ $MDM release --version=v1.0 --files=.
 )
 echo -e "${clblue} ----------------------------${cnone}\n\n"
 
@@ -279,7 +279,7 @@ echo "${clblack}# make some updates to the upstream project's source files: ${cn
 echo
 echo "${clblack}# make a release of projUpstream1's files: ${cnone}"
 (cd projUpstream1/ &&
- $MDM release --version=v2.0 --files="*.txt"
+ $MDM release --version=v2.0 --files="."
 )
 echo
 echo "${clblack}# and publish that release to the hub repos.${cnone}"
@@ -299,7 +299,7 @@ echo "${clblack}# ...okay, one more for fun (and to see a bigger graph):${cnone}
 echo
 echo "${clblack}# make a release of projUpstream1's files: ${cnone}"
 (cd projUpstream1/ &&
- $MDM release --version=v2.1 --files="*.txt"
+ $MDM release --version=v2.1 --files=.
 )
 echo
 

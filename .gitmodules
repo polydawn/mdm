@@ -1,6 +1,3 @@
-[submodule "lib/pbs"]
-	path = lib/pbs
-	url = https://github.com/amoffat/sh.git
 [submodule "lib/exus-build"]
 	path = lib/exus-build
 	url = https://github.com/heavenlyhash/exus-build.git
@@ -8,4 +5,46 @@
 	path = releases
 	url = https://github.com/heavenlyhash-releases/mdm-releases.git
 	mdm = releases
+	update = none
+[submodule "lib/ahslib"]
+	path = lib/ahslib
+	url = https://github.com/mdm-releases/ahslib-releases.git
+	mdm = dependency
+	mdm-version = v0.6.7
+	update = none
+[submodule "lib/slf4j"]
+	path = lib/slf4j
+	url = https://github.com/mdm-releases/slf4j-releases.git
+	mdm = dependency
+	mdm-version = v1.6.6
+	update = none
+[submodule "lib/logback"]
+	path = lib/logback
+	url = https://github.com/mdm-releases/logback-releases.git
+	mdm = dependency
+	mdm-version = v1.0.7
+	update = none
+[submodule "lib/jgit"]
+	path = lib/jgit
+	url = https://github.com/mdm-releases/jgit-releases.git
+	mdm = dependency
+	mdm-version = 3.0.0.201305032217-unofficial
+	update = none
+[submodule "lib/argparse4j"]
+	path = lib/argparse4j
+	url = https://github.com/mdm-releases/argparse4j-releases.git
+	mdm = dependency
+	mdm-version = v0.4.0
+	update = none
+[submodule "lib/jsch"]
+	path = lib/jsch
+	url = https://github.com/mdm-releases/jsch-releases.git
+	mdm = dependency
+	mdm-version = v0.1.49
+	update = none
+[submodule "lib/junit"]
+	path = lib/junit
+	url = https://github.com/mdm-releases/junit-releases.git
+	mdm = dependency
+	mdm-version = v4.10
 	update = none
