@@ -40,7 +40,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		super(repo, args);
 	}
 
-	public void parse(Namespace args) throws IOException {
+	public void parse(Namespace args) {
 		name = args.getString("name");
 		path = args.getString("repo");
 

@@ -28,6 +28,7 @@ import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.storage.file.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.commands.*;
+import us.exultant.mdm.errors.*;
 import us.exultant.mdm.jgit.*;
 
 public class Mdm {
@@ -155,6 +156,8 @@ public class Mdm {
 		}
 		try {
 			return getCommand(parsedArgs.getString("subcommand"), repo, parsedArgs).call();
+		} catch (MdmRuntimeException e) {
+			return new MdmExitMessage(":'(", e.getMessage());
 		} catch (Exception e) {
 			return new MdmExitMessage(":'(", "An unexpected error occurred!\n"+X.toString(e));
 		}
