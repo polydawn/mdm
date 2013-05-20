@@ -276,13 +276,14 @@ public class MdmReleaseInitCommand extends MdmCommand {
 				.setMessage("initialize releases repo for "+name+".")
 				.call();
 		} catch (NoHeadException e) {
-			throw new MdmException("your repository is in an invalid state!", e);
+			/* we just made this repo, how can it not have a head? */
+			throw new MdmConcurrentException(e);
 		} catch (NoMessageException e) {
 			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
 		} catch (UnmergedPathsException e) {
 			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 		} catch (ConcurrentRefUpdateException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+			throw new MdmConcurrentException(e);
 		} catch (WrongRepositoryStateException e) {
 			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 		} catch (GitAPIException e) {
