@@ -33,11 +33,12 @@ import us.exultant.mdm.jgit.*;
 public class Mdm {
 	public static final String VERSION = "2.10.0";
 
-	public static void main(String[] args) {
+	static {
 		// apply fixes for questionable jgit behavior
 		SystemReaderFilteringProxy.apply();
+	}
 
-		// go
+	public static void main(String[] args) {
 		MdmExitMessage answer = main(args, null);
 		answer.print(System.err);
 		answer.exit();
