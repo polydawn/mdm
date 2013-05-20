@@ -34,6 +34,7 @@ import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
 import us.exultant.mdm.MdmModule.IsntOne;
+import us.exultant.mdm.errors.*;
 
 public class MdmReleaseInitCommand extends MdmCommand {
 	public MdmReleaseInitCommand(Repository repo, Namespace args) {
@@ -88,56 +89,19 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		parse(args);
 		validate();
 
-		// is the releases area free of clutter?
-		if (asSubmodule && SubmoduleWalk.forIndex(repo).setFilter(PathFilter.create(path)).next())
-			return new MdmExitMessage(":I", "there's already a releases module!  No changes made.");
-		if (!path.equals(".") && new File(path).exists())
-			return new MdmExitMessage(":(", "something already exists at the location we want to initialize the releases repo.  clear it out and try again.");
+		// check for clean working area.
+		try {
+			assertReleaseRepoAreaClean();
+		} catch (MdmExitMessage e) { return e; }
 
 		// okay!  make the new releases-repo.  put a first commit it in to avoid awkwardness.
-		Repository releaserepo;
-		try {
-			RepositoryBuilder builder = new RepositoryBuilder();
-			builder.setWorkTree(new File(path));
-			releaserepo = builder.build();
-			releaserepo.create(false);
-		} catch (IOException e) {
-			throw new MdmException("failed to write data while trying to create release repo at "+path, e);
-		}
-		Git git = new Git(releaserepo);
-		IOForge.saveFile("This is the releases repo for "+name+".\n", new File(path+"/README"));
-		try {
-			git.add()
-				.addFilepattern("README")
-				.call();
-		} catch (NoFilepatternException e) {
-			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
-		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		}
-		try {
-			git.commit()
-				.setOnly("README")
-				.setMessage("initialize releases repo for "+name+".")
-				.call();
-		} catch (NoHeadException e) {
-			throw new MdmException("your repository is in an invalid state!", e);
-		} catch (NoMessageException e) {
-			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
-		} catch (UnmergedPathsException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (ConcurrentRefUpdateException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (WrongRepositoryStateException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		}
+		Repository releaserepo = makeReleaseRepo();
+		makeReleaseRepoFoundingCommit(releaserepo);
 
 		// label this root commit in order to declare this repo as a valid mdm releases repo.
 		// note: considered changing this to a tag instead of a branch, but you can't actually do that.  there's some crap with the fetching where you needed an essentially empty branch, and we need this init branch of that.  init is clearly more appropriate for that than infix, since infix doesn't necessarily even exist.
 		try {
-			git.branchCreate()
+			new Git(releaserepo).branchCreate()
 				.setName("mdm/init")
 				.call();
 		} catch (RefAlreadyExistsException e) {
@@ -246,5 +210,83 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		}
 
 		return new MdmExitMessage(":D", "releases repo and submodule initialized");
+	}
+
+	/**
+	 * Check that the releases area free of clutter.
+	 *
+	 * @throws MdmExitMessage
+	 *                 if the location intended for the release repo is not empty or
+	 *                 if there are other submodules in the git index for that
+	 *                 location.
+	 */
+	void assertReleaseRepoAreaClean() throws IOException {
+		if (asSubmodule && SubmoduleWalk.forIndex(repo).setFilter(PathFilter.create(path)).next())
+			throw new MdmExitMessage(":I", "there's already a releases module!  No changes made.");
+		if (!path.equals(".") && new File(path).exists())
+			throw new MdmExitMessage(":(", "something already exists at the location we want to initialize the releases repo.  clear it out and try again.");
+	}
+
+	/**
+	 * Initialize a new non-bare repository at {@link #path}.
+	 *
+	 * @return handle to the repository created.
+	 *
+	 * @throws MdmRepositoryIOException
+	 */
+	Repository makeReleaseRepo() {
+		try {
+			Repository releaserepo = new RepositoryBuilder()
+				.setWorkTree(new File(path))
+				.build();
+			releaserepo.create(false);
+			return releaserepo;
+		} catch (IOException e) {
+			throw new MdmRepositoryIOException("create a release repo", true, path, e);
+		}
+	}
+
+	/**
+	 * Create a text file stating the repository name and commit it. This creates a
+	 * root commit for history so that we can actually wield the repo.
+	 *
+	 * @param releaserepo
+	 */
+	void makeReleaseRepoFoundingCommit(Repository releaserepo) throws MdmException {
+		// write readme file
+		try {
+			IOForge.saveFile("This is the releases repo for "+name+".\n", new File(path+"/README"));
+		} catch (IOException e) {
+			throw new MdmRepositoryIOException("create a release repo", true, path, e);
+		}
+
+		// add and commit
+		try {
+			new Git(releaserepo).add()
+				.addFilepattern("README")
+				.call();
+		} catch (NoFilepatternException e) {
+			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
+		} catch (GitAPIException e) {
+			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		}
+		try {
+			new Git(releaserepo).commit()
+				.setOnly("README")
+				.setMessage("initialize releases repo for "+name+".")
+				.call();
+		} catch (NoHeadException e) {
+			throw new MdmException("your repository is in an invalid state!", e);
+		} catch (NoMessageException e) {
+			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
+		} catch (UnmergedPathsException e) {
+			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		} catch (ConcurrentRefUpdateException e) {
+			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		} catch (WrongRepositoryStateException e) {
+			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		} catch (GitAPIException e) {
+			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		}
 	}
 }
