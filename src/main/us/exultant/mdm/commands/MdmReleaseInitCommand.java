@@ -66,7 +66,9 @@ public class MdmReleaseInitCommand extends MdmCommand {
 				if (name.equals("")) name = null;
 			}
 		}
+	}
 
+	public void validate() {
 		// pick out path, if not given.
 		if (path == null)
 			if (asSubmodule)	// if we are initializating the releases repo as a submodule, the default location to put that submodule is "./releases"
@@ -84,6 +86,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
 		parse(args);
+		validate();
 
 		// is the releases area free of clutter?
 		if (asSubmodule && SubmoduleWalk.forIndex(repo).setFilter(PathFilter.create(path)).next())
