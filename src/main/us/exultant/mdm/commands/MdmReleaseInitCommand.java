@@ -40,12 +40,12 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		super(repo, args);
 	}
 
-	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
-		String name = args.getString("name");
-		String path = args.getString("repo");
+	public void parse(Namespace args) throws IOException {
+		name = args.getString("name");
+		path = args.getString("repo");
 
 		// check if we're in a repo root.  we'll suggest slightly different default values if we are. take it's dirname as a default
-		boolean asSubmodule = isInRepoRoot();
+		asSubmodule = isInRepoRoot();
 
 		// pick out the name, if not given.
 		if (name == null) {
@@ -76,6 +76,14 @@ public class MdmReleaseInitCommand extends MdmCommand {
 
 		// normalize the path if necessary.  (jgit commit trips over relative paths.  and it's pretty weird for a submodule handle, too.)
 		if (asSubmodule && path.startsWith("./")) path = path.substring(2);
+	}
+
+	String name;
+	String path;
+	boolean asSubmodule;
+
+	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
+		parse(args);
 
 		// is the releases area free of clutter?
 		if (asSubmodule && SubmoduleWalk.forIndex(repo).setFilter(PathFilter.create(path)).next())
