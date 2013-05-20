@@ -6,7 +6,7 @@ import net.sourceforge.argparse4j.inf.*;
 
 public class MdmArgumentParser {
 	public MdmArgumentParser() {
-		parser = ArgumentParsers.newArgumentParser("mdm").version(Mdm.VERSION);
+		parser = ArgumentParsers.newArgumentParser("mdm").version(Package.getPackage("us.exultant.mdm").getImplementationVersion());
 
 		parser.addArgument("--version").action(Arguments.version());
 

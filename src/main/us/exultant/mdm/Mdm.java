@@ -30,8 +30,6 @@ import us.exultant.mdm.errors.*;
 import us.exultant.mdm.jgit.*;
 
 public class Mdm {
-	public static final String VERSION = "2.10.0";
-
 	static {
 		// apply fixes for questionable jgit behavior
 		SystemReaderFilteringProxy.apply();
