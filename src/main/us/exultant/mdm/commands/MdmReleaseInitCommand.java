@@ -287,7 +287,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		} catch (NoMessageException e) {
 			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
 		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+			throw new MdmUnrecognizedError(e);
 		}
 	}
 }
