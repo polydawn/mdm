@@ -24,6 +24,7 @@ import java.util.*;
 import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.storage.file.*;
+import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.commands.*;
 import us.exultant.mdm.errors.*;
@@ -64,8 +65,12 @@ public class Mdm {
 			return getCommand(parsedArgs.getString("subcommand"), repo, parsedArgs).call();
 		} catch (MdmRuntimeException e) {
 			return new MdmExitMessage(":'(", e.getMessage());
+		} catch (MdmException e) {
+			return new MdmExitMessage(":'(", e.getMessage());
+		} catch (MdmUnrecognizedError e) {
+			return dealUnexpected(e);
 		} catch (Exception e) {
-			return new MdmExitMessage(":'(", "An unexpected error occurred!\n"+X.toString(e));
+			return dealUnexpected(e);
 		}
 	}
 
@@ -79,5 +84,27 @@ public class Mdm {
 			put("release",          new MdmReleaseCommand(repo, args));
 			put("release-init",     new MdmReleaseInitCommand(repo, args));
 		}}.get(name);
+	}
+
+	@SuppressWarnings("finally")
+	private static MdmExitMessage dealUnexpected(Throwable e) {
+		File stackSave = null;
+		try {
+			stackSave = saveStackDump(e);
+		} finally {
+			return new MdmExitMessage(":'(",
+					"An unexpected error occurred!  please file a bug report to help fix the problem."
+					+"\na stack trace "
+					+(stackSave == null ? "has been saved to "+stackSave : "a stack trace follows")
+					+"; please include it in the report."
+					+(stackSave == null ? "\n\n"+X.toString(e) : "")
+			);
+		}
+	}
+
+	private static File saveStackDump(Throwable e) throws IOException {
+		File f = new File("mdm-error-"+UUID.randomUUID().toString()+".log");
+		IOForge.saveFile(X.toString(e), f);
+		return f;
 	}
 }
