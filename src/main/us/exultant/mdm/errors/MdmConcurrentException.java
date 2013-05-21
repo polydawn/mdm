@@ -12,12 +12,10 @@ public class MdmConcurrentException extends MdmRuntimeException {
 	}
 
 	/**
-	 * Throw using this constructor if a {@link NoHeadException} is thrown on a repo
-	 * we just created or have already inspected. (If this was an existing repository,
-	 * wrapping the {@link NoHeadException} in a {@link MdmRepositoryStateException}
-	 * instead is probably more appropriate.)
+	 * Wrap {@link MdmRepositoryStateException} in this exception if the problem was
+	 * caused from a repo we just created or have already inspected.
 	 */
-	public MdmConcurrentException(NoHeadException e) {
-		super("mdm failed because a ref was changed in a repository as we were in the middle of working", e);
+	public MdmConcurrentException(MdmRepositoryStateException e) {
+		super(e.getMessage()+"\nthis should not normally occur.  other processes may have been modifying the repo concurrently.", e);
 	}
 }

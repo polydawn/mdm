@@ -252,7 +252,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 	 *
 	 * @param releaserepo
 	 */
-	void makeReleaseRepoFoundingCommit(Repository releaserepo) throws MdmException {
+	void makeReleaseRepoFoundingCommit(Repository releaserepo) {
 		// write readme file
 		try {
 			IOForge.saveFile("This is the releases repo for "+name+".\n", new File(path+"/README"));
@@ -261,6 +261,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		}
 
 		// add and commit
+		String currentAction = "commit into the new releases repo";
 		try {
 			new Git(releaserepo).add()
 				.addFilepattern("README")
@@ -276,16 +277,15 @@ public class MdmReleaseInitCommand extends MdmCommand {
 				.setMessage("initialize releases repo for "+name+".")
 				.call();
 		} catch (NoHeadException e) {
-			/* we just made this repo, how can it not have a head? */
+			throw new MdmConcurrentException(new MdmRepositoryStateException(currentAction, releaserepo.getWorkTree().toString(), e));
+		} catch (WrongRepositoryStateException e) {
+			throw new MdmConcurrentException(new MdmRepositoryStateException(currentAction, releaserepo.getWorkTree().toString(), e));
+		} catch (UnmergedPathsException e) {
+			throw new MdmConcurrentException(new MdmRepositoryStateException(currentAction, releaserepo.getWorkTree().toString(), e));
+		} catch (ConcurrentRefUpdateException e) {
 			throw new MdmConcurrentException(e);
 		} catch (NoMessageException e) {
 			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
-		} catch (UnmergedPathsException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (ConcurrentRefUpdateException e) {
-			throw new MdmConcurrentException(e);
-		} catch (WrongRepositoryStateException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 		} catch (GitAPIException e) {
 			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 		}
