@@ -157,9 +157,10 @@ public class MdmReleaseInitCommand extends MdmCommand {
 	 *                 location.
 	 */
 	void assertReleaseRepoAreaClean() throws IOException {
+		File pathFile = new File(path);
 		if (asSubmodule && SubmoduleWalk.forIndex(repo).setFilter(PathFilter.create(path)).next())
 			throw new MdmExitMessage(":I", "there's already a releases module!  No changes made.");
-		if (!path.equals(".") && new File(path).exists())
+		if (pathFile.exists() && !pathFile.isDirectory() || new File(pathFile, ".git").exists())
 			throw new MdmExitMessage(":(", "something already exists at the location we want to initialize the releases repo.  clear it out and try again.");
 	}
 
