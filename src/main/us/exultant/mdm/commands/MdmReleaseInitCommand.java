@@ -309,7 +309,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		String currentAction = "commit a link to the new releases repo into the parent repo";
 		try {
 			new Git(repo).add()
-				.addFilepattern("releases")
+				.addFilepattern(path)
 				.addFilepattern(Constants.DOT_GIT_MODULES)
 				.call();
 		} catch (NoFilepatternException e) {
@@ -319,7 +319,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		}
 		try {
 			new Git(repo).commit()
-				.setOnly("releases/")
+				.setOnly(path)
 				.setOnly(Constants.DOT_GIT_MODULES)
 				.setMessage("initialize releases repo for "+name+".")
 				.call();
