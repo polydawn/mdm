@@ -15,9 +15,12 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 
+	MdmReleaseInitCommand cmd;
+	Repository releaseRepo;
+
 	@Test
 	public void emptyCwdDirIsCleanForRelease() throws Exception {
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null, null);
+		cmd = new MdmReleaseInitCommand(null, null);
 		cmd.path = new File(".").getCanonicalPath();
 		cmd.validate();
 		cmd.assertReleaseRepoAreaClean();
@@ -30,7 +33,7 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 			.build();
 		repo.create(false);
 
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(repo, null);
+		cmd = new MdmReleaseInitCommand(repo, null);
 		cmd.path = new File(".").getCanonicalPath();
 		cmd.asSubmodule = cmd.isInRepoRoot();
 		cmd.validate();
@@ -42,7 +45,7 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 	public void dirWithObstructingFilesIsNotCleanForRelease() throws Exception {
 		IOForge.saveFile("", new File("releases"));
 
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null, null);
+		cmd = new MdmReleaseInitCommand(null, null);
 		cmd.validate();
 		cmd.path = "releases";
 		exception.expect(MdmExitMessage.class);
@@ -51,46 +54,22 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 
 	@Test
 	public void createReleaseRepoWithoutExceptions() throws Exception {
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null, null);
+		cmd = new MdmReleaseInitCommand(null, null);
 		cmd.path = new File(".").getCanonicalPath();
 		cmd.validate();
 
-		Repository releaserepo = cmd.makeReleaseRepo();
-	}
-
-	@Test
-	public void createReleaseRepoFirstCommitWithoutExceptions() throws Exception {
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null, null);
-		cmd.path = new File(".").getCanonicalPath();
-		cmd.validate();
-
-		Repository releaserepo = cmd.makeReleaseRepo();
-		cmd.makeReleaseRepoFoundingCommit(releaserepo);
-	}
-
-	@Test
-	public void createReleaseRepoInitBranchWithoutExceptions() throws Exception {
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null, null);
-		cmd.path = new File(".").getCanonicalPath();
-		cmd.validate();
-
-		Repository releaserepo = cmd.makeReleaseRepo();
-		cmd.makeReleaseRepoFoundingCommit(releaserepo);
-		cmd.makeReleaseRepoInitBranch(releaserepo);
+		releaseRepo = cmd.makeReleaseRepo();
+		cmd.makeReleaseRepoFoundingCommit(releaseRepo);
+		cmd.makeReleaseRepoInitBranch(releaseRepo);
 	}
 
 	@Test
 	public void releaseRepoFirstCommitContainsReadmeFile() throws Exception {
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null, null);
-		cmd.path = new File(".").getCanonicalPath();
-		cmd.validate();
+		createReleaseRepoWithoutExceptions();
 
-		Repository releaserepo = cmd.makeReleaseRepo();
-		cmd.makeReleaseRepoFoundingCommit(releaserepo);
-
-		ObjectId commitId = releaserepo.resolve(Constants.HEAD);
-		RevCommit revCommit = new RevWalk(releaserepo).parseCommit(commitId);
-		TreeWalk treeWalk = new TreeWalk(releaserepo);
+		ObjectId commitId = releaseRepo.resolve(Constants.HEAD);
+		RevCommit revCommit = new RevWalk(releaseRepo).parseCommit(commitId);
+		TreeWalk treeWalk = new TreeWalk(releaseRepo);
 		treeWalk.reset(revCommit.getTree());
 		assertTrue(treeWalk.next());
 		assertEquals("README", treeWalk.getNameString());
@@ -99,16 +78,10 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 
 	@Test
 	public void releaseRepoInitBranchContainsOneCommit() throws Exception {
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null, null);
-		cmd.path = new File(".").getCanonicalPath();
-		cmd.validate();
+		createReleaseRepoWithoutExceptions();
 
-		Repository releaserepo = cmd.makeReleaseRepo();
-		cmd.makeReleaseRepoFoundingCommit(releaserepo);
-		cmd.makeReleaseRepoInitBranch(releaserepo);
-
-		ObjectId commitId = releaserepo.resolve("mdm/init");
-		RevCommit revCommit = new RevWalk(releaserepo).parseCommit(commitId);
+		ObjectId commitId = releaseRepo.resolve("mdm/init");
+		RevCommit revCommit = new RevWalk(releaseRepo).parseCommit(commitId);
 		assertEquals(0, revCommit.getParentCount());
 	}
 }
