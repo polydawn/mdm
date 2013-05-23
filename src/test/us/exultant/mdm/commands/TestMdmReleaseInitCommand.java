@@ -1,7 +1,10 @@
 package us.exultant.mdm.commands;
 
+import static org.junit.Assert.*;
 import java.io.*;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.revwalk.*;
+import org.eclipse.jgit.treewalk.*;
 import org.junit.*;
 import org.junit.rules.*;
 import us.exultant.ahs.iob.*;
@@ -74,5 +77,38 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 		Repository releaserepo = cmd.makeReleaseRepo();
 		cmd.makeReleaseRepoFoundingCommit(releaserepo);
 		cmd.makeReleaseRepoInitBranch(releaserepo);
+	}
+
+	@Test
+	public void releaseRepoFirstCommitContainsReadmeFile() throws Exception {
+		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null, null);
+		cmd.path = new File(".").getCanonicalPath();
+		cmd.validate();
+
+		Repository releaserepo = cmd.makeReleaseRepo();
+		cmd.makeReleaseRepoFoundingCommit(releaserepo);
+
+		ObjectId commitId = releaserepo.resolve(Constants.HEAD);
+		RevCommit revCommit = new RevWalk(releaserepo).parseCommit(commitId);
+		TreeWalk treeWalk = new TreeWalk(releaserepo);
+		treeWalk.reset(revCommit.getTree());
+		assertTrue(treeWalk.next());
+		assertEquals("README", treeWalk.getNameString());
+		assertFalse(treeWalk.next());
+	}
+
+	@Test
+	public void releaseRepoInitBranchContainsOneCommit() throws Exception {
+		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null, null);
+		cmd.path = new File(".").getCanonicalPath();
+		cmd.validate();
+
+		Repository releaserepo = cmd.makeReleaseRepo();
+		cmd.makeReleaseRepoFoundingCommit(releaserepo);
+		cmd.makeReleaseRepoInitBranch(releaserepo);
+
+		ObjectId commitId = releaserepo.resolve("mdm/init");
+		RevCommit revCommit = new RevWalk(releaserepo).parseCommit(commitId);
+		assertEquals(0, revCommit.getParentCount());
 	}
 }
