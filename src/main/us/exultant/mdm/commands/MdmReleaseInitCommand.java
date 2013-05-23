@@ -67,6 +67,41 @@ public class MdmReleaseInitCommand extends MdmCommand {
 				if (name.equals("")) name = null;
 			}
 		}
+
+		// the rest of args parsing is only valid if we're making releases repo that's a submodule.
+		if (!asSubmodule) return;
+
+		// ask for remote url.
+		remotePublicUrl = args.getString("remote_url");
+		if (remotePublicUrl == null)
+			if (args.getBoolean("use_defaults")) {
+				String parentRemote = repo.getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", ConfigConstants.CONFIG_KEY_URL);
+				if (parentRemote == null) parentRemote = System.getProperty("user.dir");
+				remotePublicUrl = "../"+name+"-releases.git";
+				try {
+					remotePublicUrl = new URI(parentRemote+"/").resolve(remotePublicUrl).toString();
+				} catch (URISyntaxException e) {}
+			} else
+				remotePublicUrl = inputPrompt(os,
+						"Configure a remote url where this repo will be accessible?\n"
+						+"This will be committed to the project's .gitmodules file, and so should be a publicly accessible url.\n"
+						+"remote url: "
+				);
+		remotePublicUrl = remotePublicUrl.trim();
+
+		// and another.
+		remotePublishUrl = args.getString("remote_publish_url");
+		if (remotePublishUrl == null)
+			if (args.getBoolean("use_defaults"))
+				remotePublishUrl = remotePublicUrl;
+			else
+				remotePublishUrl = inputPrompt(os,
+						"Configure a remote url you'll use to push this repo when making releases?\n"
+						+"This will not be committed to the project; just set in your local config.\n"
+						+"remote url [leave blank to use the same public url]: "
+				);
+		remotePublishUrl = remotePublishUrl.trim();
+		if (remotePublishUrl.equals("")) remotePublishUrl = remotePublicUrl;
 	}
 
 	public void validate() {
@@ -84,6 +119,8 @@ public class MdmReleaseInitCommand extends MdmCommand {
 	String name;
 	String path;
 	boolean asSubmodule;
+	String remotePublicUrl;
+	String remotePublishUrl;
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
 		parse(args);
@@ -102,38 +139,6 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		// if we're not a submodule, we're now done here, otherwise, the rest of the work revolves around the parent repo.
 		if (!asSubmodule)
 			return new MdmExitMessage(":D", "releases repo initialized");
-
-		// ask for remote url.
-		String remotePublicUrl = args.getString("remote_url");
-		if (remotePublicUrl == null)
-			if (args.getBoolean("use_defaults")) {
-				String parentRemote = repo.getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", ConfigConstants.CONFIG_KEY_URL);
-				if (parentRemote == null) parentRemote = System.getProperty("user.dir");
-				remotePublicUrl = "../"+name+"-releases.git";
-				try {
-					remotePublicUrl = new URI(parentRemote+"/").resolve(remotePublicUrl).toString();
-				} catch (URISyntaxException e) {}
-			} else
-				remotePublicUrl = inputPrompt(os,
-						"Configure a remote url where this repo will be accessible?\n"
-						+"This will be committed to the project's .gitmodules file, and so should be a publicly accessible url.\n"
-						+"remote url: "
-				);
-		remotePublicUrl = remotePublicUrl.trim();
-
-		// and another.
-		String remotePublishUrl = args.getString("remote_publish_url");
-		if (remotePublishUrl == null)
-			if (args.getBoolean("use_defaults"))
-				remotePublishUrl = remotePublicUrl;
-			else
-				remotePublishUrl = inputPrompt(os,
-						"Configure a remote url you'll use to push this repo when making releases?\n"
-						+"This will not be committed to the project; just set in your local config.\n"
-						+"remote url [leave blank to use the same public url]: "
-				);
-		remotePublishUrl = remotePublishUrl.trim();
-		if (remotePublishUrl.equals("")) remotePublishUrl = remotePublicUrl;
 
 		// add the new releases-repo as a submodule to the project repo.
 
