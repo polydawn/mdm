@@ -39,6 +39,14 @@ public class MdmRepositoryStateException extends MdmException {
 		this(tryingTo, path, (Exception)cause);
 	}
 
+	public MdmRepositoryStateException(String tryingTo, String path, RefAlreadyExistsException cause) {
+		this(tryingTo, path, (Exception)cause);
+	}
+
+	public MdmRepositoryStateException(String tryingTo, String path, RefNotFoundException cause) {
+		this(tryingTo, path, (Exception)cause);
+	}
+
 	private MdmRepositoryStateException(String tryingTo, String path, Exception cause) {
 		super("mdm failed while trying to "+tryingTo+" at "+path+"; "+cause.getMessage(), cause);
 	}

@@ -97,24 +97,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		// okay!  make the new releases-repo.  put a first commit it in to avoid awkwardness.
 		Repository releaserepo = makeReleaseRepo();
 		makeReleaseRepoFoundingCommit(releaserepo);
-
-		// label this root commit in order to declare this repo as a valid mdm releases repo.
-		// note: considered changing this to a tag instead of a branch, but you can't actually do that.  there's some crap with the fetching where you needed an essentially empty branch, and we need this init branch of that.  init is clearly more appropriate for that than infix, since infix doesn't necessarily even exist.
-		try {
-			new Git(releaserepo).branchCreate()
-				.setName("mdm/init")
-				.call();
-		} catch (RefAlreadyExistsException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);	// i just made this repo, so this shouldn't be a problem outside of TOCTOU madness
-		} catch (RefNotFoundException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (InvalidRefNameException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		}
-		//if (args.infix):
-		//	git.checkout("-b", "mdm/infix");
+		makeReleaseRepoInitBranch(releaserepo);
 
 		// if we're not a submodule, we're now done here, otherwise, the rest of the work revolves around the parent repo.
 		if (!asSubmodule)
@@ -269,7 +252,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		} catch (NoFilepatternException e) {
 			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
 		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+			throw new MdmUnrecognizedError(e);
 		}
 		try {
 			new Git(releaserepo).commit()
@@ -286,6 +269,23 @@ public class MdmReleaseInitCommand extends MdmCommand {
 			throw new MdmConcurrentException(e);
 		} catch (NoMessageException e) {
 			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
+		} catch (GitAPIException e) {
+			throw new MdmUnrecognizedError(e);
+		}
+	}
+
+	void makeReleaseRepoInitBranch(Repository releaserepo) {
+		String currentAction = "create branches in the new releases repo";
+		try {
+			new Git(releaserepo).branchCreate()
+				.setName("mdm/init")
+				.call();
+		} catch (RefAlreadyExistsException e) {
+			throw new MdmConcurrentException(new MdmRepositoryStateException(currentAction, releaserepo.getWorkTree().toString(), e));
+		} catch (RefNotFoundException e) {
+			throw new MdmConcurrentException(new MdmRepositoryStateException(currentAction, releaserepo.getWorkTree().toString(), e));
+		} catch (InvalidRefNameException e) {
+			throw new MajorBug(e); // branch name is fixed at compile time here and is quite valid, thanks
 		} catch (GitAPIException e) {
 			throw new MdmUnrecognizedError(e);
 		}
