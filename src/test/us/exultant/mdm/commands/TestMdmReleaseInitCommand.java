@@ -84,4 +84,12 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 		RevCommit revCommit = new RevWalk(releaseRepo).parseCommit(commitId);
 		assertEquals(0, revCommit.getParentCount());
 	}
+
+	@Test
+	public void releaseRepoHeadReferencesMaster() throws Exception {
+		createReleaseRepoWithoutExceptions();
+
+		Ref headRef = releaseRepo.getRef(Constants.HEAD);
+		assertEquals(releaseRepo.getRef(Constants.MASTER), headRef.getTarget());
+	}
 }
