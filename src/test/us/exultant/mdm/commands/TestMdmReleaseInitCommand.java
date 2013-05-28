@@ -17,6 +17,7 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 
 	MdmReleaseInitCommand cmd;
 	Repository releaseRepo;
+	Repository parentRepo;
 
 	@Test
 	public void emptyCwdDirIsCleanForRelease() throws Exception {
@@ -92,4 +93,54 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 		Ref headRef = releaseRepo.getRef(Constants.HEAD);
 		assertEquals(releaseRepo.getRef(Constants.MASTER), headRef.getTarget());
 	}
+
+	@Test
+	public void createReleaseRepoSubmoduleWithoutExceptions() throws Exception {
+		parentRepo = new RepositoryBuilder()
+			.setWorkTree(new File(".").getCanonicalFile())
+			.build();
+		parentRepo.create(false);
+
+		cmd = new MdmReleaseInitCommand(parentRepo, null);
+		// ach, I can't let validate() transform its realization that we're in submodule mode into selecting a default path, because it would be relative, and the surrealcwd problem appears again
+		cmd.path = "releases";
+		cmd.asSubmodule = true;
+		cmd.validate();
+
+		releaseRepo = cmd.makeReleaseRepo();
+		cmd.makeReleaseRepoFoundingCommit(releaseRepo);
+		cmd.makeReleaseRepoInitBranch(releaseRepo);
+
+		cmd.writeParentGitmoduleConfig(parentRepo);
+		cmd.writeReleaseRepoConfig(releaseRepo);
+		cmd.makeParentRepoLinkCommit(parentRepo);
+	}
+
+	@Test
+	public void releaseRepoSubmoduleInitBranchContainsOneCommit() throws Exception {
+		createReleaseRepoSubmoduleWithoutExceptions();
+
+		ObjectId commitId = releaseRepo.resolve("mdm/init");
+		RevCommit revCommit = new RevWalk(releaseRepo).parseCommit(commitId);
+		assertEquals(0, revCommit.getParentCount());
+	}
+
+	@Test
+	public void releaseRepoSubmoduleParentContainsLink() throws Exception {
+		createReleaseRepoSubmoduleWithoutExceptions();
+
+		ObjectId commitId = parentRepo.resolve(Constants.HEAD);
+		RevCommit revCommit = new RevWalk(parentRepo).parseCommit(commitId);
+		TreeWalk treeWalk = new TreeWalk(parentRepo);
+		treeWalk.reset(revCommit.getTree());
+		// not completely sure why these should be consistently this order, but appears to be so
+		assertTrue(treeWalk.next());
+		assertEquals(".gitmodules", treeWalk.getNameString());
+		assertTrue(treeWalk.next());
+		assertEquals("releases", treeWalk.getNameString());
+		assertEquals(FileMode.GITLINK, treeWalk.getFileMode(0));
+		assertFalse(treeWalk.next());
+	}
+
+
 }
