@@ -174,7 +174,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 	Repository makeReleaseRepo() {
 		try {
 			Repository releaserepo = new RepositoryBuilder()
-				.setWorkTree(new File(path))
+				.setWorkTree(new File(path).getCanonicalFile())
 				.build();
 			releaserepo.create(false);
 			return releaserepo;
@@ -192,7 +192,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 	void makeReleaseRepoFoundingCommit(Repository releaserepo) {
 		// write readme file
 		try {
-			IOForge.saveFile("This is the releases repo for "+name+".\n", new File(path+"/README"));
+			IOForge.saveFile("This is the releases repo for "+name+".\n", new File(path, "README").getCanonicalFile());
 		} catch (IOException e) {
 			throw new MdmRepositoryIOException("create a release repo", true, path, e);
 		}
