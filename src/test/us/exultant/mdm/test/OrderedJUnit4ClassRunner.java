@@ -11,8 +11,13 @@ public class OrderedJUnit4ClassRunner extends BlockJUnit4ClassRunner {
 
 	@Override
 	protected List<FrameworkMethod> computeTestMethods() {
-		List<FrameworkMethod> list = super.computeTestMethods();
-		Collections.sort(list, new SourceOrderMethodComparator());
-		return list;
+		final List<FrameworkMethod> list = super.computeTestMethods();
+		try {
+			final List<FrameworkMethod> copy = new ArrayList<FrameworkMethod>(list);
+			Collections.sort(copy, new SourceOrderMethodComparator());
+			return copy;
+		} catch (Throwable throwable) {
+			return list;
+		}
 	}
 }

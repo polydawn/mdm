@@ -21,6 +21,8 @@ public class SourceOrderMethodComparator implements Comparator<FrameworkMethod> 
 	public int compare(FrameworkMethod o1, FrameworkMethod o2) {
 		final MethodPosition methodPosition1 = this.getIndexOfMethodPosition(o1);
 		final MethodPosition methodPosition2 = this.getIndexOfMethodPosition(o2);
+		if (methodPosition1 instanceof NullMethodPosition || methodPosition2 instanceof NullMethodPosition)
+			throw new RuntimeException();
 		return methodPosition1.compareTo(methodPosition2);
 	}
 
