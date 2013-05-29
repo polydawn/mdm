@@ -35,6 +35,7 @@
 	<path id="mdm.path.deps.test">
 		<path refid="mdm.path.main" />
 		<pathelement location="${lib}/junit/junit.jar"/>
+		<pathelement location="${lib}/hamcrest-core/hamcrest-core.jar"/>
 	</path>
 	<path id="mdm.path.test">
 		<path refid="mdm.path.deps.test" />
