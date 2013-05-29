@@ -7,10 +7,12 @@ import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.*;
 import org.junit.*;
 import org.junit.rules.*;
+import org.junit.runner.*;
 import us.exultant.ahs.iob.*;
 import us.exultant.mdm.test.*;
 import us.exultant.mdm.*;
 
+@RunWith(OrderedJUnit4ClassRunner.class)
 public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
