@@ -46,11 +46,5 @@
 	path = lib/junit
 	url = https://github.com/mdm-releases/junit-releases.git
 	mdm = dependency
-	mdm-version = v4.11
-	update = none
-[submodule "lib/hamcrest-core"]
-	path = lib/hamcrest-core
-	url = https://github.com/mdm-releases/hamcrest-core-releases.git
-	mdm = dependency
-	mdm-version = v1.3
+	mdm-version = v4.10
 	update = none
