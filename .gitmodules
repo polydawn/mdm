@@ -48,3 +48,9 @@
 	mdm = dependency
 	mdm-version = v4.11
 	update = none
+[submodule "lib/hamcrest-core"]
+	path = lib/hamcrest-core
+	url = https://github.com/mdm-releases/hamcrest-core-releases.git
+	mdm = dependency
+	mdm-version = v1.3
+	update = none
