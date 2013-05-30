@@ -49,7 +49,10 @@ public class MdmReleaseCommand extends MdmCommand {
 		inputPath = args.getString("files");
 	}
 
-	public void validate() {
+	public void validate() throws MdmExitMessage {
+		// Reject version names with slashes.  It's physically possible to deal with these, but just... why?  Even if mdm itself were to handle it smoothly, it would make life that much more annoying for any other scripts ever, and it would make the directory structure on the master branch just a mess of irregular depth.
+		if (version.contains("/"))
+			throw new MdmExitMessage(":(", "you can't use version names that have slashes in them, sorry.  it gets messy.");
 	}
 
 	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("^(.*)-releases(?:.git)?$");
@@ -72,27 +75,14 @@ public class MdmReleaseCommand extends MdmCommand {
 			.build();
 
 		// sanity check the releases-repo
-		if (relRepo == null)						// check that releases-repo is a git repo at all
-			return new MdmExitMessage(":(", "releases-repo directory '"+relRepoPath+"' doesn't look like a git repo!  (Maybe you forgot to set up with `mdm release-init` before making your first release?)");
-		if (relRepo.getRef("refs/heads/mdm/init") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
-			return new MdmExitMessage(":'(", "releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \"mdm/init\", and there should be.)");
-		if (relRepo.getRef("refs/heads/master") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
-			return new MdmExitMessage(":'(", "releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \"master\", and there should be.)");
-		if (relRepo.getRef("refs/heads/mdm/release/"+version) != null)	// check that nothing is already in the place where this version will be placed
-			return new MdmExitMessage(":'(", "the releases repo already has a release point labeled version "+version+" !");
-		if (version.contains("/"))					// we could deal with these, certainly, but just... why?  even if mdm itself were to handle it smoothly, it would make life that much more annoying for any other scripts ever, and it makes the directory structure just a mess of irregular depth.
-			return new MdmExitMessage(":(", "you can't use version names that have slashes in them, sorry.  it gets messy.");
-
-		// sanity check part 2: make sure there's nothing in the version-named directory in master as well.  though really we're getting borderline facetious here: there's all sorts of problems that could well come up from having incomplete local state and then trying to push what turns out to be a coliding branch name, and so on.
-		//  i'm just weeping for my lost time now, but in python this was one line: (len(str(git("ls-tree", "master", "--name-only", args.version)))>0)
-		RevTree tree = new RevWalk(relRepo).parseCommit(relRepo.resolve("refs/heads/master")).getTree();
-		TreeWalk treeWalk = new TreeWalk(relRepo);
-		treeWalk.addTree(tree);
-		treeWalk.setRecursive(true);
-		treeWalk.setFilter(PathFilter.create(version));
-		if (treeWalk.next())
-			return new MdmExitMessage(":'(", "the releases repo already has files committed in the master branch where version "+version+" should go!");
-
+		try {
+			assertRepoIsReleaseRepo(relRepo);
+			assertReleaseRepoDoesntAlreadyContain(relRepo, version);
+		} catch (MdmExitMessage e) {
+			return e;
+		} catch (IOException e) {
+			throw new MdmExitMessage(":'(", "mdm failed to read data from "+relRepoPath+"; "+e.getMessage());
+		}
 
 		// select the artifact files that we'll be copying in
 		File inputFile = new File(inputPath);
@@ -296,5 +286,48 @@ public class MdmReleaseCommand extends MdmCommand {
 		}
 
 		return new MdmExitMessage(":D", "release version "+version+" complete");
+	}
+
+	public void assertRepoIsReleaseRepo(Repository relRepo) throws MdmExitMessage, IOException {
+		if (relRepo == null)						// check that releases-repo is a git repo at all
+			throw new MdmExitMessage(":(", "releases-repo directory '"+relRepoPath+"' doesn't look like a git repo!  (Maybe you forgot to set up with `mdm release-init` before making your first release?)");
+		if (relRepo.getRef("refs/heads/mdm/init") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
+			throw new MdmExitMessage(":'(", "releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \"mdm/init\", and there should be.)");
+		if (relRepo.getRef("refs/heads/master") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
+			throw new MdmExitMessage(":'(", "releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \"master\", and there should be.)");
+	}
+
+	/**
+	 * Check that nothing that would get in the way of a version name is present in
+	 * the repository.
+	 * <p>
+	 * Checks performed include tags, branches, and paths committed to the master
+	 * branch. This is good coverage against local conflicts, but it's worth noting
+	 * that there's all sorts of problems that could well come up from having
+	 * incomplete local state and then trying to push what turns out to be a coliding
+	 * branch name, and so on.
+	 *
+	 * @param relRepo
+	 * @param version
+	 * @throws MdmExitMessage
+	 * @throws IOException
+	 */
+	static void assertReleaseRepoDoesntAlreadyContain(Repository relRepo, String version) throws MdmExitMessage, IOException {
+		// part 1: check branch for version name doesn't already exist
+		if (relRepo.getRef("refs/heads/mdm/release/"+version) != null)
+			throw new MdmExitMessage(":'(", "the releases repo already has a release point branch labeled version "+version+" !");
+
+		// part 2: check tag for version name doesn't already exist
+		if (relRepo.getRef("refs/tags/release/"+version) != null)
+			throw new MdmExitMessage(":'(", "the releases repo already has a release point tag labeled version "+version+" !");
+
+		// part 3: make sure there's nothing in the version-named directory in master.
+		RevTree tree = new RevWalk(relRepo).parseCommit(relRepo.resolve("refs/heads/master")).getTree();
+		TreeWalk treeWalk = new TreeWalk(relRepo);
+		treeWalk.addTree(tree);
+		treeWalk.setRecursive(true);
+		treeWalk.setFilter(PathFilter.create(version));
+		if (treeWalk.next())
+			throw new MdmExitMessage(":'(", "the releases repo already has files committed in the master branch where version "+version+" should go!");
 	}
 }
