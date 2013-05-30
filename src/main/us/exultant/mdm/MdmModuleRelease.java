@@ -25,7 +25,7 @@ import org.eclipse.jgit.storage.file.*;
 import org.eclipse.jgit.submodule.*;
 import us.exultant.mdm.errors.*;
 
-public class MdmReleaseRepo extends MdmModule {
+public class MdmModuleRelease extends MdmModule {
 	/**
 	 * Open the repo at given path, throw if there's no repo or if it's missing the
 	 * telltales of being an mdm release repo.
@@ -34,9 +34,9 @@ public class MdmReleaseRepo extends MdmModule {
 	 * @return a repository that smells like a proper mdm release repo.
 	 * @throws MdmRepositoryNonexistant if there's no repository there
 	 * @throws MdmRepositoryIOException if there were errors reading the repository
-	 * @throws MdmModuleTypeException if the repository doesn't look like an {@link MdmReleaseRepo}.
+	 * @throws MdmModuleTypeException if the repository doesn't look like an {@link MdmModuleRelease}.
 	 */
-	public static MdmReleaseRepo load(String relRepoPath) throws MdmRepositoryNonexistant, MdmRepositoryIOException, MdmModuleTypeException {
+	public static MdmModuleRelease load(String relRepoPath) throws MdmRepositoryNonexistant, MdmRepositoryIOException, MdmModuleTypeException {
 		Repository relRepo;
 		try {
 			relRepo = new FileRepositoryBuilder()
@@ -47,11 +47,11 @@ public class MdmReleaseRepo extends MdmModule {
 		}
 		if (relRepo == null)						// check that releases-repo is a git repo at all
 			throw new MdmRepositoryNonexistant(relRepoPath);
-		return new MdmReleaseRepo(relRepo, relRepoPath);
+		return new MdmModuleRelease(relRepo, relRepoPath);
 
 	}
 
-	public static MdmReleaseRepo load(Repository parent, SubmoduleWalk generator, Config gitmodulesCfg) throws MdmRepositoryNonexistant, MdmRepositoryIOException, MdmModuleTypeException {
+	public static MdmModuleRelease load(Repository parent, SubmoduleWalk generator, Config gitmodulesCfg) throws MdmRepositoryNonexistant, MdmRepositoryIOException, MdmModuleTypeException {
 		// actually, at the moment MdmReleaseRepo doesn't much care whether or not it's a submodule.
 		//Repository relRepo = SubmoduleWalk.getSubmoduleRepository(parent, generator.getPath());
 		return load(generator.getPath());
@@ -63,7 +63,7 @@ public class MdmReleaseRepo extends MdmModule {
 		}
 	}
 
-	private MdmReleaseRepo(Repository repo, String handle) throws MdmModuleTypeException, MdmRepositoryIOException {
+	private MdmModuleRelease(Repository repo, String handle) throws MdmModuleTypeException, MdmRepositoryIOException {
 		super(repo, handle);
 		try {
 			if (repo.getRef("refs/heads/mdm/init") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo

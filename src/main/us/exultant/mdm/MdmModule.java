@@ -33,7 +33,7 @@ public abstract class MdmModule {
 	 * Construct an MdmModule referring to an existing repository that stands alone
 	 * (not a submodule / no parent repo).
 	 *
-	 * (Currently only an option for {@link MdmReleaseRepo};
+	 * (Currently only an option for {@link MdmModuleRelease};
 	 * {@link MdmModuleDependency} don't make sense without data in a parent repo).
 	 *
 	 * @param repo

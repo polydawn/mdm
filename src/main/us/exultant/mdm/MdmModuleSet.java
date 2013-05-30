@@ -52,7 +52,7 @@ public class MdmModuleSet {
 						allModules.put(modDep.getHandle(), modDep);
 						break;
 					case RELEASES:
-						MdmReleaseRepo modRel = MdmReleaseRepo.load(repo, generator, gitmodulesCfg);
+						MdmModuleRelease modRel = MdmModuleRelease.load(repo, generator, gitmodulesCfg);
 						releasesModules.put(modRel.getHandle(), modRel);
 						allModules.put(modRel.getHandle(), modRel);
 						break;
@@ -72,7 +72,7 @@ public class MdmModuleSet {
 
 	private final Map<String,MdmModule> allModules = new HashMap<String,MdmModule>();
 	private final Map<String,MdmModuleDependency> dependencyModules = new HashMap<String,MdmModuleDependency>();
-	private final Map<String,MdmReleaseRepo> releasesModules = new HashMap<String,MdmReleaseRepo>();
+	private final Map<String,MdmModuleRelease> releasesModules = new HashMap<String,MdmModuleRelease>();
 
 	public Map<String,MdmModule> getAllModules() {
 		return this.allModules;
@@ -82,7 +82,7 @@ public class MdmModuleSet {
 		return this.dependencyModules;
 	}
 
-	public Map<String,MdmReleaseRepo> getReleasesModules() {
+	public Map<String,MdmModuleRelease> getReleasesModules() {
 		return this.releasesModules;
 	}
 }
