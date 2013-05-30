@@ -6,6 +6,19 @@ Here's some ways it stacks up with the competition.
 
 
 
+Dodging the Problem (a.k.a Commit All The Things)
+-------------------------------------------------
+
+Some projects resort to just checking in all the binaries for their dependencies and dodging the entire issue that way.
+This is simple; it works; in some cases it's pretty painless.  I've done it before and sometimes I don't regret it.  (Sometimes I do regret it).
+
+The issue with this is of course that if you update your dependencies, your repository history begins to bloat over time.
+For some projects, this isn't a very serious practical concern.
+However, if your project has large dependencies or updates them more than a handful of times in the project's lifetime, then the amount of disk space and network bandwidth you're wasting when someone does new clone of your project gets pretty big.
+Whether or not you're using a DVCS (like git) changes whether these costs are heavier on a central server or on clients, but regardless of where you push the problem you're still accumulating waste somewhere.
+
+
+
 Build/Release/Dependency Tools
 ------------------------------
 
@@ -82,7 +95,7 @@ A lot of dependency systems seem to degenerate into things that just download ar
 and then suggest that you either consider this good enough,
 or that you then commit them to your repository if you want guaranteed repeatable builds.
 In other words, this is back to either choosing between all of the problems with online resolution (i.e. zero-security and zero-consistency-guarantees),
-or the "Dodging the Problem" solution (see below) with its painful bloating.  
+or the "Dodging the Problem" solution with its painful bloating.  
 mdm doesn't stick you between two unexcellent choices; it gives you strong versioned control over dependencies and exact hashes of artifacts, and at the same time doesn't impose any worries about bloat.
 
 
@@ -91,19 +104,6 @@ mdm doesn't stick you between two unexcellent choices; it gives you strong versi
 There are several tools and approaches that work great as long as you're only ever worried about depending on things that look like source (i.e., it diffs well, so drawing it into your own repository history isn't a problem).
 These typically revolve around subtree merging approaches or using submodules in simpler ways than mdm does.  
 mdm is designed to accommodate the harder class of problems posed by binary release artifacts that don't diff well... so working with dependencies that are source-only turns out to be a degenerate case that mdm can handle easily, but if that's all you need ```mdm``` may also turn out to be overkill (then again, you may also just like the release strategy).
-
-
-
-Dodging the Problem (a.k.a Commit All The Things)
--------------------------------------------------
-
-Some projects resort to just checking in all the binaries for their dependencies and dodging the entire issue that way.
-This is simple; it works; in some cases it's pretty painless.  I've done it before and sometimes I don't regret it.  (Sometimes I do regret it).
-
-The issue with this is of course that if you update your dependencies, your repository history begins to bloat over time.
-For some projects, this isn't a very serious practical concern.
-However, if your project has large dependencies or updates them more than a handful of times in the project's lifetime, then the amount of disk space and network bandwidth you're wasting when someone does new clone of your project gets pretty big.
-Whether or not you're using a DVCS (like git) changes whether these costs are heavier on a central server or on clients, but regardless of where you push the problem you're still accumulating waste somewhere.
 
 
 
