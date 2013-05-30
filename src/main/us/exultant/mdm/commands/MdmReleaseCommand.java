@@ -42,16 +42,30 @@ public class MdmReleaseCommand extends MdmCommand {
 		super(repo, args);
 	}
 
+	public void parse(Namespace args) {
+		relRepoPath = args.getString("repo");
+		version = args.getString("version");
+		snapshotPath = relRepoPath+"/"+version;
+		inputPath = args.getString("files");
+	}
+
+	public void validate() {
+	}
+
 	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("^(.*)-releases(?:.git)?$");
 
+	String relRepoPath;
+	String version;
+	String snapshotPath;
+	String inputPath;
+
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
+		parse(args);
+		validate();
+
 		try {
 			assertInRepoRoot();
 		} catch (MdmExitMessage e) { return e; }
-
-		String relRepoPath = args.getString("repo");
-		String version = args.getString("version");
-		String snapshotPath = relRepoPath+"/"+version;
 
 		Repository relRepo = new FileRepositoryBuilder()
 			.setWorkTree(new File(relRepoPath).getCanonicalFile())	// must use getCanonicalFile to work around https://bugs.eclipse.org/bugs/show_bug.cgi?id=407478
@@ -81,7 +95,6 @@ public class MdmReleaseCommand extends MdmCommand {
 
 
 		// select the artifact files that we'll be copying in
-		String inputPath = args.getString("files");
 		File inputFile = new File(inputPath);
 		File[] inputFiles = new File[0];
 		if (inputFile.isFile())			// if it's a file, we take it literally.
