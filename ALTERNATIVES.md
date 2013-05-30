@@ -72,12 +72,18 @@ I don't understand why a dependency system should know about or give a damn abou
 mdm doesn't know and doesn't care what language your artifacts are in or what the files look like, or even if they're entire directory trees versus individual files.
 mdm is in use right now with python projects, java projects, php projects, and projects that have a mishmash of a dozen other languages and formats, and it works the same for all of them.
 
-A lot of dependency systems also seem to degenerate into things that just download artifacts,
+
+### General comments on network reliance and repeatability
+
+A lot of dependency systems seem to degenerate into things that just download artifacts,
 and then suggest that you either consider this good enough,
 or that you then commit them to your repository if you want guaranteed repeatable builds.
-In other words, this is back to either choosing between all of the problems with maven-style online resolution (i.e. zero-security and zero-consistency-guarantees),
+In other words, this is back to either choosing between all of the problems with online resolution (i.e. zero-security and zero-consistency-guarantees),
 or the "Dodging the Problem" solution (see below) with its painful bloating.  
-mdm gives you strong versioned control over dependencies and exact hashes of artifacts, and doesn't suffer bloat.
+mdm doesn't stick you between two unexcellent choices; it gives you strong versioned control over dependencies and exact hashes of artifacts, and at the same time doesn't impose any worries about bloat.
+
+
+### Using submodules directly, or various subtree-esqe strategies
 
 There are several tools and approaches that work great as long as you're only ever worried about depending on things that look like source (i.e., it diffs well, so drawing it into your own repository history isn't a problem).
 These typically revolve around subtree merging approaches or using submodules in simpler ways than mdm does.  
