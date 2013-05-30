@@ -65,10 +65,13 @@ PHP has [Composer](http://getcomposer.org/)+[Packagist](http://packagist.org/),
 Node has [npm](https://npmjs.org/),
 Python has [pip](http://www.pip-installer.org) and [easy_install](http://packages.python.org/distribute/easy_install.html) and [pypm](http://code.activestate.com/pypm/) and I-don't-even-know-how-many dependency thingies,
 and similarly I'm not even sure I could compile an exhaustive list of package managers meant for use with Ruby and/or Rake.
+Haskell has [cabal](http://www.haskell.org/cabal/),
+Clojure has [leiningen](http://leiningen.org/)...
 
 Frankly, I haven't looked at any of these very much.  Two reasons:
 
-I don't understand why a dependency system should know about or give a damn about the language anything is written in.  The build tool, sure;  the dependency manager, no.  
+I don't understand why a dependency system should know about or give a damn about the language anything is written in.  The build tool, sure;  the dependency manager, no.
+The sheer number of projects in that (incomplete!) list attests to the fact that a language-emphatic dependency manager is ridiculous &mdash; each reinvents the same functionality, just with that particular language's array syntax conventions.  
 mdm doesn't know and doesn't care what language your artifacts are in or what the files look like, or even if they're entire directory trees versus individual files.
 mdm is in use right now with python projects, java projects, php projects, and projects that have a mishmash of a dozen other languages and formats, and it works the same for all of them.
 
