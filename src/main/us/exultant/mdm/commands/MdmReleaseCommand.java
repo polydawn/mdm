@@ -36,6 +36,7 @@ import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
+import us.exultant.mdm.errors.*;
 
 public class MdmReleaseCommand extends MdmCommand {
 	public MdmReleaseCommand(Repository repo, Namespace args) {
@@ -74,7 +75,7 @@ public class MdmReleaseCommand extends MdmCommand {
 		} catch (MdmExitMessage e) {
 			return e;
 		} catch (IOException e) {
-			throw new MdmExitMessage(":'(", "mdm failed to read data from "+relRepoPath+"; "+e.getMessage());
+			throw new MdmRepositoryIOException(false, relRepoPath, e);
 		}
 
 		// select the artifact files that we'll be copying in
