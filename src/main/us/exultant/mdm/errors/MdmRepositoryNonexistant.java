@@ -21,17 +21,12 @@ package us.exultant.mdm.errors;
 
 import java.io.*;
 
-public class MdmRepositoryIOException extends MdmRuntimeException {
-	public MdmRepositoryIOException(boolean writing, String path, IOException cause) {
-		super("mdm failed to "+(writing ? "write" : "read")+" data at "+path, cause);
+public class MdmRepositoryNonexistant extends MdmRepositoryIOException {
+	public MdmRepositoryNonexistant(String path) {
+		super("mdm couldn't see a repository at "+path);
 	}
 
-	public MdmRepositoryIOException(String tryingTo, boolean writing, String path, IOException cause) {
-		super("mdm failed to "+(writing ? "write" : "read")+" data while trying to "+tryingTo+" at "+path, cause);
+	public MdmRepositoryNonexistant(String path, IOException cause) {
+		super("mdm couldn't see a repository at "+path, cause);
 	}
-
-	protected MdmRepositoryIOException() { super(); }
-	protected MdmRepositoryIOException(String message, Throwable cause) { super(message, cause); }
-	protected MdmRepositoryIOException(String message) { super(message); }
-	protected MdmRepositoryIOException(Throwable cause) { super(cause); }
 }
