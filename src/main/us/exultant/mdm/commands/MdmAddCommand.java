@@ -33,6 +33,7 @@ import org.eclipse.jgit.submodule.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
+import us.exultant.mdm.errors.*;
 import static us.exultant.mdm.Loco.*;
 
 public class MdmAddCommand extends MdmCommand {
@@ -148,9 +149,9 @@ public class MdmAddCommand extends MdmCommand {
 
 		// fetch the release data to our local submodule repo
 		try {
-			MdmModule module = new MdmModule(repo, path.getPath(), gitmodulesCfg);
+			MdmModuleDependency module = MdmModuleDependency.load(repo, path.getPath(), gitmodulesCfg);
 			Plumbing.fetch(repo, module);
-		} catch (MdmModule.IsntOne e) {
+		} catch (MdmRepositoryIOException e) {
 			throw new MajorBug(e);
 		}
 	}

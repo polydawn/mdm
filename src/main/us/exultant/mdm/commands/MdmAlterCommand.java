@@ -30,6 +30,7 @@ import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.storage.file.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
+import us.exultant.mdm.errors.*;
 
 public class MdmAlterCommand extends MdmCommand {
 	public MdmAlterCommand(Repository repo, Namespace args) {
@@ -50,8 +51,8 @@ public class MdmAlterCommand extends MdmCommand {
 		gitmodulesCfg.load();
 		MdmModule module;
 		try {
-			module = new MdmModule(repo, name, gitmodulesCfg);
-		} catch (MdmModule.IsntOne _) {
+			module = MdmModuleDependency.load(repo, name, gitmodulesCfg);
+		} catch (MdmModuleTypeException e) {
 			return new MdmExitMessage(":(", "there is no mdm dependency by that name.");
 		}
 
