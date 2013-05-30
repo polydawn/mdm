@@ -1,7 +1,6 @@
 package us.exultant.mdm.errors;
 
 import org.eclipse.jgit.api.errors.*;
-import us.exultant.mdm.*;
 
 public class MdmConcurrentException extends MdmRuntimeException {
 	private static final String lamentShouldntNormallyMessage = "this should not normally occur.  other processes may have been modifying the repo concurrently.";
@@ -22,7 +21,7 @@ public class MdmConcurrentException extends MdmRuntimeException {
 		super(e.getMessage()+"\n"+lamentShouldntNormallyMessage, e);
 	}
 
-	public MdmConcurrentException(MdmModule.IsntOne e) {
+	public MdmConcurrentException(MdmModuleTypeException e) {
 		super("mdm tripped on an odd state while operating on submodules.\n"+lamentShouldntNormallyMessage, e);
 	}
 }

@@ -35,7 +35,7 @@ import us.exultant.ahs.util.*;
 import us.exultant.mdm.util.*;
 
 public class Plumbing {
-	public static boolean fetch(Repository repo, MdmModule module) throws MdmException {
+	public static boolean fetch(Repository repo, MdmModuleDependency module) throws MdmException {
 		switch (module.getStatus().getType()) {
 			case MISSING:
 				throw new MajorBug();

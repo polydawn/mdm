@@ -22,9 +22,10 @@ package us.exultant.mdm;
 import java.io.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.storage.file.*;
+import org.eclipse.jgit.submodule.*;
 import us.exultant.mdm.errors.*;
 
-public class MdmReleaseRepo /* extends MdmModule */ {
+public class MdmReleaseRepo extends MdmModule {
 	/**
 	 * Open the repo at given path, throw if there's no repo or if it's missing the
 	 * telltales of being an mdm release repo.
@@ -35,26 +36,46 @@ public class MdmReleaseRepo /* extends MdmModule */ {
 	 * @throws MdmRepositoryIOException if there were errors reading the repository
 	 * @throws MdmModuleTypeException if the repository doesn't look like an {@link MdmReleaseRepo}.
 	 */
-	public static Repository load(String relRepoPath) throws MdmRepositoryNonexistant, MdmRepositoryIOException, MdmModuleTypeException {
+	public static MdmReleaseRepo load(String relRepoPath) throws MdmRepositoryNonexistant, MdmRepositoryIOException, MdmModuleTypeException {
+		Repository relRepo;
 		try {
-			Repository relRepo = new FileRepositoryBuilder()
+			relRepo = new FileRepositoryBuilder()
 				.setWorkTree(new File(relRepoPath).getCanonicalFile())	// must use getCanonicalFile to work around https://bugs.eclipse.org/bugs/show_bug.cgi?id=407478
 				.build();
-			if (relRepo == null)						// check that releases-repo is a git repo at all
-				throw new MdmRepositoryNonexistant(relRepoPath);
-			if (relRepo.getRef("refs/heads/mdm/init") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
-				throw new MdmModuleReleaseNeedsBranch(relRepoPath, "mdm/init");
-			if (relRepo.getRef("refs/heads/master") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
-				throw new MdmModuleReleaseNeedsBranch(relRepoPath, "master");
-			return relRepo;
 		} catch (IOException e) {
 			throw new MdmRepositoryIOException(false, relRepoPath, e);
 		}
+		if (relRepo == null)						// check that releases-repo is a git repo at all
+			throw new MdmRepositoryNonexistant(relRepoPath);
+		return new MdmReleaseRepo(relRepo, relRepoPath);
+
+	}
+
+	public static MdmReleaseRepo load(Repository parent, SubmoduleWalk generator, Config gitmodulesCfg) throws MdmRepositoryNonexistant, MdmRepositoryIOException, MdmModuleTypeException {
+		// actually, at the moment MdmReleaseRepo doesn't much care whether or not it's a submodule.
+		//Repository relRepo = SubmoduleWalk.getSubmoduleRepository(parent, generator.getPath());
+		return load(generator.getPath());
 	}
 
 	public static class MdmModuleReleaseNeedsBranch extends MdmModuleTypeException {
 		public MdmModuleReleaseNeedsBranch(String relRepoPath, String branchName) {
 			super("releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \""+branchName+"\", and there should be.)");
 		}
+	}
+
+	private MdmReleaseRepo(Repository repo, String handle) throws MdmModuleTypeException, MdmRepositoryIOException {
+		super(repo, handle);
+		try {
+			if (repo.getRef("refs/heads/mdm/init") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
+				throw new MdmModuleReleaseNeedsBranch(handle, "mdm/init");
+			if (repo.getRef("refs/heads/master") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
+				throw new MdmModuleReleaseNeedsBranch(handle, "master");
+		} catch (IOException e) {
+			throw new MdmRepositoryIOException(false, handle, e);
+		}
+	}
+
+	public MdmModuleType getType() {
+		return MdmModuleType.RELEASES;
 	}
 }
