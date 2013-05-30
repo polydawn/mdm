@@ -30,7 +30,6 @@ import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
-import org.eclipse.jgit.storage.file.*;
 import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.iob.*;
@@ -70,7 +69,7 @@ public class MdmReleaseCommand extends MdmCommand {
 		Repository relRepo;
 		try {
 			assertInRepoRoot();
-			relRepo = loadReleaseRepo(relRepoPath);
+			relRepo = MdmReleaseRepo.load(relRepoPath);
 			assertReleaseRepoDoesntAlreadyContain(relRepo, version);
 		} catch (MdmExitMessage e) {
 			return e;
@@ -280,28 +279,6 @@ public class MdmReleaseCommand extends MdmCommand {
 		}
 
 		return new MdmExitMessage(":D", "release version "+version+" complete");
-	}
-
-	/**
-	 * Open the repo at given path, throw if there's no repo or if it's missing the
-	 * telltales of being an mdm release repo.
-	 *
-	 * @param relRepoPath
-	 * @return a repository that smells like a proper mdm release repo.
-	 * @throws MdmExitMessage
-	 * @throws IOException
-	 */
-	static Repository loadReleaseRepo(String relRepoPath) throws MdmExitMessage, IOException {
-		Repository relRepo = new FileRepositoryBuilder()
-			.setWorkTree(new File(relRepoPath).getCanonicalFile())	// must use getCanonicalFile to work around https://bugs.eclipse.org/bugs/show_bug.cgi?id=407478
-			.build();
-		if (relRepo == null)						// check that releases-repo is a git repo at all
-			throw new MdmExitMessage(":(", "releases-repo directory '"+relRepoPath+"' doesn't look like a git repo!  (Maybe you forgot to set up with `mdm release-init` before making your first release?)");
-		if (relRepo.getRef("refs/heads/mdm/init") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
-			throw new MdmExitMessage(":'(", "releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \"mdm/init\", and there should be.)");
-		if (relRepo.getRef("refs/heads/master") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
-			throw new MdmExitMessage(":'(", "releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \"master\", and there should be.)");
-		return relRepo;
 	}
 
 	/**
