@@ -32,10 +32,11 @@ import org.eclipse.jgit.submodule.*;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.util.*;
+import us.exultant.mdm.errors.*;
 import us.exultant.mdm.util.*;
 
 public class Plumbing {
-	public static boolean fetch(Repository repo, MdmModuleDependency module) throws MdmException {
+	public static boolean fetch(Repository repo, MdmModuleDependency module) throws MdmRepositoryIOException, MdmException {
 		switch (module.getStatus().getType()) {
 			case MISSING:
 				throw new MajorBug();
@@ -47,20 +48,20 @@ public class Plumbing {
 						module.repo = builder.build();
 						module.repo.create(false);
 					} catch (IOException e) {
-						throw new MdmException("failed to write data to submodule "+module.getHandle(), e);
+						throw new MdmRepositoryIOException("create a new submodule", true, module.getHandle(), e);
 					}
 
 				try {
 					initLocalConfig(repo, module);
 					repo.getConfig().save();
 				} catch (IOException e) {
-					throw new MdmException("failed to save changes to local git configuration file", e);
+					throw new MdmRepositoryIOException("save changes", true, "the local git configuration file", e);
 				}
 				try {
 					setMdmRemote(module);
 					module.getRepo().getConfig().save();
 				} catch (IOException e) {
-					throw new MdmException("failed to save changes to submodule git configuration file for "+module.getHandle(), e);
+					throw new MdmRepositoryIOException("save changes", true, "the git configuration file for submodule "+module.getHandle(), e);
 				}
 			case INITIALIZED:
 				if (module.getVersionName() == null || module.getVersionName().equals(module.getVersionActual()))
