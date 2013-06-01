@@ -35,7 +35,7 @@ import us.exultant.mdm.errors.*;
 import us.exultant.mdm.util.*;
 
 public class Plumbing {
-	public static boolean fetch(Repository repo, MdmModuleDependency module) throws MdmRepositoryIOException, MdmException {
+	public static boolean fetch(Repository repo, MdmModuleDependency module) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException {
 		switch (module.getStatus().getType()) {
 			case MISSING:
 				throw new MajorBug();
@@ -79,7 +79,7 @@ public class Plumbing {
 						.setRefSpecs(ref)
 						.call();
 				} catch (InvalidRemoteException e) {
-					throw new MdmException("could not find remote repository for module "+module.getHandle(), e);
+					throw new MdmRepositoryStateException("find a valid remote origin in the config for the submodule", module.getHandle(), e);
 				} catch (TransportException e) {
 					throw new MdmException("transport failed!  check your connectivity and try again?", e);
 				} catch (GitAPIException e) {

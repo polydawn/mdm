@@ -47,6 +47,10 @@ public class MdmRepositoryStateException extends MdmException {
 		this(tryingTo, path, (Exception)cause);
 	}
 
+	public MdmRepositoryStateException(String tryingTo, String path, InvalidRemoteException cause) {
+		this(tryingTo, path, (Exception)cause);
+	}
+
 	private MdmRepositoryStateException(String tryingTo, String path, Exception cause) {
 		super("mdm failed while trying to "+tryingTo+" at "+path+"; "+cause.getMessage(), cause);
 	}
