@@ -25,7 +25,6 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.submodule.*;
@@ -226,14 +225,7 @@ public class Plumbing {
 			// (Re)extract the commit we just flushed, and update a new branch ref to point to it.
 			RevWalk revWalk = new RevWalk(repo);
 			try {
-				RevCommit revCommit;
-				try {
-					revCommit = revWalk.parseCommit(commitId);
-				} catch (MissingObjectException e) {
-					throw new MajorBug("failed to read object I just wrote!", e);
-				} catch (IncorrectObjectTypeException e) {
-					throw new MajorBug("failed to read object I just wrote!", e);
-				}
+				RevCommit revCommit = revWalk.parseCommit(commitId);
 				if (!branchName.startsWith("refs/"))
 					branchName = "refs/heads/" + branchName;
 				RefUpdate ru = repo.updateRef(branchName);
