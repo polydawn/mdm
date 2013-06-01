@@ -10,4 +10,15 @@ public class MdmRuntimeException extends RuntimeException {
 	public MdmRuntimeException(String message, Throwable cause) { super(message, cause); }
 	public MdmRuntimeException(String message) { super(message); }
 	public MdmRuntimeException(Throwable cause) { super(cause); }
+
+	private String additionalMessage;
+
+	public MdmRuntimeException setAdditionalMessage(String msg) {
+		additionalMessage = msg;
+		return this;
+	}
+
+	public String getAdditionalMessage() {
+		return additionalMessage;
+	}
 }

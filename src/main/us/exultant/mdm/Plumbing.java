@@ -20,11 +20,10 @@
 package us.exultant.mdm;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.api.errors.CheckoutConflictException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.submodule.*;
@@ -81,7 +80,11 @@ public class Plumbing {
 				} catch (InvalidRemoteException e) {
 					throw new MdmRepositoryStateException("find a valid remote origin in the config for the submodule", module.getHandle(), e);
 				} catch (TransportException e) {
-					throw new MdmException("transport failed!  check your connectivity and try again?", e);
+					URIish remote = null;
+					try {	//XXX: if we went through all the work to resolve the remote like the fetch command does, we could just as well do it and hand the resolved uri to fetch for better consistency.
+						remote = new RemoteConfig(module.getRepo().getConfig(), "origin").getURIs().get(0);
+					} catch (URISyntaxException e1) {}
+					throw new MdmRepositoryIOException("fetch from a remote", false, remote.toASCIIString(), e).setAdditionalMessage("check your connectivity and try again?");
 				} catch (GitAPIException e) {
 					throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 				}
