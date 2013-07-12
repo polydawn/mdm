@@ -28,7 +28,7 @@
 	path = lib/jgit
 	url = https://github.com/mdm-releases/jgit-releases.git
 	mdm = dependency
-	mdm-version = 3.0.0.201305032217-unofficial
+	mdm-version = 3.0.0.201306101825-r
 	update = none
 [submodule "lib/argparse4j"]
 	path = lib/argparse4j
