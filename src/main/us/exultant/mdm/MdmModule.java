@@ -30,40 +30,32 @@ import us.exultant.mdm.errors.*;
 
 public abstract class MdmModule {
 	/**
-	 * Construct an MdmModule referring to an existing repository that stands alone
-	 * (not a submodule / no parent repo).
-	 *
-	 * (Currently only an option for {@link MdmModuleRelease};
-	 * {@link MdmModuleDependency} don't make sense without data in a parent repo).
-	 *
 	 * @param repo
+	 *                required.
+	 *
+	 *                well, unless you're about to create one, in which case not even.
 	 * @param handle
-	 */
-	protected MdmModule(Repository repo, String handle) {
-		this(repo, handle, null, null, null);
-	}
-
-	/**
-	 * Construct an MdmModule referring to an existing repository that is a submodule.
-	 * @param repo
-	 * @param handle
-	 * @param parentRepo
-	 * @param type handed up from the subclass; we will sanity check against the gitmodulesCfg and throw if nonsense.
+	 *                required.
+	 * @param parent
+	 *                null if repository stands alone, otherwise if we are a submodule
+	 *                required.
 	 * @param gitmodulesCfg
-	 * @param indexId the commit hash known to the parent repo index for this submodule (or null if it's not handy; we'll load it in that case).
-	 * @throws MdmModuleTypeException if the {@code gitmodulesCfg} entries for {@code handle} don't concur with the {@code type} expected.
+	 *                ignored if parent null, otherwise required.
+	 * @param indexId
+	 *                ignored if parent null, otherwise will be automatically loaded
+	 *                if not provided.
+	 *
+	 *                the commit hash known to the parent repo index for this
+	 *                submodule (or null if it's not handy; we'll load it in that
+	 *                case).
+	 *
+	 * @throws MdmModuleTypeException
+	 *                 if the {@code gitmodulesCfg} entries for {@code handle} don't
+	 *                 concur with the {@code type} expected.
+	 * @throws MdmRepositoryIOException
+	 *                 if disks reject our advances
 	 */
-	protected MdmModule(Repository repo, String handle, MdmModuleType type, Repository parentRepo, Config gitmodulesCfg, ObjectId indexId) throws MdmModuleTypeException {
-		this(repo, handle, parentRepo, gitmodulesCfg, indexId);
-
-		MdmModuleType type_configured = MdmModuleType.fromString(gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, MdmConfigConstants.Module.MODULE_TYPE.toString()));
-		if (type == null)
-			throw new MdmModuleTypeException("expected module of type "+type+" for repository "+handle+", but gitmodules file has no known type for this module.");
-		if (type != type_configured)
-			throw new MdmModuleTypeException("expected module of type "+type+" for repository "+handle+", but gitmodules file states this is a "+type_configured+" module.");
-	}
-
-	private MdmModule(Repository repo, String handle, Repository parent, Config gitmodulesCfg, ObjectId indexId) throws MdmRepositoryIOException {
+	protected MdmModule(Repository repo, String handle, Repository parent, Config gitmodulesCfg, ObjectId indexId) throws MdmRepositoryIOException, MdmModuleTypeException {
 		this.handle = handle;
 
 		if (repo == null) {
@@ -88,11 +80,22 @@ public abstract class MdmModule {
 		}
 
 		if (parent != null) {
+			// sanity check the expected module type if we're a submodule (if we're not a submodule, we can't make any such check since there's no gitmodules file to refer to).
+			MdmModuleType type = getType();
+			MdmModuleType type_configured = MdmModuleType.fromString(gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, MdmConfigConstants.Module.MODULE_TYPE.toString()));
+			if (type == null)
+				throw new MdmModuleTypeException("expected module of type " + type + " for repository " + handle + ", but gitmodules file has no known type for this module.");
+			if (type != type_configured)
+				throw new MdmModuleTypeException("expected module of type " + type + " for repository " + handle + ", but gitmodules file states this is a " + type_configured + " module.");
+
+			// load real path from gitmodule config (probably same as handle, but theoretically allowed to be different)
 			this.path = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, ConfigConstants.CONFIG_KEY_PATH);
 
+			// load remote urls
 			this.urlHistoric = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, ConfigConstants.CONFIG_KEY_URL);
 			this.urlLocal = parent.getConfig().getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, ConfigConstants.CONFIG_KEY_URL);
 
+			// load indexId the parent expects the submodule to be at (if not already provided)
 			if (indexId != null)
 				this.indexId = indexId;
 			else
@@ -103,6 +106,7 @@ public abstract class MdmModule {
 					throw new MdmRepositoryIOException(false, parent.getWorkTree().getPath(), e);
 				}
 
+			// review the submodule and summarize a status.
 			SubmoduleStatusType statusType;
 			if (path == null)
 				// jgit report SubmoduleStatusType.MISSING if no path in .gitmodules file, but I don't even want to deal with that.

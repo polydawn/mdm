@@ -47,14 +47,16 @@ public class MdmModuleRelease extends MdmModule {
 		}
 		if (relRepo == null)						// check that releases-repo is a git repo at all
 			throw new MdmRepositoryNonexistant(relRepoPath);
-		return new MdmModuleRelease(relRepo, relRepoPath);
+		return new MdmModuleRelease(relRepo, relRepoPath, null, null, null);
 
 	}
 
 	public static MdmModuleRelease load(Repository parent, SubmoduleWalk generator, Config gitmodulesCfg) throws MdmRepositoryNonexistant, MdmRepositoryIOException, MdmModuleTypeException {
-		// actually, at the moment MdmReleaseRepo doesn't much care whether or not it's a submodule.
-		//Repository relRepo = SubmoduleWalk.getSubmoduleRepository(parent, generator.getPath());
-		return load(generator.getPath());
+		try {
+			return new MdmModuleRelease(generator.getRepository(), generator.getPath(), parent, gitmodulesCfg, generator.getObjectId());
+		} catch (IOException e) {
+			throw new MdmRepositoryIOException(false, generator.getPath(), e);
+		}
 	}
 
 	public static class MdmModuleReleaseNeedsBranch extends MdmModuleTypeException {
@@ -63,8 +65,8 @@ public class MdmModuleRelease extends MdmModule {
 		}
 	}
 
-	private MdmModuleRelease(Repository repo, String handle) throws MdmModuleTypeException, MdmRepositoryIOException {
-		super(repo, handle);
+	private MdmModuleRelease(Repository repo, String handle, Repository parentRepo, Config gitmodulesCfg, ObjectId indexId) throws MdmModuleTypeException, MdmRepositoryIOException {
+		super(repo, handle, parentRepo, gitmodulesCfg, indexId);
 		try {
 			if (repo.getRef("refs/heads/mdm/init") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
 				throw new MdmModuleReleaseNeedsBranch(handle, "mdm/init");
