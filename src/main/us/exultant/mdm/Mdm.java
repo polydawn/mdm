@@ -95,7 +95,7 @@ public class Mdm {
 			return new MdmExitMessage(":'(",
 					"An unexpected error occurred!  please file a bug report to help fix the problem."
 					+"\na stack trace "
-					+(stackSave == null ? "has been saved to "+stackSave : "a stack trace follows")
+					+(stackSave == null ? "follows" : "has been saved to "+stackSave)
 					+"; please include it in the report."
 					+(stackSave == null ? "\n\n"+X.toString(e) : "")
 			);
