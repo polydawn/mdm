@@ -33,19 +33,19 @@ import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
-import us.exultant.mdm.MdmModule.IsntOne;
+import us.exultant.mdm.errors.*;
 
 public class MdmReleaseInitCommand extends MdmCommand {
 	public MdmReleaseInitCommand(Repository repo, Namespace args) {
 		super(repo, args);
 	}
 
-	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
-		String name = args.getString("name");
-		String path = args.getString("repo");
+	public void parse(Namespace args) {
+		name = args.getString("name");
+		path = args.getString("repo");
 
-		// check if we're in a repo root.  we'll suggest slightly different default values if we are. take it's dirname as a default
-		boolean asSubmodule = isInRepoRoot();
+		// check if we're in a repo root.  we'll suggest slightly different default values if we are, as well as generate a gitlink in this repo to the new release repo.
+		asSubmodule = isInRepoRoot();
 
 		// pick out the name, if not given.
 		if (name == null) {
@@ -67,86 +67,11 @@ public class MdmReleaseInitCommand extends MdmCommand {
 			}
 		}
 
-		// pick out path, if not given.
-		if (path == null)
-			if (asSubmodule)	// if we are initializating the releases repo as a submodule, the default location to put that submodule is "./releases"
-				path = "releases";
-			else			// if we're not a submodule, then the default is to make use of the current directory.
-				path = ".";
-
-		// normalize the path if necessary.  (jgit commit trips over relative paths.  and it's pretty weird for a submodule handle, too.)
-		if (asSubmodule && path.startsWith("./")) path = path.substring(2);
-
-		// is the releases area free of clutter?
-		if (asSubmodule && SubmoduleWalk.forIndex(repo).setFilter(PathFilter.create(path)).next())
-			return new MdmExitMessage(":I", "there's already a releases module!  No changes made.");
-		if (!path.equals(".") && new File(path).exists())
-			return new MdmExitMessage(":(", "something already exists at the location we want to initialize the releases repo.  clear it out and try again.");
-
-		// okay!  make the new releases-repo.  put a first commit it in to avoid awkwardness.
-		Repository releaserepo;
-		try {
-			RepositoryBuilder builder = new RepositoryBuilder();
-			builder.setWorkTree(new File(path));
-			releaserepo = builder.build();
-			releaserepo.create(false);
-		} catch (IOException e) {
-			throw new MdmException("failed to write data while trying to create release repo at "+path, e);
-		}
-		Git git = new Git(releaserepo);
-		IOForge.saveFile("This is the releases repo for "+name+".\n", new File(path+"/README"));
-		try {
-			git.add()
-				.addFilepattern("README")
-				.call();
-		} catch (NoFilepatternException e) {
-			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
-		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		}
-		try {
-			git.commit()
-				.setOnly("README")
-				.setMessage("initialize releases repo for "+name+".")
-				.call();
-		} catch (NoHeadException e) {
-			throw new MdmException("your repository is in an invalid state!", e);
-		} catch (NoMessageException e) {
-			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
-		} catch (UnmergedPathsException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (ConcurrentRefUpdateException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (WrongRepositoryStateException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		}
-
-		// label this root commit in order to declare this repo as a valid mdm releases repo.
-		// note: considered changing this to a tag instead of a branch, but you can't actually do that.  there's some crap with the fetching where you needed an essentially empty branch, and we need this init branch of that.  init is clearly more appropriate for that than infix, since infix doesn't necessarily even exist.
-		try {
-			git.branchCreate()
-				.setName("mdm/init")
-				.call();
-		} catch (RefAlreadyExistsException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);	// i just made this repo, so this shouldn't be a problem outside of TOCTOU madness
-		} catch (RefNotFoundException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (InvalidRefNameException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		}
-		//if (args.infix):
-		//	git.checkout("-b", "mdm/infix");
-
-		// if we're not a submodule, we're now done here, otherwise, the rest of the work revolves around the parent repo.
-		if (!asSubmodule)
-			return new MdmExitMessage(":D", "releases repo initialized");
+		// the rest of args parsing is only valid if we're making releases repo that's a submodule.
+		if (!asSubmodule) return;
 
 		// ask for remote url.
-		String remotePublicUrl = args.getString("remote_url");
+		remotePublicUrl = args.getString("remote_url");
 		if (remotePublicUrl == null)
 			if (args.getBoolean("use_defaults")) {
 				String parentRemote = repo.getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", ConfigConstants.CONFIG_KEY_URL);
@@ -164,7 +89,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		remotePublicUrl = remotePublicUrl.trim();
 
 		// and another.
-		String remotePublishUrl = args.getString("remote_publish_url");
+		remotePublishUrl = args.getString("remote_publish_url");
 		if (remotePublishUrl == null)
 			if (args.getBoolean("use_defaults"))
 				remotePublishUrl = remotePublicUrl;
@@ -176,11 +101,171 @@ public class MdmReleaseInitCommand extends MdmCommand {
 				);
 		remotePublishUrl = remotePublishUrl.trim();
 		if (remotePublishUrl.equals("")) remotePublishUrl = remotePublicUrl;
+	}
+
+	public void validate() {
+		// pick out path, if not given.
+		if (path == null)
+			if (asSubmodule)	// if we are initializating the releases repo as a submodule, the default location to put that submodule is "./releases"
+				path = "releases";
+			else			// if we're not a submodule, then the default is to make use of the current directory.
+				path = ".";
+
+		// normalize the path if necessary.  (jgit commit trips over relative paths.  and it's pretty weird for a submodule handle, too.)
+		if (asSubmodule && path.startsWith("./")) path = path.substring(2);
+	}
+
+	String name;
+	String path;
+	boolean asSubmodule;
+	String remotePublicUrl;
+	String remotePublishUrl;
+
+	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
+		parse(args);
+		validate();
+
+		// check for clean working area.
+		try {
+			assertReleaseRepoAreaClean();
+		} catch (MdmExitMessage e) { return e; }
+
+		// okay!  make the new releases-repo.  put a first commit it in to avoid awkwardness.
+		Repository releaserepo = makeReleaseRepo();
+		makeReleaseRepoFoundingCommit(releaserepo);
+		makeReleaseRepoInitBranch(releaserepo);
+
+		// if we're not a submodule, we're now done here, otherwise, the rest of the work revolves around the parent repo.
+		if (!asSubmodule)
+			return new MdmExitMessage(":D", "releases repo initialized");
 
 		// add the new releases-repo as a submodule to the project repo.
+		writeParentGitmoduleConfig(repo);
+		writeReleaseRepoConfig(releaserepo);
+		makeParentRepoLinkCommit(repo);
 
+		return new MdmExitMessage(":D", "releases repo and submodule initialized");
+	}
+
+	/**
+	 * Check that the releases area free of clutter.
+	 *
+	 * @throws MdmExitMessage
+	 *                 if the location intended for the release repo is not empty or
+	 *                 if there are other submodules in the git index for that
+	 *                 location.
+	 */
+	void assertReleaseRepoAreaClean() throws IOException {
+		File pathFile = new File(path);
+		if (asSubmodule && SubmoduleWalk.forIndex(repo).setFilter(PathFilter.create(path)).next())
+			throw new MdmExitMessage(":I", "there's already a releases module!  No changes made.");
+		if (pathFile.exists() && !pathFile.isDirectory() || new File(pathFile, ".git").exists())
+			throw new MdmExitMessage(":(", "something already exists at the location we want to initialize the releases repo.  clear it out and try again.");
+	}
+
+	/**
+	 * Initialize a new non-bare repository at {@link #path}.
+	 *
+	 * @return handle to the repository created.
+	 *
+	 * @throws MdmRepositoryIOException
+	 */
+	Repository makeReleaseRepo() {
+		try {
+			Repository releaserepo = new RepositoryBuilder()
+				.setWorkTree(new File(path).getCanonicalFile())
+				.build();
+			releaserepo.create(false);
+			return releaserepo;
+		} catch (IOException e) {
+			throw new MdmRepositoryIOException("create a release repo", true, path, e);
+		}
+	}
+
+	/**
+	 * Create a text file stating the repository name and commit it. This creates a
+	 * root commit for history so that we can actually wield the repo.
+	 *
+	 * @param releaserepo
+	 */
+	void makeReleaseRepoFoundingCommit(Repository releaserepo) {
+		// write readme file
+		try {
+			IOForge.saveFile("This is the releases repo for "+name+".\n", new File(path, "README").getCanonicalFile());
+		} catch (IOException e) {
+			throw new MdmRepositoryIOException("create a release repo", true, path, e);
+		}
+
+		// add and commit
+		String currentAction = "commit into the new releases repo";
+		try {
+			new Git(releaserepo).add()
+				.addFilepattern("README")
+				.call();
+		} catch (NoFilepatternException e) {
+			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
+		} catch (GitAPIException e) {
+			throw new MdmUnrecognizedError(e);
+		}
+		try {
+			new Git(releaserepo).commit()
+				.setOnly("README")
+				.setMessage("initialize releases repo for "+name+".")
+				.call();
+		} catch (NoHeadException e) {
+			throw new MdmConcurrentException(new MdmRepositoryStateException(currentAction, releaserepo.getWorkTree().toString(), e));
+		} catch (WrongRepositoryStateException e) {
+			throw new MdmConcurrentException(new MdmRepositoryStateException(currentAction, releaserepo.getWorkTree().toString(), e));
+		} catch (UnmergedPathsException e) {
+			throw new MdmConcurrentException(new MdmRepositoryStateException(currentAction, releaserepo.getWorkTree().toString(), e));
+		} catch (ConcurrentRefUpdateException e) {
+			throw new MdmConcurrentException(e);
+		} catch (NoMessageException e) {
+			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
+		} catch (GitAPIException e) {
+			throw new MdmUnrecognizedError(e);
+		}
+	}
+
+	/**
+	 * Label the current commit (which in context is the root commit) with the
+	 * 'mdm/init' branch.
+	 *
+	 * This branch has two roles; firstly, it is the metadata that is considered the
+	 * official declaration of this repo as a valid mdm releases repo; secondly, when
+	 * mdm is fetching a dependency, this essentially empty branch is used as a safe
+	 * default for the remote.origin.fetch configuration of the submodule.
+	 *
+	 * @param releaserepo
+	 */
+	void makeReleaseRepoInitBranch(Repository releaserepo) {
+		String currentAction = "create branches in the new releases repo";
+		try {
+			new Git(releaserepo).branchCreate()
+				.setName("mdm/init")
+				.call();
+		} catch (RefAlreadyExistsException e) {
+			throw new MdmConcurrentException(new MdmRepositoryStateException(currentAction, releaserepo.getWorkTree().toString(), e));
+		} catch (RefNotFoundException e) {
+			throw new MdmConcurrentException(new MdmRepositoryStateException(currentAction, releaserepo.getWorkTree().toString(), e));
+		} catch (InvalidRefNameException e) {
+			throw new MajorBug(e); // branch name is fixed at compile time here and is quite valid, thanks
+		} catch (GitAPIException e) {
+			throw new MdmUnrecognizedError(e);
+		}
+	}
+
+	/**
+	 * Writes a new submodule block to the parentRepo's .gitmodules file declaring the
+	 * release repo, and initializes the local .git/config file to match.
+	 *
+	 * @param parentRepo
+	 * @throws IOException
+	 * @throws ConfigInvalidException
+	 */
+	void writeParentGitmoduleConfig(Repository parentRepo) throws IOException, ConfigInvalidException {
 		// write gitmodule config for the new submodule
-		StoredConfig gitmodulesCfg = new FileBasedConfig(new File(repo.getWorkTree(), Constants.DOT_GIT_MODULES), repo.getFS());
+		StoredConfig gitmodulesCfg = new FileBasedConfig(new File(parentRepo.getWorkTree(), Constants.DOT_GIT_MODULES), parentRepo.getFS());
 		gitmodulesCfg.load();
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, ConfigConstants.CONFIG_KEY_PATH, path);
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, ConfigConstants.CONFIG_KEY_URL, remotePublicUrl);
@@ -189,51 +274,62 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		gitmodulesCfg.save();
 
 		// initialize local parent repo config for the submodule
-		MdmModule module;
-		try {
-			module = new MdmModule(repo, path, gitmodulesCfg);
-		} catch (IsntOne e) {
-			throw new MajorBug(e);
-		}
-		Plumbing.initLocalConfig(repo, module);
-		repo.getConfig().save();
+		MdmModuleRelease module = MdmModuleRelease.load(parentRepo, path, gitmodulesCfg);
+		Plumbing.initLocalConfig(parentRepo, module);
+		parentRepo.getConfig().save();
+	}
 
-		// initialize the submodule remote config
-		module.getRepo().getConfig().setString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", ConfigConstants.CONFIG_KEY_URL, remotePublishUrl);
-		module.getRepo().getConfig().setString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", "fetch", "+refs/heads/*:refs/remotes/origin/*");
-		module.getRepo().getConfig().save();
+	/**
+	 * Write origin and fetch config into the release module. Only performed when
+	 * operating in submodule mode, since otherwise we don't have any requirement to
+	 * request a value for {@link #remotePublishUrl}.
+	 *
+	 * @param releaserepo
+	 * @throws IOException
+	 */
+	void writeReleaseRepoConfig(Repository releaserepo) throws IOException {
+		releaserepo.getConfig().setString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", ConfigConstants.CONFIG_KEY_URL, remotePublishUrl);
+		releaserepo.getConfig().setString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", "fetch", "+refs/heads/*:refs/remotes/origin/*");
+		releaserepo.getConfig().save();
+	}
 
-		// commit the changes
+	/**
+	 * Commits the release repo path and the gitmodules file.
+	 *
+	 * @param repo
+	 * @throws MdmRepositoryStateException
+	 * @throws NoWorkTreeException
+	 */
+	void makeParentRepoLinkCommit(Repository repo) throws MdmRepositoryStateException {
+		String currentAction = "commit a link to the new releases repo into the parent repo";
 		try {
 			new Git(repo).add()
-				.addFilepattern("releases")
+				.addFilepattern(path)
 				.addFilepattern(Constants.DOT_GIT_MODULES)
 				.call();
 		} catch (NoFilepatternException e) {
 			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
 		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+			throw new MdmUnrecognizedError(e);
 		}
 		try {
 			new Git(repo).commit()
-				.setOnly("releases/")
+				.setOnly(path)
 				.setOnly(Constants.DOT_GIT_MODULES)
 				.setMessage("initialize releases repo for "+name+".")
 				.call();
 		} catch (NoHeadException e) {
-			throw new MdmException("your repository is in an invalid state!", e);
+			throw new MdmRepositoryStateException(currentAction, repo.getWorkTree().toString(), e);
+		} catch (UnmergedPathsException e) {
+			throw new MdmRepositoryStateException(currentAction, repo.getWorkTree().toString(), e);
+		} catch (WrongRepositoryStateException e) {
+			throw new MdmRepositoryStateException(currentAction, repo.getWorkTree().toString(), e);
+		} catch (ConcurrentRefUpdateException e) {
+			throw new MdmConcurrentException(e);
 		} catch (NoMessageException e) {
 			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
-		} catch (UnmergedPathsException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (ConcurrentRefUpdateException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (WrongRepositoryStateException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+			throw new MdmUnrecognizedError(e);
 		}
-
-		return new MdmExitMessage(":D", "releases repo and submodule initialized");
 	}
 }

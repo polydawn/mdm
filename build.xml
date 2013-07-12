@@ -22,19 +22,34 @@
 	</target>
 
 
-	<target name="compile"
-		depends="init"
-		description="compile the source">
+	<path id="mdm.path.deps.main" cache="true">
+		<pathelement location="${lib}/jgit/jgit.jar"/>
+		<pathelement location="${lib}/ahslib/ahslib-core.jar"/>
+		<pathelement location="${lib}/argparse4j/argparse4j.jar"/>
+		<pathelement location="${lib}/jsch/jsch.jar"/>
+	</path>
+	<path id="mdm.path.main">
+		<path refid="mdm.path.deps.main" />
+		<pathelement location="${build}/main" />
+	</path>
+	<path id="mdm.path.deps.test">
+		<path refid="mdm.path.main" />
+		<pathelement location="${lib}/junit/junit.jar"/>
+	</path>
+	<path id="mdm.path.test">
+		<path refid="mdm.path.deps.test" />
+		<pathelement location="${build}/test" />
+	</path>
+
+
+	<target name="compile" depends="init" description="compile the source">
 		<exusJavac
 			classes="us/exultant/${app}/Mdm.java"
-			depends="
-				  ${lib}/jgit/jgit.jar
-				: ${lib}/ahslib/ahslib-core.jar
-				: ${lib}/argparse4j/argparse4j.jar
-				: ${lib}/jsch/jsch.jar
-			"
+			depends="${toString:mdm.path.deps.main}"
 		/>
 	</target>
+
+
 	<target name="dist"
 		depends="compile"
 		description="pack distributable artifacts">
@@ -68,6 +83,33 @@
 			<arg value="-t" />
 		</exec>
 		<delete dir="mdm-demo" />
+	</target>
+
+
+	<target name="compile-test" depends="compile">
+		<exusJavac
+			tree="test"
+			depends="${toString:mdm.path.deps.test}"
+		/>
+	</target>
+
+
+	<target name="run-test" depends="compile, compile-test">
+		<property name="mdm.test.dir" value="${java.io.tmpdir}/mdm-test"/>
+		<mkdir dir="${mdm.test.dir}"/>
+		<junit printsummary="off" haltonfailure="yes" dir="${mdm.test.dir}" newenvironment="true">
+			<formatter type="plain" usefile="false" />
+
+			<classpath refid="mdm.path.test"/>
+
+			<batchtest fork="yes">
+				<fileset dir="${build}/test">
+					<include name="us/exultant/${app}/commands/*Test*.class"/>
+					<include name="us/exultant/${app}/jgit/*Test*.class"/>
+					<include name="us/exultant/${app}/util/*Test*.class"/>
+				</fileset>
+			</batchtest>
+		</junit>
 	</target>
 
 

@@ -22,6 +22,7 @@ package us.exultant.mdm;
 import java.io.*;
 import java.util.*;
 import us.exultant.ahs.util.*;
+import us.exultant.mdm.errors.*;
 
 public class Loco {
 	public static List<String> toHandles(List<MdmModule> modules) {
@@ -31,15 +32,20 @@ public class Loco {
 		return v;
 	}
 
-	public static String inputPrompt(PrintStream output, String prompt) throws IOException {
+	public static String inputPrompt(PrintStream output, String prompt) {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		output.print(prompt+" ");
-		String answer = br.readLine();
-		if (answer == null) throw new IOException("failed to read line from stdin");
+		String answer;
+		try {
+			answer = br.readLine();
+		} catch (IOException e) {
+			throw new MdmInputUnavailableException("stdin unavailable", e);
+		}
+		if (answer == null) throw new MdmInputUnavailableException("stdin unavailable");
 		return answer;
 	}
 
-	public static String promptForVersion(PrintStream os, List<String> knownVersions) throws IOException {
+	public static String promptForVersion(PrintStream os, List<String> knownVersions) {
 		os.println("available versions:");
 		os.println(Strings.join(knownVersions, "\n\t", "\t", ""));
 		String version = null;

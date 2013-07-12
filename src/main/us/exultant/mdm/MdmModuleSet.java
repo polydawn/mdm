@@ -25,6 +25,8 @@ import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.storage.file.*;
 import org.eclipse.jgit.submodule.*;
+import us.exultant.ahs.util.*;
+import us.exultant.mdm.errors.*;
 
 public class MdmModuleSet {
 	public MdmModuleSet(Repository repo) throws IOException, ConfigInvalidException {
@@ -42,17 +44,26 @@ public class MdmModuleSet {
 		SubmoduleWalk generator = SubmoduleWalk.forIndex(repo);
 		while (generator.next()) {
 			try {
-				MdmModule status = new MdmModule(repo, generator, gitmodulesCfg);
-				allModules.put(status.getHandle(), status);
-				switch (status.getType()) {
+				MdmModuleType type_configured = MdmModuleType.fromString(gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, generator.getPath(), MdmConfigConstants.Module.MODULE_TYPE.toString()));
+				switch (type_configured) {
 					case DEPENDENCY:
-						dependencyModules.put(status.getHandle(), status);
+						MdmModuleDependency modDep = MdmModuleDependency.load(repo, generator, gitmodulesCfg);
+						dependencyModules.put(modDep.getHandle(), modDep);
+						allModules.put(modDep.getHandle(), modDep);
 						break;
 					case RELEASES:
-						releasesModules.put(status.getHandle(), status);
+						MdmModuleRelease modRel = MdmModuleRelease.load(repo, generator, gitmodulesCfg);
+						releasesModules.put(modRel.getHandle(), modRel);
+						allModules.put(modRel.getHandle(), modRel);
 						break;
 				}
-			} catch (MdmModule.IsntOne e) {}
+			} catch (MdmModuleTypeException e) {
+				throw new MajorBug(e);
+			} catch (MdmRepositoryNonexistant e) {
+				throw e;
+			} catch (MdmRepositoryIOException e) {
+				throw e;
+			}
 		}
 	}
 
@@ -60,18 +71,18 @@ public class MdmModuleSet {
 	private final StoredConfig gitmodulesCfg;
 
 	private final Map<String,MdmModule> allModules = new HashMap<String,MdmModule>();
-	private final Map<String,MdmModule> dependencyModules = new HashMap<String,MdmModule>();
-	private final Map<String,MdmModule> releasesModules = new HashMap<String,MdmModule>();
+	private final Map<String,MdmModuleDependency> dependencyModules = new HashMap<String,MdmModuleDependency>();
+	private final Map<String,MdmModuleRelease> releasesModules = new HashMap<String,MdmModuleRelease>();
 
 	public Map<String,MdmModule> getAllModules() {
 		return this.allModules;
 	}
 
-	public Map<String,MdmModule> getDependencyModules() {
+	public Map<String,MdmModuleDependency> getDependencyModules() {
 		return this.dependencyModules;
 	}
 
-	public Map<String,MdmModule> getReleasesModules() {
+	public Map<String,MdmModuleRelease> getReleasesModules() {
 		return this.releasesModules;
 	}
 }

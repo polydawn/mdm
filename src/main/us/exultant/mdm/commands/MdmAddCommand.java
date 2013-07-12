@@ -147,11 +147,7 @@ public class MdmAddCommand extends MdmCommand {
 		gitmodulesCfg.save();
 
 		// fetch the release data to our local submodule repo
-		try {
-			MdmModule module = new MdmModule(repo, path.getPath(), gitmodulesCfg);
-			Plumbing.fetch(repo, module);
-		} catch (MdmModule.IsntOne e) {
-			throw new MajorBug(e);
-		}
+		MdmModuleDependency module = MdmModuleDependency.load(repo, path.getPath(), gitmodulesCfg);
+		Plumbing.fetch(repo, module);
 	}
 }

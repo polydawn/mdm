@@ -20,22 +20,21 @@
 package us.exultant.mdm;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.api.errors.CheckoutConflictException;
-import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.submodule.*;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.util.*;
+import us.exultant.mdm.errors.*;
 import us.exultant.mdm.util.*;
 
 public class Plumbing {
-	public static boolean fetch(Repository repo, MdmModule module) throws MdmException {
+	public static boolean fetch(Repository repo, MdmModuleDependency module) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException {
 		switch (module.getStatus().getType()) {
 			case MISSING:
 				throw new MajorBug();
@@ -47,20 +46,20 @@ public class Plumbing {
 						module.repo = builder.build();
 						module.repo.create(false);
 					} catch (IOException e) {
-						throw new MdmException("failed to write data to submodule "+module.getHandle(), e);
+						throw new MdmRepositoryIOException("create a new submodule", true, module.getHandle(), e);
 					}
 
 				try {
 					initLocalConfig(repo, module);
 					repo.getConfig().save();
 				} catch (IOException e) {
-					throw new MdmException("failed to save changes to local git configuration file", e);
+					throw new MdmRepositoryIOException("save changes", true, "the local git configuration file", e);
 				}
 				try {
 					setMdmRemote(module);
 					module.getRepo().getConfig().save();
 				} catch (IOException e) {
-					throw new MdmException("failed to save changes to submodule git configuration file for "+module.getHandle(), e);
+					throw new MdmRepositoryIOException("save changes", true, "the git configuration file for submodule "+module.getHandle(), e);
 				}
 			case INITIALIZED:
 				if (module.getVersionName() == null || module.getVersionName().equals(module.getVersionActual()))
@@ -79,9 +78,13 @@ public class Plumbing {
 						.setRefSpecs(ref)
 						.call();
 				} catch (InvalidRemoteException e) {
-					throw new MdmException("could not find remote repository for module "+module.getHandle(), e);
+					throw new MdmRepositoryStateException("find a valid remote origin in the config for the submodule", module.getHandle(), e);
 				} catch (TransportException e) {
-					throw new MdmException("transport failed!  check your connectivity and try again?", e);
+					URIish remote = null;
+					try {	//XXX: if we went through all the work to resolve the remote like the fetch command does, we could just as well do it and hand the resolved uri to fetch for better consistency.
+						remote = new RemoteConfig(module.getRepo().getConfig(), "origin").getURIs().get(0);
+					} catch (URISyntaxException e1) {}
+					throw new MdmRepositoryIOException("fetch from a remote", false, remote.toASCIIString(), e).setAdditionalMessage("check your connectivity and try again?");
 				} catch (GitAPIException e) {
 					throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 				}
@@ -225,14 +228,7 @@ public class Plumbing {
 			// (Re)extract the commit we just flushed, and update a new branch ref to point to it.
 			RevWalk revWalk = new RevWalk(repo);
 			try {
-				RevCommit revCommit;
-				try {
-					revCommit = revWalk.parseCommit(commitId);
-				} catch (MissingObjectException e) {
-					throw new MajorBug("failed to read object I just wrote!", e);
-				} catch (IncorrectObjectTypeException e) {
-					throw new MajorBug("failed to read object I just wrote!", e);
-				}
+				RevCommit revCommit = revWalk.parseCommit(commitId);
 				if (!branchName.startsWith("refs/"))
 					branchName = "refs/heads/" + branchName;
 				RefUpdate ru = repo.updateRef(branchName);

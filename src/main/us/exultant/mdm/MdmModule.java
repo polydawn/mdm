@@ -20,64 +20,53 @@
 package us.exultant.mdm;
 
 import java.io.*;
-import java.util.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.submodule.*;
 import org.eclipse.jgit.treewalk.filter.*;
+import us.exultant.mdm.errors.*;
 
-public class MdmModule {
-	public MdmModule(Repository parent, SubmoduleWalk generator, Config gitmodulesCfg) throws IOException, IsntOne {
-		this(parent, generator.getPath(), gitmodulesCfg, generator.getObjectId());
-	}
-
-	public MdmModule(Repository parent, String handle, Config gitmodulesCfg) throws IOException, IsntOne {
-		this(parent, handle, gitmodulesCfg, null);
-	}
-
-	private MdmModule(Repository parent, String handle, Config gitmodulesCfg, ObjectId objectId) throws IOException, IsntOne {
+public abstract class MdmModule {
+	/**
+	 * @param repo
+	 *                required.
+	 *
+	 *                well, unless you're about to create one, in which case not even.
+	 * @param handle
+	 *                required.
+	 * @param parent
+	 *                null if repository stands alone, otherwise if we are a submodule
+	 *                required.
+	 * @param gitmodulesCfg
+	 *                ignored if parent null, otherwise required.
+	 * @param indexId
+	 *                ignored if parent null, otherwise will be automatically loaded
+	 *                if not provided.
+	 *
+	 *                the commit hash known to the parent repo index for this
+	 *                submodule (or null if it's not handy; we'll load it in that
+	 *                case).
+	 *
+	 * @throws MdmModuleTypeException
+	 *                 if the {@code gitmodulesCfg} entries for {@code handle} don't
+	 *                 concur with the {@code type} expected.
+	 * @throws MdmRepositoryIOException
+	 *                 if disks reject our advances
+	 */
+	protected MdmModule(Repository repo, String handle, Repository parent, Config gitmodulesCfg, ObjectId indexId) throws MdmRepositoryIOException, MdmModuleTypeException {
 		this.handle = handle;
-		path = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, ConfigConstants.CONFIG_KEY_PATH);
-
-		type = MdmModuleType.fromString(gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, MdmConfigConstants.Module.MODULE_TYPE.toString()));
-		if (type == null) throw new IsntOne("no recognized type of mdm module listed in gitmodules file.");
-		versionName = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, MdmConfigConstants.Module.DEPENDENCY_VERSION.toString());
-
-		if (objectId != null) {
-			indexId = objectId;
-		} else {
-			SubmoduleWalk generator = SubmoduleWalk.forIndex(parent).setFilter(PathFilter.create(path));
-			indexId = generator.next() ? generator.getObjectId() : null;
-		}
-
-		repo = SubmoduleWalk.getSubmoduleRepository(parent,  path);
 
 		if (repo == null) {
-			headId = null;
-			versionActual = null;
-			dirtyFiles = false;
+			this.headId = null;
+			this.dirtyFiles = false;
 		} else {
-			headId = repo.resolve(Constants.HEAD);
-
-			String versionActual = null;
 			try {
-				List<Ref> tags = new Git(repo).tagList().call();
-				for (Ref tag : tags) {
-					if (tag.getObjectId().equals(headId)) {
-						String[] tagChunks = tag.getName().split("/");
-						// for all tags, index 0 is 'refs', and 1 is 'tags'.
-						if (tagChunks[2].equals("release") && tagChunks.length > 2) {
-							versionActual = "";
-							for (int i = 3; i < tagChunks.length; i++)
-								versionActual += tagChunks[i];
-							break;
-						}
-					}
-				}
-			} catch (GitAPIException e) {}
-			this.versionActual = versionActual;
+				this.headId = repo.resolve(Constants.HEAD);
+			} catch (IOException e) {
+				throw new MdmRepositoryIOException(false, handle, e);
+			}
 
 			boolean dirtyFiles;
 			try {
@@ -90,39 +79,64 @@ public class MdmModule {
 			this.dirtyFiles = dirtyFiles;
 		}
 
-		urlHistoric = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, ConfigConstants.CONFIG_KEY_URL);
-		urlLocal = parent.getConfig().getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path, ConfigConstants.CONFIG_KEY_URL);
+		if (parent != null) {
+			// sanity check the expected module type if we're a submodule (if we're not a submodule, we can't make any such check since there's no gitmodules file to refer to).
+			MdmModuleType type = getType();
+			MdmModuleType type_configured = MdmModuleType.fromString(gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, MdmConfigConstants.Module.MODULE_TYPE.toString()));
+			if (type == null)
+				throw new MdmModuleTypeException("expected module of type " + type + " for repository " + handle + ", but gitmodules file has no known type for this module.");
+			if (type != type_configured)
+				throw new MdmModuleTypeException("expected module of type " + type + " for repository " + handle + ", but gitmodules file states this is a " + type_configured + " module.");
 
+			// load real path from gitmodule config (probably same as handle, but theoretically allowed to be different)
+			this.path = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, ConfigConstants.CONFIG_KEY_PATH);
 
-		SubmoduleStatusType statusType;
-		if (path == null)
-			// jgit report SubmoduleStatusType.MISSING if no path in .gitmodules file, but I don't even want to deal with that.
-			throw new IsntOne("no path for module listed in gitmodules file.");
-		else if (urlLocal == null)
-			// Report uninitialized if no URL in config file
-			statusType = SubmoduleStatusType.UNINITIALIZED;
-		else if (repo == null)
-			// Report uninitialized if no submodule repository
-			statusType = SubmoduleStatusType.UNINITIALIZED;
-		else if (headId == null)
-			// Report uninitialized if no HEAD commit in submodule repository
-			statusType = SubmoduleStatusType.UNINITIALIZED;
-		else if (!headId.equals(indexId))
-			// Report checked out if HEAD commit is different than index commit
-			statusType = SubmoduleStatusType.REV_CHECKED_OUT;
-		else
-			// Report initialized if HEAD commit is the same as the index commit
-			statusType = SubmoduleStatusType.INITIALIZED;
-		status = new SubmoduleStatus(statusType, path, indexId, headId);
+			// load remote urls
+			this.urlHistoric = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, ConfigConstants.CONFIG_KEY_URL);
+			this.urlLocal = parent.getConfig().getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, ConfigConstants.CONFIG_KEY_URL);
+
+			// load indexId the parent expects the submodule to be at (if not already provided)
+			if (indexId != null)
+				this.indexId = indexId;
+			else
+				try {
+					SubmoduleWalk generator = SubmoduleWalk.forIndex(parent).setFilter(PathFilter.create(path));
+					this.indexId = generator.next() ? generator.getObjectId() : null;
+				} catch (IOException e) {
+					throw new MdmRepositoryIOException(false, parent.getWorkTree().getPath(), e);
+				}
+
+			// review the submodule and summarize a status.
+			SubmoduleStatusType statusType;
+			if (path == null)
+				// jgit report SubmoduleStatusType.MISSING if no path in .gitmodules file, but I don't even want to deal with that.
+				throw new MdmModuleTypeException("no path for module "+handle+" listed in gitmodules file.");
+			else if (urlLocal == null)
+				// Report uninitialized if no URL in config file
+				statusType = SubmoduleStatusType.UNINITIALIZED;
+			else if (repo == null)
+				// Report uninitialized if no submodule repository
+				statusType = SubmoduleStatusType.UNINITIALIZED;
+			else if (headId == null)
+				// Report uninitialized if no HEAD commit in submodule repository
+				statusType = SubmoduleStatusType.UNINITIALIZED;
+			else if (!headId.equals(indexId))
+				// Report checked out if HEAD commit is different than index commit
+				statusType = SubmoduleStatusType.REV_CHECKED_OUT;
+			else
+				// Report initialized if HEAD commit is the same as the index commit
+				statusType = SubmoduleStatusType.INITIALIZED;
+			this.status = new SubmoduleStatus(statusType, path, indexId, headId);
+		} else {
+			this.path = handle;
+			this.indexId = null;
+			this.urlHistoric = null;
+			this.urlLocal = null;
+			this.status = null;
+		}
 	}
 
-	public static class IsntOne extends Exception {
-		public IsntOne() { super(); }
-		public IsntOne(String message, Throwable cause) { super(message, cause); }
-		public IsntOne(String message) { super(message); }
-		public IsntOne(Throwable cause) { super(cause); }
-	}
-
+	// properties that exist for any module:
 
 	/**
 	 * Module's name in the config. Almost certainly ought to be the same as path for
@@ -130,6 +144,10 @@ public class MdmModule {
 	 * the distinction. And in fact even the cgit commands seem a little confused
 	 * about the disinction! Still. We'll maintain it here, just in case the ground
 	 * ever changes.
+	 *
+	 * Also, if not a submodule, may just be the name we're currently handling this
+	 * module by; typically a relative path and not substantially changed from the
+	 * user's arguments.
 	 */
 	private final String handle;
 
@@ -139,29 +157,22 @@ public class MdmModule {
 	/** The submodule repository. */
 	Repository repo;
 
-	/** The purpose of this module to mdm as specified in .gitmodules. */
-	private final MdmModuleType type;
-
-	/** The version named in the .gitmodules file, if this is a dependeny module. */
-	private final String versionName;
-
-	/** A version name parsed from the tags of the currently checked out head of the module. */
-	private final String versionActual;
-
-	/** The ID the parent repo says this submodule should be at. */
-	private final ObjectId indexId;
-
 	/** The ID the module repo is actually at. */
 	private final ObjectId headId;
 
-	/** Remote url as listed in the present gitmodules file. */
-	private final String urlHistoric;
-
-	/** Remote url as listed in the local .git/config file. */
-	String urlLocal;
-
 	/** Are there uncommitted for changed files in the module? */
 	private final boolean dirtyFiles;
+
+	// properties that only make sense if a submodule:
+
+	/** If a submodule, The ID the parent repo says this submodule should be at. */
+	private final ObjectId indexId;
+
+	/** If a submodule, Remote url as listed in the parent's present .gitmodules file. */
+	private final String urlHistoric;
+
+	/** If a submodule, Remote url as listed in the parent's .git/config file. */
+	String urlLocal;
 
 	private final SubmoduleStatus status;
 
@@ -181,17 +192,7 @@ public class MdmModule {
 		return this.repo;
 	}
 
-	public MdmModuleType getType() {
-		return this.type;
-	}
-
-	public String getVersionName() {
-		return this.versionName;
-	}
-
-	public String getVersionActual() {
-		return this.versionActual;
-	}
+	public abstract MdmModuleType getType();
 
 	public ObjectId getIndexId() {
 		return this.indexId;
@@ -211,23 +212,5 @@ public class MdmModule {
 
 	public boolean hasDirtyFiles() {
 		return this.dirtyFiles;
-	}
-
-	public String toString() {
-		return new StringBuilder()
-			.append("MdmModule{")
-			.append("\n         handle =\t").append(this.handle)
-			.append("\n           path =\t").append(this.path)
-			.append("\n         status =\t").append(this.status.getType())
-			.append("\n           repo =\t").append(this.repo)
-			.append("\n           type =\t").append(this.type)
-			.append("\n    versionName =\t").append(this.versionName)
-			.append("\n  versionActual =\t").append(this.versionActual)
-			.append("\n        indexId =\t").append(this.indexId)
-			.append("\n         headId =\t").append(this.headId)
-			.append("\n    urlHistoric =\t").append(this.urlHistoric)
-			.append("\n       urlLocal =\t").append(this.urlLocal)
-			.append("\n     dirtyFiles =\t").append(this.dirtyFiles)
-			.append("\n}").toString();
 	}
 }

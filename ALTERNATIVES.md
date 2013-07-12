@@ -6,6 +6,19 @@ Here's some ways it stacks up with the competition.
 
 
 
+Dodging the Problem (a.k.a Commit All The Things)
+-------------------------------------------------
+
+Some projects resort to just checking in all the binaries for their dependencies and dodging the entire issue that way.
+This is simple; it works; in some cases it's pretty painless.  I've done it before and sometimes I don't regret it.  (Sometimes I do regret it).
+
+The issue with this is of course that if you update your dependencies, your repository history begins to bloat over time.
+For some projects, this isn't a very serious practical concern.
+However, if your project has large dependencies or updates them more than a handful of times in the project's lifetime, then the amount of disk space and network bandwidth you're wasting when someone does new clone of your project gets pretty big.
+Whether or not you're using a DVCS (like git) changes whether these costs are heavier on a central server or on clients, but regardless of where you push the problem you're still accumulating waste somewhere.
+
+
+
 Build/Release/Dependency Tools
 ------------------------------
 
@@ -65,36 +78,32 @@ PHP has [Composer](http://getcomposer.org/)+[Packagist](http://packagist.org/),
 Node has [npm](https://npmjs.org/),
 Python has [pip](http://www.pip-installer.org) and [easy_install](http://packages.python.org/distribute/easy_install.html) and [pypm](http://code.activestate.com/pypm/) and I-don't-even-know-how-many dependency thingies,
 and similarly I'm not even sure I could compile an exhaustive list of package managers meant for use with Ruby and/or Rake.
+Haskell has [cabal](http://www.haskell.org/cabal/),
+Clojure has [leiningen](http://leiningen.org/)...
 
 Frankly, I haven't looked at any of these very much.  Two reasons:
 
-I don't understand why a dependency system should know about or give a damn about the language anything is written in.  The build tool, sure;  the dependency manager, no.  
+I don't understand why a dependency system should know about or give a damn about the language anything is written in.  The build tool, sure;  the dependency manager, no.
+The sheer number of projects in that (incomplete!) list attests to the fact that a language-emphatic dependency manager is ridiculous &mdash; each reinvents the same functionality, just with that particular language's array syntax conventions.  
 mdm doesn't know and doesn't care what language your artifacts are in or what the files look like, or even if they're entire directory trees versus individual files.
 mdm is in use right now with python projects, java projects, php projects, and projects that have a mishmash of a dozen other languages and formats, and it works the same for all of them.
 
-A lot of dependency systems also seem to degenerate into things that just download artifacts,
+
+### General comments on network reliance and repeatability
+
+A lot of dependency systems seem to degenerate into things that just download artifacts,
 and then suggest that you either consider this good enough,
 or that you then commit them to your repository if you want guaranteed repeatable builds.
-In other words, this is back to either choosing between all of the problems with maven-style online resolution (i.e. zero-security and zero-consistency-guarantees),
-or the "Dodging the Problem" solution (see below) with its painful bloating.  
-mdm gives you strong versioned control over dependencies and exact hashes of artifacts, and doesn't suffer bloat.
+In other words, this is back to either choosing between all of the problems with online resolution (i.e. zero-security and zero-consistency-guarantees),
+or the "Dodging the Problem" solution with its painful bloating.  
+mdm doesn't stick you between two unexcellent choices; it gives you strong versioned control over dependencies and exact hashes of artifacts, and at the same time doesn't impose any worries about bloat.
+
+
+### Using submodules directly, or various subtree-esqe strategies
 
 There are several tools and approaches that work great as long as you're only ever worried about depending on things that look like source (i.e., it diffs well, so drawing it into your own repository history isn't a problem).
 These typically revolve around subtree merging approaches or using submodules in simpler ways than mdm does.  
 mdm is designed to accommodate the harder class of problems posed by binary release artifacts that don't diff well... so working with dependencies that are source-only turns out to be a degenerate case that mdm can handle easily, but if that's all you need ```mdm``` may also turn out to be overkill (then again, you may also just like the release strategy).
-
-
-
-Dodging the Problem (a.k.a Commit All The Things)
--------------------------------------------------
-
-Some projects resort to just checking in all the binaries for their dependencies and dodging the entire issue that way.
-This is simple; it works; in some cases it's pretty painless.  I've done it before and sometimes I don't regret it.  (Sometimes I do regret it).
-
-The issue with this is of course that if you update your dependencies, your repository history begins to bloat over time.
-For some projects, this isn't a very serious practical concern.
-However, if your project has large dependencies or updates them more than a handful of times in the project's lifetime, then the amount of disk space and network bandwidth you're wasting when someone does new clone of your project gets pretty big.
-Whether or not you're using a DVCS (like git) changes whether these costs are heavier on a central server or on clients, but regardless of where you push the problem you're still accumulating waste somewhere.
 
 
 

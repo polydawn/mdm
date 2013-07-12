@@ -29,6 +29,7 @@ import org.eclipse.jgit.storage.file.*;
 import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
+import us.exultant.mdm.errors.*;
 
 public class MdmRemoveCommand extends MdmCommand {
 	public MdmRemoveCommand(Repository repo, Namespace args) {
@@ -50,8 +51,8 @@ public class MdmRemoveCommand extends MdmCommand {
 
 		// if there's no module there, we haven't got much to do
 		try {
-			MdmModule module = new MdmModule(repo, name, gitmodulesCfg);
-		} catch (MdmModule.IsntOne _) {
+			MdmModuleDependency.load(repo, name, gitmodulesCfg);
+		} catch (MdmModuleTypeException _) {
 			return new MdmExitMessage(":I", "there is no mdm dependency by that name.");
 		}
 
