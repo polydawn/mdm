@@ -33,7 +33,6 @@ import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
-import us.exultant.mdm.MdmModule.IsntOne;
 import us.exultant.mdm.errors.*;
 
 public class MdmReleaseInitCommand extends MdmCommand {
@@ -275,12 +274,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		gitmodulesCfg.save();
 
 		// initialize local parent repo config for the submodule
-		MdmModule module;
-		try {
-			module = new MdmModule(parentRepo, path, gitmodulesCfg);
-		} catch (IsntOne e) {
-			throw new MdmConcurrentException(e);
-		}
+		MdmModuleRelease module = MdmModuleRelease.load(parentRepo, path, gitmodulesCfg);
 		Plumbing.initLocalConfig(parentRepo, module);
 		parentRepo.getConfig().save();
 	}

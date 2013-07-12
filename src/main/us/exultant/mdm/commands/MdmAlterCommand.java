@@ -49,7 +49,7 @@ public class MdmAlterCommand extends MdmCommand {
 		// load current module state
 		StoredConfig gitmodulesCfg = new FileBasedConfig(new File(repo.getWorkTree(), Constants.DOT_GIT_MODULES), repo.getFS());
 		gitmodulesCfg.load();
-		MdmModule module;
+		MdmModuleDependency module;
 		try {
 			module = MdmModuleDependency.load(repo, name, gitmodulesCfg);
 		} catch (MdmModuleTypeException e) {
@@ -87,13 +87,8 @@ public class MdmAlterCommand extends MdmCommand {
 
 		// do the submodule/dependency dancing
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getHandle(), MdmConfigConstants.Module.DEPENDENCY_VERSION.toString(), version);
-		try {
-			// reload the MdmModule completely because it's not yet implmented intelligently enough to be able to refresh a bunch of its cached state
-			module = new MdmModule(repo, module.getPath(), gitmodulesCfg);
-			Plumbing.fetch(repo, module);
-		} catch (MdmModule.IsntOne e) {
-			throw new MajorBug(e);
-		}
+		module = MdmModuleDependency.load(repo, module.getPath(), gitmodulesCfg);	// reload the MdmModule completely because it's not yet implmented intelligently enough to be able to refresh a bunch of its cached state
+		Plumbing.fetch(repo, module);
 		gitmodulesCfg.save();	// don't do this save until after the fetch: if the fetch blows up, it's better that we don't have this mutated, because that leaves you with slightly stranger output from your next `mdm status` query.
 
 		// commit the changes

@@ -47,7 +47,7 @@ public class MdmStatusCommand extends MdmCommand {
 		} catch (MdmExitMessage e) { return e; }
 
 		MdmModuleSet moduleSet = new MdmModuleSet(repo);
-		Map<String,MdmModule> modules = moduleSet.getDependencyModules();
+		Map<String,MdmModuleDependency> modules = moduleSet.getDependencyModules();
 
 		if (modules.size() == 0) {
 			os.println(" --- no managed dependencies --- ");
@@ -61,7 +61,7 @@ public class MdmStatusCommand extends MdmCommand {
 		os.printf("%-"+width1+"s   \t %s\n", "dependency:", "version:");
 		os.printf("%-"+width1+"s   \t %s\n", "-----------", "--------");
 
-		for (MdmModule mod : modules.values()) {
+		for (MdmModuleDependency mod : modules.values()) {
 			StatusTuple status = status(mod);
 			os.printf("  %-"+width1+"s \t   %s\n", mod.getHandle(), status.version);
 			for (String warning : status.warnings)
@@ -81,17 +81,18 @@ public class MdmStatusCommand extends MdmCommand {
 			s.errors.add("Incomplete configuration: No committed gitlink in history matches this gitmodules entry.");	// we could let `mdm update` mention these as well and accept an argument to pull and commit the named versions.
 
 		if (module.getType() == MdmModuleType.DEPENDENCY) {
-			if (module.getVersionName() == null)
+			MdmModuleDependency dependency = (MdmModuleDependency)module;
+			if (dependency.getVersionName() == null)
 				s.errors.add("Version name not specified in gitmodules file!");
-			if (module.getHeadId() == null) {
+			if (dependency.getHeadId() == null) {
 				s.version = "-- uninitialized --";
 			} else {
-				s.version = (module.getVersionActual() == null) ? "__UNKNOWN_VERSION__" : module.getVersionActual();
-				if (module.getVersionName() != null && !module.getVersionName().equals(module.getVersionActual()))
-					s.warnings.add("intended version is "+module.getVersionName()+", run `mdm update` to get it");
-				if (!module.getIndexId().equals(module.getHeadId()))
+				s.version = (dependency.getVersionActual() == null) ? "__UNKNOWN_VERSION__" : dependency.getVersionActual();
+				if (dependency.getVersionName() != null && !dependency.getVersionName().equals(dependency.getVersionActual()))
+					s.warnings.add("intended version is "+dependency.getVersionName()+", run `mdm update` to get it");
+				if (!dependency.getIndexId().equals(dependency.getHeadId()))
 					s.warnings.add("commit currently checked out does not match hash in parent project");
-				if (module.hasDirtyFiles())
+				if (dependency.hasDirtyFiles())
 					s.warnings.add("there are uncommitted changes in this submodule");
 			}
 		}

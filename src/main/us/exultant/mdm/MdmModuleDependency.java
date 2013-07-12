@@ -25,7 +25,7 @@ public final class MdmModuleDependency extends MdmModule {
 		}
 	}
 
-	private MdmModuleDependency(Repository repo, String handle, Repository parentRepo, Config gitmodulesCfg, ObjectId indexId) throws MdmModuleTypeException {
+	private MdmModuleDependency(Repository repo, String handle, Repository parentRepo, Config gitmodulesCfg, ObjectId indexId) throws MdmRepositoryIOException, MdmModuleTypeException {
 		super(repo, handle, parentRepo, gitmodulesCfg, indexId);
 
 		versionName = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, getHandle(), MdmConfigConstants.Module.DEPENDENCY_VERSION.toString());
@@ -49,10 +49,10 @@ public final class MdmModuleDependency extends MdmModule {
 		this.versionActual = versionActual;
 	}
 
-	/** The version named in the .gitmodules file, if this is a dependeny module. */
+	/** The version named in the .gitmodules file. */
 	private final String versionName;
 
-	/** A version name parsed from the tags of the currently checked out head of the module. */
+	/** A version name parsed from the tags of the currently checked out head of the module. or null if we failed to parse one out. */
 	private final String versionActual;
 
 	public MdmModuleType getType() {

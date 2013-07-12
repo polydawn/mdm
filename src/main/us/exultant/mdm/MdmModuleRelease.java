@@ -59,6 +59,15 @@ public class MdmModuleRelease extends MdmModule {
 		}
 	}
 
+	public static MdmModuleRelease load(Repository parent, String path, Config gitmodulesCfg) throws MdmRepositoryNonexistant, MdmRepositoryIOException, MdmModuleTypeException {
+		try {
+			Repository repo = SubmoduleWalk.getSubmoduleRepository(parent, path);
+			return new MdmModuleRelease(repo, path, parent, gitmodulesCfg, null);
+		} catch (IOException e) {
+			throw new MdmRepositoryIOException(false, path, e);
+		}
+	}
+
 	public static class MdmModuleReleaseNeedsBranch extends MdmModuleTypeException {
 		public MdmModuleReleaseNeedsBranch(String relRepoPath, String branchName) {
 			super("releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \""+branchName+"\", and there should be.)");

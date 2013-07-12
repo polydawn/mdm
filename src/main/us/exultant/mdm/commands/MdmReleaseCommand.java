@@ -69,7 +69,7 @@ public class MdmReleaseCommand extends MdmCommand {
 		Repository relRepo;
 		try {
 			assertInRepoRoot();
-			relRepo = MdmModuleRelease.load(relRepoPath);
+			relRepo = MdmModuleRelease.load(relRepoPath).getRepo();
 			assertReleaseRepoDoesntAlreadyContain(relRepo, version);
 		} catch (MdmExitMessage e) {
 			return e;
