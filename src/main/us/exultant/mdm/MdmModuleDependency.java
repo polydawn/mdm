@@ -31,21 +31,22 @@ public final class MdmModuleDependency extends MdmModule {
 		versionName = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, getHandle(), MdmConfigConstants.Module.DEPENDENCY_VERSION.toString());
 
 		String versionActual = null;
-		try {
-			List<Ref> tags = new Git(repo).tagList().call();
-			for (Ref tag : tags) {
-				if (tag.getObjectId().equals(getHeadId())) {
-					String[] tagChunks = tag.getName().split("/");
-					// for all tags, index 0 is 'refs', and 1 is 'tags'.
-					if (tagChunks[2].equals("release") && tagChunks.length > 2) {
-						versionActual = "";
-						for (int i = 3; i < tagChunks.length; i++)
-							versionActual += tagChunks[i];
-						break;
+		if (repo != null)
+			try {
+				List<Ref> tags = new Git(repo).tagList().call();
+				for (Ref tag : tags) {
+					if (tag.getObjectId().equals(getHeadId())) {
+						String[] tagChunks = tag.getName().split("/");
+						// for all tags, index 0 is 'refs', and 1 is 'tags'.
+						if (tagChunks[2].equals("release") && tagChunks.length > 2) {
+							versionActual = "";
+							for (int i = 3; i < tagChunks.length; i++)
+								versionActual += tagChunks[i];
+							break;
+						}
 					}
 				}
-			}
-		} catch (GitAPIException e) {}
+			} catch (GitAPIException e) {}
 		this.versionActual = versionActual;
 	}
 

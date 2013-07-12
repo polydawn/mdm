@@ -48,7 +48,6 @@ public class MdmModuleRelease extends MdmModule {
 		if (relRepo == null)						// check that releases-repo is a git repo at all
 			throw new MdmRepositoryNonexistant(relRepoPath);
 		return new MdmModuleRelease(relRepo, relRepoPath, null, null, null);
-
 	}
 
 	public static MdmModuleRelease load(Repository parent, SubmoduleWalk generator, Config gitmodulesCfg) throws MdmRepositoryNonexistant, MdmRepositoryIOException, MdmModuleTypeException {

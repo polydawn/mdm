@@ -57,6 +57,7 @@ public abstract class MdmModule {
 	 */
 	protected MdmModule(Repository repo, String handle, Repository parent, Config gitmodulesCfg, ObjectId indexId) throws MdmRepositoryIOException, MdmModuleTypeException {
 		this.handle = handle;
+		this.repo = repo;
 
 		if (repo == null) {
 			this.headId = null;
