@@ -44,7 +44,15 @@ public class MdmModuleSet {
 		SubmoduleWalk generator = SubmoduleWalk.forIndex(repo);
 		while (generator.next()) {
 			try {
-				MdmModuleType type_configured = MdmModuleType.fromString(gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, generator.getPath(), MdmConfigConstants.Module.MODULE_TYPE.toString()));
+				// get submodule.[handle].mdm config value from gitmodules config file
+				String type_configured_string = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, generator.getPath(), MdmConfigConstants.Module.MODULE_TYPE.toString());
+				MdmModuleType type_configured = MdmModuleType.fromString(type_configured_string);
+
+				// if the submodule.[handle].mdm config value was unrecognized or missing, ignore; it's not ours.
+				if (type_configured == null)
+					continue;
+
+				// load whichever type of mdm module it is
 				switch (type_configured) {
 					case DEPENDENCY:
 						MdmModuleDependency modDep = MdmModuleDependency.load(repo, generator, gitmodulesCfg);
