@@ -35,7 +35,6 @@ import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
-import us.exultant.mdm.errors.*;
 
 public class MdmReleaseCommand extends MdmCommand {
 	public MdmReleaseCommand(Repository repo, Namespace args) {
@@ -62,17 +61,13 @@ public class MdmReleaseCommand extends MdmCommand {
 	String snapshotPath;
 	String inputPath;
 
-	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
-		Repository relRepo;
-		try {
-			assertInRepoRoot();
-			relRepo = MdmModuleRelease.load(relRepoPath).getRepo();
-			assertReleaseRepoDoesntAlreadyContain(relRepo, version);
-		} catch (MdmExitMessage e) {
-			return e;
-		} catch (IOException e) {
-			throw new MdmRepositoryIOException(false, relRepoPath, e);
-		}
+	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException, MdmExitMessage {
+		assertInRepoRoot();
+
+		MdmModuleRelease relModule = loadReleaseModule();
+		Repository relRepo = relModule.getRepo();
+
+		assertReleaseRepoDoesntAlreadyContain(relModule, version);
 
 		// select the artifact files that we'll be copying in
 		File inputFile = new File(inputPath);
@@ -278,6 +273,10 @@ public class MdmReleaseCommand extends MdmCommand {
 		return new MdmExitMessage(":D", "release version "+version+" complete");
 	}
 
+	MdmModuleRelease loadReleaseModule() {
+		return MdmModuleRelease.load(relRepoPath);
+	}
+
 	/**
 	 * Check that nothing that would get in the way of a version name is present in
 	 * the repository.
@@ -288,12 +287,14 @@ public class MdmReleaseCommand extends MdmCommand {
 	 * incomplete local state and then trying to push what turns out to be a coliding
 	 * branch name, and so on.
 	 *
-	 * @param relRepo
+	 * @param relModule
 	 * @param version
 	 * @throws MdmExitMessage
 	 * @throws IOException
 	 */
-	static void assertReleaseRepoDoesntAlreadyContain(Repository relRepo, String version) throws MdmExitMessage, IOException {
+	static void assertReleaseRepoDoesntAlreadyContain(MdmModuleRelease relModule, String version) throws MdmExitMessage, IOException {
+		Repository relRepo = relModule.getRepo();
+
 		// part 1: check branch for version name doesn't already exist
 		if (relRepo.getRef("refs/heads/mdm/release/"+version) != null)
 			throw new MdmExitMessage(":'(", "the releases repo already has a release point branch labeled version "+version+" !");
