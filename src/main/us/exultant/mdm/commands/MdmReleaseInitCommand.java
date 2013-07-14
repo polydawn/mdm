@@ -153,7 +153,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 	 *                 location.
 	 */
 	void assertReleaseRepoAreaClean() throws IOException {
-		File pathFile = new File(path);
+		File pathFile = new File(path).getCanonicalFile();
 		if (asSubmodule && SubmoduleWalk.forIndex(repo).setFilter(PathFilter.create(path)).next())
 			throw new MdmExitMessage(":I", "there's already a releases module!  No changes made.");
 		if (pathFile.exists() && !pathFile.isDirectory() || new File(pathFile, ".git").exists())
