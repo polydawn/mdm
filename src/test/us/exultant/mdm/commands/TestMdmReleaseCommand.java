@@ -5,6 +5,7 @@ import org.eclipse.jgit.lib.*;
 import org.junit.*;
 import org.junit.rules.*;
 import org.junit.runner.*;
+import us.exultant.ahs.iob.*;
 import us.exultant.mdm.*;
 import us.exultant.mdm.test.*;
 
@@ -35,6 +36,35 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 		cmd.asSubmodule = true;
 		cmd.validate();
 		cmd.call();
+	}
+
+	@Test
+	public void emptyReleaseRepoCleanForRelease() throws Exception {
+		prepareUnparentedReleaseRepo();
+
+		cmd = new MdmReleaseCommand(null, null);
+		cmd.relRepoPath = new File(".").getCanonicalPath();
+		cmd.version = "v1";
+		cmd.validate();
+
+		relModule = cmd.loadReleaseModule();
+		cmd.assertReleaseRepoClean(relModule);
+	}
+
+	@Test
+	public void releaseRepoWithUncommittedFilesRejectedForRelease() throws Exception {
+		prepareUnparentedReleaseRepo();
+
+		cmd = new MdmReleaseCommand(null, null);
+		cmd.relRepoPath = new File(".").getCanonicalPath();
+		cmd.version = "v1";
+		cmd.validate();
+
+		IOForge.saveFile("", new File("./dirty").getCanonicalFile());
+
+		relModule = cmd.loadReleaseModule();
+		exception.expect(MdmExitMessage.class);
+		cmd.assertReleaseRepoClean(relModule);
 	}
 
 	@Test

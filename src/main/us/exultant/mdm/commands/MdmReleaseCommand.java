@@ -68,6 +68,7 @@ public class MdmReleaseCommand extends MdmCommand {
 		Repository relRepo = relModule.getRepo();
 
 		assertReleaseRepoDoesntAlreadyContain(relModule, version);
+		assertReleaseRepoClean(relModule);
 
 		// select the artifact files that we'll be copying in
 		File inputFile = new File(inputPath);
@@ -275,6 +276,17 @@ public class MdmReleaseCommand extends MdmCommand {
 
 	MdmModuleRelease loadReleaseModule() {
 		return MdmModuleRelease.load(relRepoPath);
+	}
+
+	/**
+	 * Check that the releases area free of clutter.
+	 *
+	 * @throws MdmExitMessage
+	 *                 if the releases repo has uncommitted changes.
+	 */
+	void assertReleaseRepoClean(MdmModuleRelease relModule) throws MdmExitMessage {
+		if (relModule.hasDirtyFiles())
+			throw new MdmExitMessage(":(", "there is uncommitted changes in the release repo.  cannot release.");
 	}
 
 	/**
