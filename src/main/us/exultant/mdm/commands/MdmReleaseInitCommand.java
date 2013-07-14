@@ -122,9 +122,6 @@ public class MdmReleaseInitCommand extends MdmCommand {
 	String remotePublishUrl;
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
-		parse(args);
-		validate();
-
 		// check for clean working area.
 		try {
 			assertReleaseRepoAreaClean();

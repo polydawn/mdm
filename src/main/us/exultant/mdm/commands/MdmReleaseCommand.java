@@ -63,9 +63,6 @@ public class MdmReleaseCommand extends MdmCommand {
 	String inputPath;
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
-		parse(args);
-		validate();
-
 		Repository relRepo;
 		try {
 			assertInRepoRoot();

@@ -62,7 +62,10 @@ public class Mdm {
 			System.exit(1);
 		}
 		try {
-			return getCommand(parsedArgs.getString("subcommand"), repo, parsedArgs).call();
+			MdmCommand cmd = getCommand(parsedArgs.getString("subcommand"), repo, parsedArgs);
+			cmd.parse(parsedArgs);
+			cmd.validate();
+			return cmd.call();
 		} catch (MdmRuntimeException e) {
 			return new MdmExitMessage(":'(", e.getMessage());
 		} catch (MdmException e) {

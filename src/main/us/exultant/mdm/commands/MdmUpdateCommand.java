@@ -21,6 +21,7 @@ package us.exultant.mdm.commands;
 
 import java.io.*;
 import java.util.*;
+import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import us.exultant.mdm.*;
@@ -31,6 +32,10 @@ public class MdmUpdateCommand extends MdmCommand {
 	public MdmUpdateCommand(Repository repo) {
 		super(repo);
 	}
+
+	public void parse(Namespace args) {}
+
+	public void validate() throws MdmExitMessage {}
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException {
 		try {
