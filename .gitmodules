@@ -48,3 +48,9 @@
 	mdm = dependency
 	mdm-version = v4.10
 	update = none
+[submodule "lib/proguard"]
+	path = lib/proguard
+	url = https://github.com/mdm-releases/proguard-releases.git
+	mdm = dependency
+	mdm-version = v4.9
+	update = none
