@@ -70,21 +70,7 @@ public class MdmReleaseCommand extends MdmCommand {
 		assertReleaseRepoDoesntAlreadyContain(relModule, version);
 		assertReleaseRepoClean(relModule);
 
-		// select the artifact files that we'll be copying in
-		File inputFile = new File(inputPath);
-		File[] inputFiles = new File[0];
-		if (inputFile.isFile())			// if it's a file, we take it literally.
-			inputFiles = new File[] { inputFile };
-		else if (inputFile.isDirectory()) {	// if it's a dir, we grab everything within it minus hiddens (we don't really want to match dotfiles on the off chance someone tries to consider their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess).
-			inputFiles = inputFile.listFiles(new FileFilter() {
-				public boolean accept(File file) {
-					return !(file.isHidden() || file.getName().startsWith(".") || file.isDirectory());
-				}
-			});
-		}
-		// in python it was easy to do globs; in java it's not available in the standard libraries until 1.7, which i'm trying to avoid depending on.  we may get some library for it later.
-		if (inputFiles.length == 0)
-			return new MdmExitMessage(":(", "no files were found at "+inputPath+"\nrelease aborted.");
+		List<File> inputFiles = selectInputFiles();
 
 		// create a branch for the release commit.  depending on whether or not infix mode is enabled, this is either branching from the infix branch, or it's founding a new root of history.
 		boolean infixMode = relRepo.getRef("refs/heads/mdm/infix") != null;
@@ -323,5 +309,26 @@ public class MdmReleaseCommand extends MdmCommand {
 		treeWalk.setFilter(PathFilter.create(version));
 		if (treeWalk.next())
 			throw new MdmExitMessage(":'(", "the releases repo already has files committed in the master branch where version "+version+" should go!");
+	}
+
+	List<File> selectInputFiles() throws MdmExitMessage, IOException {
+		// select the artifact files that we'll be copying in
+		File inputFile = new File(inputPath).getCanonicalFile();
+		File[] inputFiles = new File[0];
+		if (inputFile.isFile())			// if it's a file, we take it literally.
+			inputFiles = new File[] { inputFile };
+		else if (inputFile.isDirectory()) {	// if it's a dir, we grab everything within it minus hiddens (we don't really want to match dotfiles on the off chance someone tries to consider their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess).
+			inputFiles = inputFile.listFiles(new FileFilter() {
+				public boolean accept(File file) {
+					return !(file.isHidden() || file.getName().startsWith(".") || file.isDirectory());
+				}
+			});
+		}
+		// in python it was easy to do globs; in java it's not available in the standard libraries until 1.7, which i'm trying to avoid depending on.  we may get some library for it later.
+		if (inputFiles.length == 0)
+			throw new MdmExitMessage(":(", "no files were found at "+inputPath+"\nrelease aborted.");
+		List<File> files = Arrays.asList(inputFiles);
+		Collections.sort(files);
+		return files;
 	}
 }
