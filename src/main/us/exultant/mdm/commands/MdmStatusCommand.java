@@ -21,6 +21,7 @@ package us.exultant.mdm.commands;
 
 import java.io.*;
 import java.util.*;
+import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import us.exultant.ahs.util.*;
@@ -40,6 +41,10 @@ public class MdmStatusCommand extends MdmCommand {
 	public void setPrintStream(PrintStream os) {
 		this.os = os;
 	}
+
+	public void parse(Namespace args) {}
+
+	public void validate() throws MdmExitMessage {}
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException {
 		try {

@@ -49,6 +49,11 @@ public abstract class MdmCommand implements Callable<MdmExitMessage> {
 		this.os = (os == null) ? System.err : os;
 	}
 
+	public abstract void parse(Namespace args);
+	public abstract void validate() throws MdmExitMessage;
+
+
+
 	public Repository getRepository() {
 		return repo;
 	}

@@ -29,19 +29,34 @@ public class FilteredConfig extends FileBasedConfig {
 	// I really don't like that this extends FileBasedConfig, but SystemReader insists.
 	public FilteredConfig(Config original, Config whitelist) {
 		super(null, null);
+		this.original = original;
+		this.whitelist = whitelist;
+		refilter(whitelist);
+	}
+
+	private Config original;
+	private Config whitelist;
+
+	protected void refilter(Config whitelist) {
+		this.clear();
+
 		for (String section : original.getSections()) {
 			for (String subsection : original.getSubsections(section))
 				for (String key : original.getNames(section, subsection))
 					if (whitelist.getBoolean(section, subsection, key, false))
 						this.setStringList(section, subsection, key, Arrays.asList(original.getStringList(section, subsection, key)));
 			for (String key : original.getNames(section))
-				this.setStringList(section, null, key, Arrays.asList(original.getStringList(section, null, key)));
+				if (whitelist.getBoolean(section, null, key, false))
+					this.setStringList(section, null, key, Arrays.asList(original.getStringList(section, null, key)));
 		}
 	}
 
 	@Override
 	public void load() throws IOException, ConfigInvalidException {
-		/* do nothing */
+		if (original instanceof FileBasedConfig) {
+			((FileBasedConfig)original).load();
+			refilter(whitelist);
+		}
 	}
 
 	@Override

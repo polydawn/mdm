@@ -46,7 +46,7 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 
 	@Test
 	public void dirWithObstructingFilesIsNotCleanForRelease() throws Exception {
-		IOForge.saveFile("", new File("releases"));
+		IOForge.saveFile("", new File("releases").getCanonicalFile());
 
 		cmd = new MdmReleaseInitCommand(null, null);
 		cmd.validate();

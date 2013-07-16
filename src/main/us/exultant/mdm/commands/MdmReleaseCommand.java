@@ -35,7 +35,6 @@ import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
-import us.exultant.mdm.errors.*;
 
 public class MdmReleaseCommand extends MdmCommand {
 	public MdmReleaseCommand(Repository repo, Namespace args) {
@@ -62,36 +61,14 @@ public class MdmReleaseCommand extends MdmCommand {
 	String snapshotPath;
 	String inputPath;
 
-	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
-		parse(args);
-		validate();
+	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException, MdmExitMessage {
+		MdmModuleRelease relModule = loadReleaseModule();
+		Repository relRepo = relModule.getRepo();
 
-		Repository relRepo;
-		try {
-			assertInRepoRoot();
-			relRepo = MdmModuleRelease.load(relRepoPath).getRepo();
-			assertReleaseRepoDoesntAlreadyContain(relRepo, version);
-		} catch (MdmExitMessage e) {
-			return e;
-		} catch (IOException e) {
-			throw new MdmRepositoryIOException(false, relRepoPath, e);
-		}
+		assertReleaseRepoDoesntAlreadyContain(relModule, version);
+		assertReleaseRepoClean(relModule);
 
-		// select the artifact files that we'll be copying in
-		File inputFile = new File(inputPath);
-		File[] inputFiles = new File[0];
-		if (inputFile.isFile())			// if it's a file, we take it literally.
-			inputFiles = new File[] { inputFile };
-		else if (inputFile.isDirectory()) {	// if it's a dir, we grab everything within it minus hiddens (we don't really want to match dotfiles on the off chance someone tries to consider their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess).
-			inputFiles = inputFile.listFiles(new FileFilter() {
-				public boolean accept(File file) {
-					return !(file.isHidden() || file.getName().startsWith(".") || file.isDirectory());
-				}
-			});
-		}
-		// in python it was easy to do globs; in java it's not available in the standard libraries until 1.7, which i'm trying to avoid depending on.  we may get some library for it later.
-		if (inputFiles.length == 0)
-			return new MdmExitMessage(":(", "no files were found at "+inputPath+"\nrelease aborted.");
+		List<File> inputFiles = selectInputFiles();
 
 		// create a branch for the release commit.  depending on whether or not infix mode is enabled, this is either branching from the infix branch, or it's founding a new root of history.
 		boolean infixMode = relRepo.getRef("refs/heads/mdm/infix") != null;
@@ -281,6 +258,21 @@ public class MdmReleaseCommand extends MdmCommand {
 		return new MdmExitMessage(":D", "release version "+version+" complete");
 	}
 
+	MdmModuleRelease loadReleaseModule() {
+		return MdmModuleRelease.load(relRepoPath);
+	}
+
+	/**
+	 * Check that the releases area free of clutter.
+	 *
+	 * @throws MdmExitMessage
+	 *                 if the releases repo has uncommitted changes.
+	 */
+	void assertReleaseRepoClean(MdmModuleRelease relModule) throws MdmExitMessage {
+		if (relModule.hasDirtyFiles())
+			throw new MdmExitMessage(":(", "there is uncommitted changes in the release repo.  cannot release.");
+	}
+
 	/**
 	 * Check that nothing that would get in the way of a version name is present in
 	 * the repository.
@@ -291,12 +283,14 @@ public class MdmReleaseCommand extends MdmCommand {
 	 * incomplete local state and then trying to push what turns out to be a coliding
 	 * branch name, and so on.
 	 *
-	 * @param relRepo
+	 * @param relModule
 	 * @param version
 	 * @throws MdmExitMessage
 	 * @throws IOException
 	 */
-	static void assertReleaseRepoDoesntAlreadyContain(Repository relRepo, String version) throws MdmExitMessage, IOException {
+	static void assertReleaseRepoDoesntAlreadyContain(MdmModuleRelease relModule, String version) throws MdmExitMessage, IOException {
+		Repository relRepo = relModule.getRepo();
+
 		// part 1: check branch for version name doesn't already exist
 		if (relRepo.getRef("refs/heads/mdm/release/"+version) != null)
 			throw new MdmExitMessage(":'(", "the releases repo already has a release point branch labeled version "+version+" !");
@@ -313,5 +307,26 @@ public class MdmReleaseCommand extends MdmCommand {
 		treeWalk.setFilter(PathFilter.create(version));
 		if (treeWalk.next())
 			throw new MdmExitMessage(":'(", "the releases repo already has files committed in the master branch where version "+version+" should go!");
+	}
+
+	List<File> selectInputFiles() throws MdmExitMessage, IOException {
+		// select the artifact files that we'll be copying in
+		File inputFile = new File(inputPath).getCanonicalFile();
+		File[] inputFiles = new File[0];
+		if (inputFile.isFile())			// if it's a file, we take it literally.
+			inputFiles = new File[] { inputFile };
+		else if (inputFile.isDirectory()) {	// if it's a dir, we grab everything within it minus hiddens (we don't really want to match dotfiles on the off chance someone tries to consider their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess).
+			inputFiles = inputFile.listFiles(new FileFilter() {
+				public boolean accept(File file) {
+					return !(file.isHidden() || file.getName().startsWith(".") || file.isDirectory());
+				}
+			});
+		}
+		// in python it was easy to do globs; in java it's not available in the standard libraries until 1.7, which i'm trying to avoid depending on.  we may get some library for it later.
+		if (inputFiles.length == 0)
+			throw new MdmExitMessage(":(", "no files were found at "+inputPath+"\nrelease aborted.");
+		List<File> files = Arrays.asList(inputFiles);
+		Collections.sort(files);
+		return files;
 	}
 }

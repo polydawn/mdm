@@ -36,6 +36,10 @@ public class MdmRemoveCommand extends MdmCommand {
 		super(repo, args);
 	}
 
+	public void parse(Namespace args) {}
+
+	public void validate() throws MdmExitMessage {}
+
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
 		try {
 			assertInRepoRoot();

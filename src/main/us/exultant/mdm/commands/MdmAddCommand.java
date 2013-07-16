@@ -42,6 +42,10 @@ public class MdmAddCommand extends MdmCommand {
 
 	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("^(.*)-releases(?:.git)?$");
 
+	public void parse(Namespace args) {}
+
+	public void validate() throws MdmExitMessage {}
+
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
 		try {
 			assertInRepoRoot();
