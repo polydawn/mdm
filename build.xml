@@ -79,13 +79,41 @@
 	</target>
 
 
+	<target name="dist-packed" depends="dist"
+		description="minify distributable artifact to contain only needed classes">
+		<move file="${dist}/${app}.jar" tofile="${dist}/${app}-loose.jar"/>
+		<taskdef resource="proguard/ant/task.properties"
+			 classpath="lib/proguard/proguard.jar" />
+		<proguard>
+			-libraryjars ${java.home}/lib/rt.jar
+			-injars      ${dist}/${app}-loose.jar
+			-outjars     ${dist}/${app}.jar
+			
+			-dontoptimize
+			-dontobfuscate
+			-dontwarn
+			
+			-keepclasseswithmembers public class * {
+				public static void main(java.lang.String[]);
+			}
+			
+			-keepclassmembers enum * {
+				public static **[] values();
+				public static ** valueOf(java.lang.String);
+			}
+		</proguard>
+		<delete file="${dist}/${app}-loose.jar"/>
+		<chmod file="${dist}/${app}.jar" perm="755"/>
+	</target>
+
+
 	<target name="clean" description="clean up">
 		<delete dir="${build}"/>
 		<delete dir="${dist}"/>
 	</target>
 
 
-	<target name="run-mdma" depends="dist">
+	<target name="run-mdma" depends="dist-packed">
 		<!-- actually, just running this in a shell can be nicer since then you don't have ant dicking up your output buffering in strange ways:
 			ant clean dist && export MDM=$(pwd)/dist/mdm MDMA=$(pwd)/mdma.sh && ( cd /tmp/ ;  rm -rf mdm-demo/ ; $MDMA -t )
 		-->
