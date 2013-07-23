@@ -109,7 +109,11 @@ public class MdmReleaseCommand extends MdmCommand {
 			File inputFull = new File(inputBase, input);
 			File dest = new File(relRepoFile, input);
 			if (inputFull.isDirectory())
-				FileUtils.copyDirectory(inputFull, dest, null, true, false);
+				FileUtils.copyDirectory(inputFull, dest, new FileFilter() {
+					public boolean accept(File file) {
+						return !(file.isDirectory() && file.listFiles().length == 0);
+					}
+				}, true, false);
 			else
 				FileUtils.copyFile(inputFull, dest, true, false);
 		}
