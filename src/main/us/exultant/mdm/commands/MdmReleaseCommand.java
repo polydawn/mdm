@@ -32,9 +32,9 @@ import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
-import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
+import us.exultant.mdm.util.*;
 
 public class MdmReleaseCommand extends MdmCommand {
 	public MdmReleaseCommand(Repository repo, Namespace args) {
@@ -68,7 +68,7 @@ public class MdmReleaseCommand extends MdmCommand {
 		assertReleaseRepoDoesntAlreadyContain(relModule, version);
 		assertReleaseRepoClean(relModule);
 
-		List<File> inputFiles = selectInputFiles();
+		List<String> inputFiles = selectInputFiles();
 
 		// create a branch for the release commit.  depending on whether or not infix mode is enabled, this is either branching from the infix branch, or it's founding a new root of history.
 		boolean infixMode = relRepo.getRef("refs/heads/mdm/infix") != null;
@@ -102,10 +102,20 @@ public class MdmReleaseCommand extends MdmCommand {
 		}
 
 		// enumerate and copy in artifact files.
-		File relRepoFile = new File(relRepoPath);
-		for (File input : inputFiles) {
-			IOForge.copyFile(input, new File(relRepoFile, input.getName()));
-			X.saye("copying "+input+" to "+new File(relRepoFile, input.getName()));
+		File inputBase = new File(inputPath).getCanonicalFile();
+		if (inputBase.isFile()) inputBase = inputBase.getParentFile();
+		File relRepoFile = new File(relRepoPath).getCanonicalFile();
+		for (String input : inputFiles) {
+			File inputFull = new File(inputBase, input);
+			File dest = new File(relRepoFile, input);
+			if (inputFull.isDirectory())
+				FileUtils.copyDirectory(inputFull, dest, new FileFilter() {
+					public boolean accept(File file) {
+						return !(file.isDirectory() && file.listFiles().length == 0);
+					}
+				}, true, false);
+			else
+				FileUtils.copyFile(inputFull, dest, true, false);
 		}
 
 		// commit the changes
@@ -190,14 +200,14 @@ public class MdmReleaseCommand extends MdmCommand {
 		if (!artifactDestFile.mkdir())
 			return new MdmExitMessage(":'(", "couldn't make the directory named \""+version+"\" to put the releases into because there was already something there.");
 
-		for (File input : inputFiles)
-			 new File(relRepoFile, input.getName()).renameTo(new File(artifactDestFile, input.getName()));
+		for (String input : inputFiles)
+			 new File(relRepoFile, input).renameTo(new File(artifactDestFile, input));
 
 		// now fire off the accumulation commit, and that commit now becomes head of the master branch.
 		try {
 			RmCommand rmc = new Git(relRepo).rm();
-			for (File input : inputFiles)
-				rmc.addFilepattern(input.getName());
+			for (String input : inputFiles)
+				rmc.addFilepattern(input);
 			rmc.call();
 			new Git(relRepo).add()
 				.addFilepattern(version)
@@ -309,24 +319,28 @@ public class MdmReleaseCommand extends MdmCommand {
 			throw new MdmExitMessage(":'(", "the releases repo already has files committed in the master branch where version "+version+" should go!");
 	}
 
-	List<File> selectInputFiles() throws MdmExitMessage, IOException {
+	List<String> selectInputFiles() throws MdmExitMessage, IOException {
 		// select the artifact files that we'll be copying in
 		File inputFile = new File(inputPath).getCanonicalFile();
-		File[] inputFiles = new File[0];
-		if (inputFile.isFile())			// if it's a file, we take it literally.
-			inputFiles = new File[] { inputFile };
-		else if (inputFile.isDirectory()) {	// if it's a dir, we grab everything within it minus hiddens (we don't really want to match dotfiles on the off chance someone tries to consider their entire repo to be snapshot-worthy, because then we'd grab the .git files, and that would be a mess).
-			inputFiles = inputFile.listFiles(new FileFilter() {
+		List<String> inputFilenames = null;
+		if (inputFile.isFile())	{		// if it's a file, we take it literally.
+			inputFilenames = new ArrayList<String>(1);
+			inputFilenames.add(inputFile.getName());
+		} else if (inputFile.isDirectory()) {	// if it's a dir, we grab everything within it.
+			File[] inputFiles = inputFile.listFiles(new FileFilter() {
 				public boolean accept(File file) {
-					return !(file.isHidden() || file.getName().startsWith(".") || file.isDirectory());
+					return !file.getName().equals(".git");
 				}
 			});
+			inputFilenames = new ArrayList<String>(inputFiles.length);
+			for (File f : inputFiles)
+				inputFilenames.add(f.getName());
 		}
-		// in python it was easy to do globs; in java it's not available in the standard libraries until 1.7, which i'm trying to avoid depending on.  we may get some library for it later.
-		if (inputFiles.length == 0)
+
+		if (inputFilenames == null || inputFilenames.size() == 0)
 			throw new MdmExitMessage(":(", "no files were found at "+inputPath+"\nrelease aborted.");
-		List<File> files = Arrays.asList(inputFiles);
-		Collections.sort(files);
-		return files;
+
+		Collections.sort(inputFilenames);
+		return inputFilenames;
 	}
 }

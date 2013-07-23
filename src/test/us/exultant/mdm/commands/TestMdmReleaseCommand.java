@@ -96,10 +96,10 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 		IOForge.saveFile("beta",  new File("./b").getCanonicalFile());
 
 		relModule = cmd.loadReleaseModule();
-		List<File> files = cmd.selectInputFiles();
+		List<String> files = cmd.selectInputFiles();
 
 		assertEquals(1, files.size());
-		assertEquals("a", files.get(0).getName());
+		assertEquals("a", files.get(0));
 	}
 
 	@Test
@@ -109,18 +109,19 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 		cmd = new MdmReleaseCommand(null, null);
 		cmd.relRepoPath = new File("rel").getCanonicalPath();
 		cmd.version = "v1";
-		cmd.inputPath = ".";
+		cmd.inputPath = "dir/";
 		cmd.validate();
 
-		IOForge.saveFile("alpha", new File("./a").getCanonicalFile());
-		IOForge.saveFile("beta",  new File("./b").getCanonicalFile());
+		new File("dir").getCanonicalFile().mkdir();
+		IOForge.saveFile("alpha", new File("./dir/a").getCanonicalFile());
+		IOForge.saveFile("beta",  new File("./dir/b").getCanonicalFile());
 
 		relModule = cmd.loadReleaseModule();
-		List<File> files = cmd.selectInputFiles();
+		List<String> files = cmd.selectInputFiles();
 
 		assertEquals(2, files.size());
-		assertEquals("a", files.get(0).getName());
-		assertEquals("b", files.get(1).getName());
+		assertEquals("a", files.get(0));
+		assertEquals("b", files.get(1));
 	}
 
 	@Test
@@ -130,19 +131,20 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 		cmd = new MdmReleaseCommand(null, null);
 		cmd.relRepoPath = new File("rel").getCanonicalPath();
 		cmd.version = "v1";
-		cmd.inputPath = "dir";
+		cmd.inputPath = "dir/";
 		cmd.validate();
 
 		new File("dir").getCanonicalFile().mkdir();
 		IOForge.saveFile("alpha", new File("./dir/a").getCanonicalFile());
 		IOForge.saveFile("beta",  new File("./dir/b").getCanonicalFile());
-		new File("dir/d").getCanonicalFile().mkdir();	// ... not sure if want ignore?  but if we do copy it, git won't notice empty dirs anyway, and we can't assume an application's release semantics are fine with getting .gitignore files strewn about either.
+		new File("dir/d").getCanonicalFile().mkdir();
 
 		relModule = cmd.loadReleaseModule();
-		List<File> files = cmd.selectInputFiles();
+		List<String> files = cmd.selectInputFiles();
 
-		assertEquals(2, files.size());
-		assertEquals("a", files.get(0).getName());
-		assertEquals("b", files.get(1).getName());
+		assertEquals(3, files.size());
+		assertEquals("a", files.get(0));
+		assertEquals("b", files.get(1));
+		assertEquals("d", files.get(2));
 	}
 }

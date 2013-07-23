@@ -155,12 +155,12 @@ awaitack;
 echo "${clblue}#  Alright, let's make some releases in our upstream projects:${cnone}"
 echo "${clblack}# make a release of projUpstream1's files: ${cnone}"
 (cd projUpstream1/ && 
- $MDM release --version=v1.0 --files=.
+ $MDM release --version=v1.0 --files=proj1.txt
 )
 echo
 echo "${clblack}# make a release of projUpstream2's files: ${cnone}"
 (cd projUpstream2/ && 
- $MDM release --version=v1.0 --files=.
+ $MDM release --version=v1.0 --files=proj2.txt
 )
 echo -e "${clblue} ----------------------------${cnone}\n\n"
 
@@ -279,7 +279,7 @@ echo "${clblack}# make some updates to the upstream project's source files: ${cn
 echo
 echo "${clblack}# make a release of projUpstream1's files: ${cnone}"
 (cd projUpstream1/ &&
- $MDM release --version=v2.0 --files="."
+ $MDM release --version=v2.0 --files=proj1.txt
 )
 echo
 echo "${clblack}# and publish that release to the hub repos.${cnone}"
@@ -299,7 +299,51 @@ echo "${clblack}# ...okay, one more for fun (and to see a bigger graph):${cnone}
 echo
 echo "${clblack}# make a release of projUpstream1's files: ${cnone}"
 (cd projUpstream1/ &&
- $MDM release --version=v2.1 --files=.
+ $MDM release --version=v2.1 --files=proj1.txt
+)
+echo
+
+echo -e "${clblue} ----------------------------${cnone}\n\n"
+
+awaitack;
+
+
+
+echo "${clblue}#  Releases can also contain an entire directory structure:${cnone}"
+echo "${clblack}# refactor the project to put release artifacts in a directory: ${cnone}"
+(cd projUpstream1 &&
+ mkdir target &&
+ git mv *.txt target &&
+ git commit -m "moved files to directory" &&
+ git show
+)
+echo
+echo "${clblack}# add some more files and directories: ${cnone}"
+(cd projUpstream1 &&
+ mkdir target/bin &&
+ echo "echo herro" > target/bin/tickle.sh &&
+ chmod +x target/bin/tickle.sh &&
+ mkdir -p target/data/assets &&
+ echo -e "\[\033\[\00" > target/data/assets/koala.jpg &&
+ git add target &&
+ git commit -m "added script" &&
+ git show
+)
+echo
+echo "${clblack}# make a release of projUpstream1's files: ${cnone}"
+(cd projUpstream1/ &&
+ $MDM release --version=v3.0 --files=target
+)
+echo
+echo "${clblack}# full trees per version also exist in the merged master branch: ${cnone}"
+(cd projUpstream1/releases/ &&
+ (cd v3.0/ && ls -l . */ */*/)
+)
+echo
+echo "${clblack}# and publish that release to the hub repos.${cnone}"
+(cd projUpstream1 &&
+ (cd releases && git push --all && git push --tags) &&
+ git push && git push --tags
 )
 echo
 
@@ -313,10 +357,13 @@ echo "${clblue}#  Moment of truth, Part II: we can now use \`mdm alter\` on proj
 echo "${clblue}#   to switch it to using new release versions of the upstream project.${cnone}"
 (cd projAlpha
  echo "${clblack}# now to add the first project, we do \`mdm add \$demodir/hub/projUpstream1.git\`: ${cnone}"
- $MDM alter lib/projUpstream1 --version=v2.0
+ $MDM alter lib/projUpstream1 --version=v3.0
  echo
  echo "${clblack}# \`mdm status\` should show us the change: ${cnone}"
  $MDM status
+ echo
+ echo "${clblack}# \`ls\` show us the files: ${cnone}"
+ (cd lib/projUpstream1/ && ls -l . */ */*/)
  echo
  echo "${clblack}# \`git push\` the dependency version change to the hub repo: ${cnone}"
  git push
@@ -344,6 +391,9 @@ echo "${clblue}#   from the hub repo, and smoothly switch to the new dependency 
  echo
  echo "${clblack}# Huzzah?  Huzzah! ${cnone}"
  $MDM status
+ echo
+ (cd lib/projUpstream1/ && ls -l . */ */*/)
+ echo
 )
 echo -e "${clblue} ----------------------------${cnone}\n\n"
 

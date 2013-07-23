@@ -122,7 +122,6 @@
 			<env key="MDM" value="${basedir}/${dist}/${app}" />
 			<arg value="-t" />
 		</exec>
-		<delete dir="mdm-demo" />
 	</target>
 
 
