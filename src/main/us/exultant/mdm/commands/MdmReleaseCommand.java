@@ -326,7 +326,7 @@ public class MdmReleaseCommand extends MdmCommand {
 		} else if (inputFile.isDirectory()) {	// if it's a dir, we grab everything within it.
 			File[] inputFiles = inputFile.listFiles(new FileFilter() {
 				public boolean accept(File file) {
-					return !(file.isHidden() || file.getName().startsWith("."));
+					return !file.getName().equals(".git");
 				}
 			});
 			inputFilenames = new ArrayList<String>(inputFiles.length);
