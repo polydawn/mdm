@@ -27,7 +27,6 @@
 		<pathelement location="${lib}/ahslib/ahslib-core.jar"/>
 		<pathelement location="${lib}/argparse4j/argparse4j.jar"/>
 		<pathelement location="${lib}/jsch/jsch.jar"/>
-		<pathelement location="${lib}/apache-commons-io/commons-io.jar"/>
 	</path>
 	<path id="mdm.path.main">
 		<path refid="mdm.path.deps.main" />

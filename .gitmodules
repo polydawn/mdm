@@ -54,9 +54,3 @@
 	mdm = dependency
 	mdm-version = v4.9
 	update = none
-[submodule "lib/apache-commons-io"]
-	path = lib/apache-commons-io
-	url = https://github.com/mdm-releases/apache-commons-io-releases.git
-	mdm = dependency
-	mdm-version = v2.4
-	update = none
