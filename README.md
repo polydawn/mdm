@@ -236,9 +236,9 @@ Browse the releases repo!
 
 https://github.com/heavenlyhash-releases/mdm-releases/
 
-The latest version is v2.12.0, available here:
+The latest version is v2.13.0, available here:
 
-https://raw.github.com/heavenlyhash-releases/mdm-releases/master/v2.12.0/mdm
+https://raw.github.com/heavenlyhash-releases/mdm-releases/master/v2.13.0/mdm
 
 
 Testing MDM

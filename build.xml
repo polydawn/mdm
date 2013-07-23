@@ -152,8 +152,8 @@
 	</target>
 
 
-	<target name="release" depends="clean, dist">
-		<exec executable="mdm">
+	<target name="release" depends="clean, dist-packed">
+		<exec executable="${dist}/mdm">
 			<arg value="release" />
 			<arg value="--version=${version}" />
 			<arg value="--files=${dist}" />
