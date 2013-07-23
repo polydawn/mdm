@@ -63,7 +63,6 @@
 			<zipfileset src="${lib}/ahslib/ahslib-core.jar" includes="**/*.class"/>
 			<zipfileset src="${lib}/argparse4j/argparse4j.jar" includes="**/*.class"/>
 			<zipfileset src="${lib}/jsch/jsch.jar" includes="**/*.class"/>
-			<zipfileset src="${lib}/apache-commons-io/commons-io.jar" includes="**/*.class"/>
 		</exusPack>
 		<chmod file="${dist}/${app}.jar" perm="755"/>
 		<concat destfile="${dist}/${app}" encoding="UTF-8">

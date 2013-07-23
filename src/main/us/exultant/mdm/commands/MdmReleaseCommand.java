@@ -23,8 +23,6 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 import net.sourceforge.argparse4j.inf.*;
-import org.apache.commons.io.*;
-import org.apache.commons.io.filefilter.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.errors.*;
@@ -36,6 +34,7 @@ import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.util.*;
 import us.exultant.mdm.*;
+import us.exultant.mdm.util.*;
 
 public class MdmReleaseCommand extends MdmCommand {
 	public MdmReleaseCommand(Repository repo, Namespace args) {
@@ -110,9 +109,9 @@ public class MdmReleaseCommand extends MdmCommand {
 			File inputFull = new File(inputBase, input);
 			File dest = new File(relRepoFile, input);
 			if (inputFull.isDirectory())
-				FileUtils.copyDirectory(inputFull, dest, TrueFileFilter.TRUE);
+				FileUtils.copyDirectory(inputFull, dest, null, true, false);
 			else
-				FileUtils.copyFile(inputFull, dest);
+				FileUtils.copyFile(inputFull, dest, true, false);
 		}
 
 		// commit the changes
