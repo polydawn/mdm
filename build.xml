@@ -152,7 +152,7 @@
 	</target>
 
 
-	<target name="release" depends="clean, dist">
+	<target name="release" depends="clean, dist-packed">
 		<exec executable="mdm">
 			<arg value="release" />
 			<arg value="--version=${version}" />
