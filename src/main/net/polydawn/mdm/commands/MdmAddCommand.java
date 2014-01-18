@@ -118,7 +118,7 @@ public class MdmAddCommand extends MdmCommand {
 			return new MdmExitMessage(":(", "no version labelled "+version+" available from the provided remote url.");
 
 		// finally, let's actually do the submodule/dependency adding
-		doAdd(name, path, version, url);
+		doAdd(path);
 
 		// commit the changes
 		try {
@@ -154,7 +154,7 @@ public class MdmAddCommand extends MdmCommand {
 		return new MdmExitMessage(":D", "added dependency on "+name+"-"+version+" successfully!");
 	}
 
-	private List<String> fetchVersions() throws MdmExitMessage {
+	List<String> fetchVersions() throws MdmExitMessage {
 		try {
 			return Plumbing.getVersionManifest(repo, url);
 		} catch (InvalidRemoteException e) {
@@ -166,7 +166,7 @@ public class MdmAddCommand extends MdmCommand {
 		}
 	}
 
-	private void doAdd(String name, File path, String version, String url) throws IOException, MdmException, ConfigInvalidException {
+	void doAdd(File path) throws IOException, MdmException, ConfigInvalidException {
 		// write gitmodule config for the new submodule
 		StoredConfig gitmodulesCfg = new FileBasedConfig(new File(repo.getWorkTree(), Constants.DOT_GIT_MODULES), repo.getFS());
 		gitmodulesCfg.load();
