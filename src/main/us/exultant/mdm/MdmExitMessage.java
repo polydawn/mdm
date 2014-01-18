@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, 2013 Eric Myhre <http://exultant.us>
+ * Copyright 2012 - 2014 Eric Myhre <http://exultant.us>
  *
  * This file is part of mdm <https://github.com/heavenlyhash/mdm/>.
  *
