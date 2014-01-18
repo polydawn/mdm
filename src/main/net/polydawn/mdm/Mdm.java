@@ -81,7 +81,7 @@ public class Mdm {
 		return new HashMap<String,MdmCommand>() {{
 			put("status",           new MdmStatusCommand(repo, System.out));
 			put("update",           new MdmUpdateCommand(repo));
-			put("add",              new MdmAddCommand(repo, args));
+			put("add",              new MdmAddCommand(repo));
 			put("alter",            new MdmAlterCommand(repo, args));
 			put("remove",           new MdmRemoveCommand(repo, args));
 			put("release",          new MdmReleaseCommand(repo));

@@ -54,7 +54,7 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 
 	@Test
 	public void testsss() throws Exception {
-		cmd = new MdmAddCommand(null, null);
+		cmd = new MdmAddCommand(null);
 		// cmd.path = new File(pathProjectRepo1).getCanonicalPath();
 		// cmd.validate();
 		// cmd.assertSomething();

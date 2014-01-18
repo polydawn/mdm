@@ -36,8 +36,8 @@ import us.exultant.ahs.util.*;
 import static net.polydawn.mdm.Loco.*;
 
 public class MdmAddCommand extends MdmCommand {
-	public MdmAddCommand(Repository repo, Namespace args) {
-		super(repo, args);
+	public MdmAddCommand(Repository repo) {
+		super(repo);
 	}
 
 	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("^(.*)-releases(?:.git)?$");
