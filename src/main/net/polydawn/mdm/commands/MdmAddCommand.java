@@ -42,9 +42,39 @@ public class MdmAddCommand extends MdmCommand {
 
 	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("^(.*)-releases(?:.git)?$");
 
-	public void parse(Namespace args) {}
+	public void parse(Namespace args) {
+		// pick url.  (this one's pretty cut and dry.)
+		url = args.getString("url");
 
-	public void validate() throws MdmExitMessage {}
+		// pick out the name.  or at least try -- if we can't find one, we'll prompt for it later.
+		if (args.getString("name") != null) {
+			name = args.getString("name");
+		} else {
+			// look for a discernable project name in the url chunks
+			String[] urlchunks = url.split("/");
+			Matcher tehMatch = RELEASE_URL_NAME_EXTRACT.matcher(urlchunks[urlchunks.length-1]);
+			if (tehMatch.find()) {
+				name = tehMatch.group(1);
+			} else {
+				// we'll have prompt for a name later if we don't have one picked yet.
+				name = null;
+			}
+		}
+
+		// pick the library path.
+		pathLibs = new File(args.getString("lib"));
+	}
+
+	public void validate() throws MdmExitMessage {
+
+	}
+
+	String url;
+
+	String name;
+
+	/** Path to the library folder.  The submodule target location will be "{@link #pathLibs}/{@link #name}".*/
+	File pathLibs;
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
 		try {
@@ -52,25 +82,10 @@ public class MdmAddCommand extends MdmCommand {
 		} catch (MdmExitMessage e) { return e; }
 
 		// git's behavior of assuming relative urls should be relative to the remote origin instead of relative to the local filesystem is almost certainly not what you want.
-		String url = args.getString("url");
 		if (url.startsWith("../") || url.startsWith("./"))
 			os.println("hey, heads up: when you use a relative url to describe a submodule location, git assumes it's relative to the remote origin of the parent project (NOT relative to the project location on the local filesystem, which is what you might have expected).  this... works, but it's not recommended because of the potential it has to surprise.");
 
-		// pick out the name.  if we can't find one yet, we'll prompt for it in a little bit (we try to check that something at least exists on the far side of the url before bothering with the name part).
-		String name = null;
-		if (args.getString("name") != null) {	// well that was easy
-			name = args.getString("name");
-		} else {				// look for a discernable project name in the url chunks
-			String[] urlchunks = url.split("/");
-			Matcher tehMatch = RELEASE_URL_NAME_EXTRACT.matcher(urlchunks[urlchunks.length-1]);
-			if (tehMatch.find()) {
-				name = tehMatch.group(1);
-			} else {			// prompt for a name if we don't have one picked yet.
-				name = inputPrompt(os, "dependency name: ");
-			}
-		}
-
-		File path = new File(args.getString("lib"), name);
+		File path = new File(pathLibs, name);
 
 		// check for presence of other crap here already.  (`git submodule add` will also do this, but it's a more pleasant user experience to check this before popping up a prompt for version name.)
 		if (path.exists())
@@ -91,6 +106,11 @@ public class MdmAddCommand extends MdmCommand {
 		}
 		if (versions.size() == 0)
 			return new MdmExitMessage(":(", "no releases could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.\nare you sure this is the releases repo?  keep in mind that the release repo and the source repo isn't the same for most projects -- check the project readme for the location of their release repo.");
+
+		// if we didn't get a name argument yet, prompt for one.
+		// note that this is *after* we tried to check that something at least exists on the far side of the url, in order to minimize bother.
+		if (name == null)
+			name = inputPrompt(os, "dependency name: ");
 
 		// if a specific version name was given, we'll just go straight at it; otherwise we present options interactively from the manifest of versions the remote reported.
 		String version;
