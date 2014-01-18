@@ -63,6 +63,10 @@ public class MdmAddCommand extends MdmCommand {
 
 		// pick the library path.
 		pathLibs = new File(args.getString("lib"));
+
+		// pick out the version requested.
+		// may be null, as with local name, we'll prompt for it later.
+		version = args.getString("version");
 	}
 
 	public void validate() throws MdmExitMessage {
@@ -75,6 +79,8 @@ public class MdmAddCommand extends MdmCommand {
 
 	/** Path to the library folder.  The submodule target location will be "{@link #pathLibs}/{@link #name}".*/
 	File pathLibs;
+
+	String version;
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
 		try {
@@ -94,16 +100,7 @@ public class MdmAddCommand extends MdmCommand {
 			return new MdmExitMessage(":'(", "there is already a submodule in the git index at "+path+" !\nWe can't pull down a dependency there until this conflict is cleared away.");
 
 		// give a look at the remote path and see what versions are physically available.
-		List<String> versions;
-		try {
-			versions = Plumbing.getVersionManifest(repo, url);
-		} catch (InvalidRemoteException e) {
-			return new MdmExitMessage(":(", "the provided url doesn't parse like a url!");
-		} catch (TransportException e) {
-			return new MdmExitMessage(":'(", "transport failed!  check that your url is correct and reachable and try again?\n  (error message: "+e.getMessage()+")");
-		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		}
+		List<String> versions = fetchVersions();
 		if (versions.size() == 0)
 			return new MdmExitMessage(":(", "no releases could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.\nare you sure this is the releases repo?  keep in mind that the release repo and the source repo isn't the same for most projects -- check the project readme for the location of their release repo.");
 
@@ -113,14 +110,12 @@ public class MdmAddCommand extends MdmCommand {
 			name = inputPrompt(os, "dependency name: ");
 
 		// if a specific version name was given, we'll just go straight at it; otherwise we present options interactively from the manifest of versions the remote reported.
-		String version;
-		if (args.getString("version") != null) {
-			version = args.getString("version");
-			if (!versions.contains(version))
-				return new MdmExitMessage(":(", "no version labelled "+version+" available from the provided remote url.");
-		} else {
+		if (version == null)
 			version = Loco.promptForVersion(os, versions);
-		}
+
+		// check yourself before you wreck yourself
+		if (!versions.contains(version))
+			return new MdmExitMessage(":(", "no version labelled "+version+" available from the provided remote url.");
 
 		// finally, let's actually do the submodule/dependency adding
 		doAdd(name, path, version, url);
@@ -157,6 +152,18 @@ public class MdmAddCommand extends MdmCommand {
 		}
 
 		return new MdmExitMessage(":D", "added dependency on "+name+"-"+version+" successfully!");
+	}
+
+	private List<String> fetchVersions() throws MdmExitMessage {
+		try {
+			return Plumbing.getVersionManifest(repo, url);
+		} catch (InvalidRemoteException e) {
+			throw new MdmExitMessage(":(", "the provided url doesn't parse like a url!");
+		} catch (TransportException e) {
+			throw new MdmExitMessage(":'(", "transport failed!  check that your url is correct and reachable and try again?\n  (error message: "+e.getMessage()+")");
+		} catch (GitAPIException e) {
+			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		}
 	}
 
 	private void doAdd(String name, File path, String version, String url) throws IOException, MdmException, ConfigInvalidException {
