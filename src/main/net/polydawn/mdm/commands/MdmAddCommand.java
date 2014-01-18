@@ -23,6 +23,7 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 import net.polydawn.mdm.*;
+import net.polydawn.mdm.errors.*;
 import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
@@ -118,38 +119,11 @@ public class MdmAddCommand extends MdmCommand {
 			return new MdmExitMessage(":(", "no version labelled "+version+" available from the provided remote url.");
 
 		// finally, let's actually do the submodule/dependency adding
-		doAdd(path);
+		doSubmoduleConfig(path);
 
 		// commit the changes
-		try {
-			new Git(repo).add()
-				.addFilepattern(path.getPath())
-				.addFilepattern(Constants.DOT_GIT_MODULES)
-				.call();
-		} catch (NoFilepatternException e) {
-			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
-		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		}
-		try {
-			new Git(repo).commit()
-				.setOnly(path.getPath())
-				.setOnly(Constants.DOT_GIT_MODULES)
-				.setMessage("adding dependency on "+name+" at "+version+".")
-				.call();
-		} catch (NoHeadException e) {
-			throw new MdmException("your repository is in an invalid state!", e);
-		} catch (NoMessageException e) {
-			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
-		} catch (UnmergedPathsException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (ConcurrentRefUpdateException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (WrongRepositoryStateException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		}
+		doGitStage(path);
+		doGitCommit(path);
 
 		return new MdmExitMessage(":D", "added dependency on "+name+"-"+version+" successfully!");
 	}
@@ -166,7 +140,7 @@ public class MdmAddCommand extends MdmCommand {
 		}
 	}
 
-	void doAdd(File path) throws IOException, MdmException, ConfigInvalidException {
+	Config doSubmoduleConfig(File path) throws ConfigInvalidException, IOException {
 		// write gitmodule config for the new submodule
 		StoredConfig gitmodulesCfg = new FileBasedConfig(new File(repo.getWorkTree(), Constants.DOT_GIT_MODULES), repo.getFS());
 		gitmodulesCfg.load();
@@ -176,9 +150,48 @@ public class MdmAddCommand extends MdmCommand {
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), MdmConfigConstants.Module.DEPENDENCY_VERSION.toString(), version);
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), ConfigConstants.CONFIG_KEY_UPDATE, "none"); // since almost all git commands by default will pull down waaaay too much data if they operate naively on our dependencies, we tell them to ignore all dependencies by default.  And of course, commands like `git pull` just steamroll right ahead and ignore this anyway, so those require even more drastic counters.
 		gitmodulesCfg.save();
+		return gitmodulesCfg;
+	}
 
+	void doSubmoduleFetch(File path, Config gitmodulesCfg) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException {
 		// fetch the release data to our local submodule repo
 		MdmModuleDependency module = MdmModuleDependency.load(repo, path.getPath(), gitmodulesCfg);
 		Plumbing.fetch(repo, module);
+	}
+
+	void doGitStage(File path) {
+		try {
+			new Git(repo).add()
+				.addFilepattern(path.getPath())
+				.addFilepattern(Constants.DOT_GIT_MODULES)
+				.call();
+		} catch (NoFilepatternException e) {
+			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
+		} catch (GitAPIException e) {
+			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		}
+	}
+
+	void doGitCommit(File path) throws MdmRepositoryStateException {
+		String currentAction = "commit a link to the new dependency repo into the project repo";
+		try {
+			new Git(repo).commit()
+				.setOnly(path.getPath())
+				.setOnly(Constants.DOT_GIT_MODULES)
+				.setMessage("adding dependency on "+name+" at "+version+".")
+				.call();
+		} catch (NoHeadException e) {
+			throw new MdmRepositoryStateException(currentAction, repo.getWorkTree().toString(), e);
+		} catch (NoMessageException e) {
+			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
+		} catch (UnmergedPathsException e) {
+			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		} catch (ConcurrentRefUpdateException e) {
+			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		} catch (WrongRepositoryStateException e) {
+			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		} catch (GitAPIException e) {
+			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		}
 	}
 }
