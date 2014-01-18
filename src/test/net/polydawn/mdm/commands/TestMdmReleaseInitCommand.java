@@ -3,7 +3,6 @@ package net.polydawn.mdm.commands;
 import static org.junit.Assert.*;
 import java.io.*;
 import net.polydawn.mdm.*;
-import net.polydawn.mdm.commands.*;
 import net.polydawn.mdm.test.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
@@ -24,7 +23,7 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 
 	@Test
 	public void emptyCwdDirIsCleanForRelease() throws Exception {
-		cmd = new MdmReleaseInitCommand(null, null);
+		cmd = new MdmReleaseInitCommand(null);
 		cmd.path = new File(".").getCanonicalPath();
 		cmd.validate();
 		cmd.assertReleaseRepoAreaClean();
@@ -37,7 +36,7 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 			.build();
 		repo.create(false);
 
-		cmd = new MdmReleaseInitCommand(repo, null);
+		cmd = new MdmReleaseInitCommand(repo);
 		cmd.path = new File(".").getCanonicalPath();
 		cmd.asSubmodule = cmd.isInRepoRoot();
 		cmd.validate();
@@ -49,7 +48,7 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 	public void dirWithObstructingFilesIsNotCleanForRelease() throws Exception {
 		IOForge.saveFile("", new File("releases").getCanonicalFile());
 
-		cmd = new MdmReleaseInitCommand(null, null);
+		cmd = new MdmReleaseInitCommand(null);
 		cmd.validate();
 		cmd.path = "releases";
 		exception.expect(MdmExitMessage.class);
@@ -58,7 +57,7 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 
 	@Test
 	public void createReleaseRepoWithoutExceptions() throws Exception {
-		cmd = new MdmReleaseInitCommand(null, null);
+		cmd = new MdmReleaseInitCommand(null);
 		cmd.path = new File(".").getCanonicalPath();
 		cmd.validate();
 
@@ -104,7 +103,7 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 			.build();
 		parentRepo.create(false);
 
-		cmd = new MdmReleaseInitCommand(parentRepo, null);
+		cmd = new MdmReleaseInitCommand(parentRepo);
 		// ach, I can't let validate() transform its realization that we're in submodule mode into selecting a default path, because it would be relative, and the surrealcwd problem appears again
 		cmd.path = "releases";
 		cmd.asSubmodule = true;
@@ -144,6 +143,4 @@ public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
 		assertEquals(FileMode.GITLINK, treeWalk.getFileMode(0));
 		assertFalse(treeWalk.next());
 	}
-
-
 }

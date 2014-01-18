@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 import java.io.*;
 import java.util.*;
 import net.polydawn.mdm.*;
-import net.polydawn.mdm.commands.*;
 import net.polydawn.mdm.test.*;
 import org.eclipse.jgit.lib.*;
 import org.junit.*;
@@ -22,7 +21,7 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 	Repository parentRepo;
 
 	public void prepareUnparentedReleaseRepo(String path) throws Exception {
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null, null);
+		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null);
 		cmd.path = new File(path).getCanonicalPath();
 		cmd.validate();
 		cmd.call();
@@ -34,7 +33,7 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 			.build();
 		parentRepo.create(false);
 
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(parentRepo, null);
+		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(parentRepo);
 		cmd.path = "releases";
 		cmd.asSubmodule = true;
 		cmd.validate();
@@ -45,7 +44,7 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 	public void emptyReleaseRepoCleanForRelease() throws Exception {
 		prepareUnparentedReleaseRepo(".");
 
-		cmd = new MdmReleaseCommand(null, null);
+		cmd = new MdmReleaseCommand(null);
 		cmd.relRepoPath = new File(".").getCanonicalPath();
 		cmd.version = "v1";
 		cmd.validate();
@@ -58,7 +57,7 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 	public void releaseRepoWithUncommittedFilesRejectedForRelease() throws Exception {
 		prepareUnparentedReleaseRepo(".");
 
-		cmd = new MdmReleaseCommand(null, null);
+		cmd = new MdmReleaseCommand(null);
 		cmd.relRepoPath = new File(".").getCanonicalPath();
 		cmd.version = "v1";
 		cmd.validate();
@@ -74,7 +73,7 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 	public void emptyReleaseRepoHasNoExistingVersionConflict() throws Exception {
 		prepareUnparentedReleaseRepo(".");
 
-		cmd = new MdmReleaseCommand(null, null);
+		cmd = new MdmReleaseCommand(null);
 		cmd.relRepoPath = new File(".").getCanonicalPath();
 		cmd.version = "v1";
 		cmd.validate();
@@ -87,7 +86,7 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 	public void selectExplicitFile() throws Exception {
 		prepareUnparentedReleaseRepo("rel");
 
-		cmd = new MdmReleaseCommand(null, null);
+		cmd = new MdmReleaseCommand(null);
 		cmd.relRepoPath = new File("rel").getCanonicalPath();
 		cmd.version = "v1";
 		cmd.inputPath = "a";
@@ -107,7 +106,7 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 	public void selectDirectoryContainingFiles() throws Exception {
 		prepareUnparentedReleaseRepo("rel");
 
-		cmd = new MdmReleaseCommand(null, null);
+		cmd = new MdmReleaseCommand(null);
 		cmd.relRepoPath = new File("rel").getCanonicalPath();
 		cmd.version = "v1";
 		cmd.inputPath = "dir/";
@@ -129,7 +128,7 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 	public void selectDirectoryContainingDirectories() throws Exception {
 		prepareUnparentedReleaseRepo("rel");
 
-		cmd = new MdmReleaseCommand(null, null);
+		cmd = new MdmReleaseCommand(null);
 		cmd.relRepoPath = new File("rel").getCanonicalPath();
 		cmd.version = "v1";
 		cmd.inputPath = "dir/";

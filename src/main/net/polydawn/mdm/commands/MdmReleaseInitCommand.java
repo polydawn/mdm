@@ -36,8 +36,8 @@ import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 
 public class MdmReleaseInitCommand extends MdmCommand {
-	public MdmReleaseInitCommand(Repository repo, Namespace args) {
-		super(repo, args);
+	public MdmReleaseInitCommand(Repository repo) {
+		super(repo);
 	}
 
 	public void parse(Namespace args) {
