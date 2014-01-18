@@ -28,13 +28,25 @@ import org.eclipse.jgit.lib.*;
 public abstract class MdmCommand implements Callable<MdmExitMessage> {
 	/** The repository this command is working with */
 	final protected Repository repo;
+
+	/**
+	 * @Deprecated we do not want to retain this pointer; convert to using
+	 *             {@link #parse(Namespace)} and extracting values upfront instead.
+	 */
+	@Deprecated
 	final protected Namespace args;
+
 	final protected PrintStream os;
 
 	protected MdmCommand(Repository repo) {
 		this(repo, null, null);
 	}
 
+	/**
+	 * @Deprecated the {@code Namespace args} argument should not be used; convert to
+	 *             using {@link #parse(Namespace)} instead.
+	 */
+	@Deprecated
 	protected MdmCommand(Repository repo, Namespace args) {
 		this(repo, args, null);
 	}
@@ -43,13 +55,39 @@ public abstract class MdmCommand implements Callable<MdmExitMessage> {
 		this(repo, null, os);
 	}
 
+	/**
+	 * @Deprecated the {@code Namespace args} argument should not be used; convert to
+	 *             using {@link #parse(Namespace)} instead.
+	 */
+	@Deprecated
 	protected MdmCommand(Repository repo, Namespace args, PrintStream os) {
 		this.repo = repo;
 		this.args = args;
 		this.os = (os == null) ? System.err : os;
 	}
 
+	/**
+	 * Ask the command to set up its parameters by parsing the argument.
+	 * <p>
+	 * This method is the entry point from the main method, but subclasses expose
+	 * their parameter fields as default visibility for test access, so tests need not
+	 * construct a full args parsing system or use this method.
+	 * <p>
+	 * A {@link #parse(Namespace)} call does not imply a {@link #validate()} call; the
+	 * caller is responsible for this.
+	 *
+	 * @param args
+	 */
+	// an MdmCommand is kind of its own config and parser factory.  this is messy.
 	public abstract void parse(Namespace args);
+
+	/**
+	 * Apply this before invoking {@link #call()} to give the command implementation a
+	 * chance to verify all its parameters are provided and valid.
+	 *
+	 * @throws MdmExitMessage
+	 *                 for missing or invalid parameters.
+	 */
 	public abstract void validate() throws MdmExitMessage;
 
 
