@@ -44,7 +44,7 @@
 
 	<target name="compile" depends="init" description="compile the source">
 		<exusJavac
-			classes="us/exultant/${app}/Mdm.java"
+			classes="net/polydawn/${app}/Mdm.java"
 			depends="${toString:mdm.path.deps.main}"
 		/>
 	</target>
@@ -55,7 +55,7 @@
 		description="pack distributable artifacts">
 		<exusPack destfile="${dist}/${app}.jar">
 			<manifest>
-				<attribute name="Main-Class" value="us.exultant.${app}.Mdm"/>
+				<attribute name="Main-Class" value="net.polydawn.${app}.Mdm"/>
 			</manifest>
 			<fileset file="${build}/main/**"/>
 			<zipfileset src="${lib}/jgit/jgit.jar" includes="**/*.class org/**/*.properties"/>
@@ -143,9 +143,9 @@
 
 			<batchtest fork="yes">
 				<fileset dir="${build}/test">
-					<include name="us/exultant/${app}/commands/*Test*.class"/>
-					<include name="us/exultant/${app}/jgit/*Test*.class"/>
-					<include name="us/exultant/${app}/util/*Test*.class"/>
+					<include name="net/polydawn/${app}/commands/*Test*.class"/>
+					<include name="net/polydawn/${app}/jgit/*Test*.class"/>
+					<include name="net/polydawn/${app}/util/*Test*.class"/>
 				</fileset>
 			</batchtest>
 		</junit>
