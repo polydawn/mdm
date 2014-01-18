@@ -21,7 +21,6 @@ package net.polydawn.mdm.util;
 
 import static org.junit.Assert.*;
 import java.util.*;
-import net.polydawn.mdm.util.*;
 import org.junit.*;
 
 public class VersionComparatorTest {

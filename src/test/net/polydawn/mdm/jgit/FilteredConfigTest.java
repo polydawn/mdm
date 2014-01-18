@@ -21,7 +21,6 @@ package net.polydawn.mdm.jgit;
 
 import static org.junit.Assert.assertEquals;
 import java.util.*;
-import net.polydawn.mdm.jgit.*;
 import org.eclipse.jgit.lib.*;
 import org.junit.*;
 
