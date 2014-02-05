@@ -26,7 +26,16 @@ import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.lib.*;
 
 public abstract class MdmCommand implements Callable<MdmExitMessage> {
-	/** The repository this command is working with */
+	/**
+	 * The repository this command is working with.
+	 * <p>
+	 * Or perhaps more accurately, a repository that was most immediately discovered
+	 * to contain this command's working directory. May be null (for example
+	 * {@link MdmReleaseInitCommand} clearly doesn't need an existing repository; and
+	 * {@link MdmReleaseCommand} may behave slightly differently if in a repository,
+	 * but is actually concerned with a repo that may be on a different path
+	 * entirely).
+	 */
 	final protected Repository repo;
 
 	/**
