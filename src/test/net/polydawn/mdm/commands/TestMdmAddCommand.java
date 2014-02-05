@@ -27,7 +27,7 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 	MdmAddCommand cmd;
 
 	@Before
-	public void setUp() throws IOException {
+	public void setUp2() throws IOException {
 		releaseRepo1 = setUpReleaseRepo(pathReleaseRepo1);
 		releaseRepo2 = setUpReleaseRepo(pathReleaseRepo2);
 		projectRepo1 = setUpPlainRepo(pathProjectRepo1);
