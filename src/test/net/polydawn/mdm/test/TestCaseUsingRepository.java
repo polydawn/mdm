@@ -1,7 +1,9 @@
 package net.polydawn.mdm.test;
 
+import static org.junit.Assert.*;
 import java.io.*;
 import java.util.*;
+import net.polydawn.mdm.*;
 import org.junit.*;
 import us.exultant.ahs.iob.*;
 
@@ -45,5 +47,11 @@ public class TestCaseUsingRepository {
 	@Before
 	public void setUp() throws IOException {
 		System.getProperties().setProperty("user.dir", createUniqueTestFolderPrefix().getCanonicalPath());
+	}
+
+	public void assertJoy(MdmExitMessage result) {
+		if (result.code != 0) {
+			fail("command exited with '"+result.happy+"' -- \""+result.getMessage()+"\".");
+		}
 	}
 }
