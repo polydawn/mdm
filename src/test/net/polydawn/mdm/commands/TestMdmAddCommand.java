@@ -2,6 +2,7 @@ package net.polydawn.mdm.commands;
 
 import java.io.*;
 import net.polydawn.mdm.*;
+import net.polydawn.mdm.jgit.*;
 import net.polydawn.mdm.test.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
@@ -14,6 +15,11 @@ import us.exultant.ahs.iob.*;
 public class TestMdmAddCommand extends TestCaseUsingRepository {
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
+
+	static {
+		// apply fixes for questionable jgit behavior
+		SystemReaderFilteringProxy.apply();
+	}
 
 	static final String pathReleaseRepo1 = "releaseRepo1";
 	static final String pathReleaseRepo2 = "releaseRepo2";
