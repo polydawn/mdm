@@ -1,11 +1,14 @@
 package net.polydawn.mdm.commands;
 
 import java.io.*;
+import net.polydawn.mdm.*;
 import net.polydawn.mdm.test.*;
+import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.junit.*;
 import org.junit.rules.*;
 import org.junit.runner.*;
+import us.exultant.ahs.iob.*;
 
 @RunWith(OrderedJUnit4ClassRunner.class)
 public class TestMdmAddCommand extends TestCaseUsingRepository {
@@ -24,14 +27,21 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 	Repository releaseRepo2;
 	Repository projectRepo1;
 	Repository projectRepo2;
-	MdmAddCommand cmd;
 
 	@Before
-	public void setUp2() throws IOException {
+	public void setUp2() throws IOException, MdmExitMessage, ConfigInvalidException, MdmException {
 		releaseRepo1 = setUpReleaseRepo(pathReleaseRepo1);
 		releaseRepo2 = setUpReleaseRepo(pathReleaseRepo2);
 		projectRepo1 = setUpPlainRepo(pathProjectRepo1);
 		projectRepo2 = setUpPlainRepo(pathProjectRepo2);
+
+		IOForge.saveFile("alpha", new File("./a").getCanonicalFile());
+		MdmReleaseCommand cmd = new MdmReleaseCommand(null);
+		cmd.relRepoPath = new File(pathReleaseRepo1).getCanonicalPath();
+		cmd.version = "v1";
+		cmd.inputPath = "a";
+		cmd.validate();
+		cmd.call();
 	}
 
 	private static Repository setUpPlainRepo(String path) throws IOException {
@@ -53,10 +63,14 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 	}
 
 	@Test
-	public void testsss() throws Exception {
-		cmd = new MdmAddCommand(null);
-		// cmd.path = new File(pathProjectRepo1).getCanonicalPath();
-		// cmd.validate();
-		// cmd.assertSomething();
+	public void testAddFromLocalRelrepWithSingleVersion() throws Exception {
+		 // FIXME java's hostility to the concept of "setCwd" is making this painfully complicated again
+		MdmAddCommand cmd = new MdmAddCommand(projectRepo1);
+		cmd.url = pathReleaseRepo1;
+		cmd.name = "depname";
+		cmd.pathLibs = new File("lib").getCanonicalFile();
+		cmd.version = "v1";
+		cmd.validate();
+		assertJoy(cmd.call());
 	}
 }
