@@ -70,13 +70,14 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 
 	@Test
 	public void testAddFromLocalRelrepWithSingleVersion() throws Exception {
-		 // FIXME java's hostility to the concept of "setCwd" is making this painfully complicated again
-		MdmAddCommand cmd = new MdmAddCommand(projectRepo1);
-		cmd.url = pathReleaseRepo1;
-		cmd.name = "depname";
-		cmd.pathLibs = new File("lib").getCanonicalFile();
-		cmd.version = "v1";
-		cmd.validate();
-		assertJoy(cmd.call());
+		WithCwd wd = new WithCwd(pathProjectRepo1); {
+			MdmAddCommand cmd = new MdmAddCommand(projectRepo1);
+			cmd.url = new File(".", "../"+pathReleaseRepo1).getCanonicalFile().toString(); // this one just because git doesn't much care for relative urls
+			cmd.name = "depname";
+			cmd.pathLibs = new File("lib");
+			cmd.version = "v1";
+			cmd.validate();
+			assertJoy(cmd.call());
+		} wd.close();
 	}
 }

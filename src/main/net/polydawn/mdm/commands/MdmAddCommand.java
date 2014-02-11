@@ -78,7 +78,8 @@ public class MdmAddCommand extends MdmCommand {
 
 	String name;
 
-	/** Path to the library folder.  The submodule target location will be "{@link #pathLibs}/{@link #name}".*/
+	/** Path to the library folder.  The submodule target location will be "{@link #pathLibs}/{@link #name}".
+	 * Can *not* be an absolute path; must be relative to the cwd (which in turn must be the repo root). */
 	File pathLibs;
 
 	String version;
