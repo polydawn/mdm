@@ -36,11 +36,7 @@ public class TestCaseUsingRepository {
 	@After
 	public void cleanup() {
 		if (wd != null) {
-			try {
-				wd.close();
-			} catch (IOException e) {
-				/* no, not really. */
-			}
+			wd.close();
 			wd = null;
 		}
 		Iterator<File> itr = testDirs.iterator();

@@ -23,7 +23,7 @@ public class WithCwd implements Closeable /*, Autocloseable */ {
 		System.getProperties().setProperty("user.dir", dir.toString());
 	}
 
-	public void close() throws IOException {
+	public void close() {
 		cd(popDir);
 	}
 }
