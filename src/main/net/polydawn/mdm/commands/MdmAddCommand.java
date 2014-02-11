@@ -119,7 +119,8 @@ public class MdmAddCommand extends MdmCommand {
 			return new MdmExitMessage(":(", "no version labelled "+version+" available from the provided remote url.");
 
 		// finally, let's actually do the submodule/dependency adding
-		doSubmoduleConfig(path);
+		Config config = doSubmoduleConfig(path);
+		doSubmoduleFetch(path, config);
 
 		// commit the changes
 		doGitStage(path);
