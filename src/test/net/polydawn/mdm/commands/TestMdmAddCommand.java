@@ -83,9 +83,15 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 			assertJoy(cmd.call());
 		} wd.close();
 
+		File depPath = new File(pathProjectRepo1+"/lib/depname").getCanonicalFile();
+
+		// i do hope there's a filesystem there now
+		assertTrue("dependency module path exists on fs", depPath.exists());
+		assertTrue("dependency module path is dir", depPath.isDirectory());
+
 		// assert on the refs in the release module we added to the project repo
 		Collection<Ref> refs = new Git(projectRepo1).lsRemote()
-				.setRemote(new File(pathProjectRepo1+"/lib/depname").getCanonicalFile().toString())
+				.setRemote(depPath.toString())
 				.call();
 		List<String> refNames = new ArrayList<String>(refs.size());
 		for (Ref r : refs) refNames.add(r.getName());
@@ -93,5 +99,9 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 		assertTrue("release branch present in dependency module", refNames.contains("refs/heads/mdm/release/v1"));
 		assertTrue("release tag present in dependency module", refNames.contains("refs/tags/release/v1"));
 		assertEquals("exactly these three refs present in dependency module", 3, refNames.size());
+
+		// check the actual desired artifacts are inside the release module location
+		assertEquals("exactly two files exist (.git and the arifact)", 2, depPath.listFiles().length);
+		assertEquals("content of artifact is correct", "alpha", IOForge.readFileAsString(new File(depPath, "a")));
 	}
 }
