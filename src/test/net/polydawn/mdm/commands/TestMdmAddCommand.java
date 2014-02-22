@@ -1,9 +1,12 @@
 package net.polydawn.mdm.commands;
 
+import static org.junit.Assert.*;
 import java.io.*;
+import java.util.*;
 import net.polydawn.mdm.*;
 import net.polydawn.mdm.jgit.*;
 import net.polydawn.mdm.test.*;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.junit.*;
@@ -79,5 +82,16 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 			cmd.validate();
 			assertJoy(cmd.call());
 		} wd.close();
+
+		// assert on the refs in the release module we added to the project repo
+		Collection<Ref> refs = new Git(projectRepo1).lsRemote()
+				.setRemote(new File(pathProjectRepo1+"/lib/depname").getCanonicalFile().toString())
+				.call();
+		List<String> refNames = new ArrayList<String>(refs.size());
+		for (Ref r : refs) refNames.add(r.getName());
+		assertTrue("head ref present in dependency module", refNames.contains("HEAD"));
+		assertTrue("release branch present in dependency module", refNames.contains("refs/heads/mdm/release/v1"));
+		assertTrue("release tag present in dependency module", refNames.contains("refs/tags/release/v1"));
+		assertEquals("exactly these three refs present in dependency module", 3, refNames.size());
 	}
 }
