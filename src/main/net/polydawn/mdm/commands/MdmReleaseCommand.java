@@ -37,8 +37,8 @@ import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.util.*;
 
 public class MdmReleaseCommand extends MdmCommand {
-	public MdmReleaseCommand(Repository repo, Namespace args) {
-		super(repo, args);
+	public MdmReleaseCommand(Repository repo) {
+		super(repo);
 	}
 
 	public void parse(Namespace args) {
