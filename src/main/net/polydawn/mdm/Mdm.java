@@ -66,6 +66,8 @@ public class Mdm {
 			cmd.parse(parsedArgs);
 			cmd.validate();
 			return cmd.call();
+		} catch (MdmExitMessage e) {
+			return e;
 		} catch (MdmRuntimeException e) {
 			return new MdmExitMessage(":'(", e.getMessage());
 		} catch (MdmException e) {
