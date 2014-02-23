@@ -33,14 +33,14 @@ public final class MdmModuleDependency extends MdmModule {
 		String versionActual = null;
 		if (repo != null)
 			try {
-				List<Ref> tags = new Git(repo).tagList().call();
+				List<Ref> tags = new Git(repo).branchList().call();
 				for (Ref tag : tags) {
 					if (tag.getObjectId().equals(getHeadId())) {
 						String[] tagChunks = tag.getName().split("/");
-						// for all tags, index 0 is 'refs', and 1 is 'tags'.
-						if (tagChunks[2].equals("release") && tagChunks.length > 2) {
+						// for all branches, index 0 is 'refs', and 1 is 'heads'.
+						if (tagChunks[2].equals("mdm") && tagChunks[3].equals("release") && tagChunks.length > 3) {
 							versionActual = "";
-							for (int i = 3; i < tagChunks.length; i++)
+							for (int i = 4; i < tagChunks.length; i++)
 								versionActual += tagChunks[i];
 							break;
 						}
