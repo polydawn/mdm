@@ -113,7 +113,10 @@
 	</target>
 
 
-	<target name="run-mdma" depends="dist-packed">
+	<target name="run-mdma"
+		depends="dist-packed"
+		description="runs the 'mdma' acceptance test script"
+		>
 		<!-- actually, just running this in a shell can be nicer since then you don't have ant dicking up your output buffering in strange ways:
 			ant clean dist && export MDM=$(pwd)/dist/mdm MDMA=$(pwd)/mdma.sh && ( cd /tmp/ ;  rm -rf mdm-demo/ ; $MDMA -t )
 		-->
@@ -133,7 +136,10 @@
 	</target>
 
 
-	<target name="run-test" depends="compile, compile-test">
+	<target name="run-test"
+		depends="compile, compile-test"
+		description="runs junit tests"
+		>
 		<property name="mdm.test.dir" value="${java.io.tmpdir}/mdm-test"/>
 		<mkdir dir="${mdm.test.dir}"/>
 		<junit printsummary="off" haltonfailure="yes" dir="${mdm.test.dir}" newenvironment="true">
