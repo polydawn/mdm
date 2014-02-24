@@ -65,6 +65,7 @@ public class MdmReleaseCommand extends MdmCommand {
 		MdmModuleRelease relModule = loadReleaseModule();
 		Repository relRepo = relModule.getRepo();
 
+		relModule.assertPresentsAsReleaseRepo();
 		assertReleaseRepoDoesntAlreadyContain(relModule, version);
 		assertReleaseRepoClean(relModule);
 
