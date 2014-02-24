@@ -75,17 +75,28 @@ public class MdmModuleRelease extends MdmModule {
 
 	private MdmModuleRelease(Repository repo, String handle, Repository parentRepo, Config gitmodulesCfg, ObjectId indexId) throws MdmModuleTypeException, MdmRepositoryIOException {
 		super(repo, handle, parentRepo, gitmodulesCfg, indexId);
-		try {
-			if (repo.getRef("refs/heads/mdm/init") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
-				throw new MdmModuleReleaseNeedsBranch(handle, "mdm/init");
-			if (repo.getRef("refs/heads/master") == null)		// check that the releases-repo has the branches we expect from an mdm releases repo
-				throw new MdmModuleReleaseNeedsBranch(handle, "master");
-		} catch (IOException e) {
-			throw new MdmRepositoryIOException(false, handle, e);
-		}
 	}
 
 	public MdmModuleType getType() {
 		return MdmModuleType.RELEASES;
+	}
+
+	/**
+	 * Check branch structure to see if the repo currently presents itself as a releases repository.
+	 */
+	public void assertPresentsAsReleaseRepo() {
+		try {
+			// we can have a gitlink committed in parent, but no repo currently present.
+			if (repo == null)
+				throw new MdmRepositoryNonexistant(getHandle());
+			// check that the releases-repo has the branches we expect from an mdm releases repo
+			// TODO: both of these checks are the kind that don't well understand remote tracking branches without locals
+			if (repo.getRef("refs/heads/mdm/init") == null)
+				throw new MdmModuleReleaseNeedsBranch(getHandle(), "mdm/init");
+			if (repo.getRef("refs/heads/master") == null)
+				throw new MdmModuleReleaseNeedsBranch(getHandle(), "master");
+		} catch (IOException e) {
+			throw new MdmRepositoryIOException(false, getHandle(), e);
+		}
 	}
 }

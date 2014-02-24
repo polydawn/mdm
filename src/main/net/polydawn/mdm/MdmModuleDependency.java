@@ -33,17 +33,24 @@ public final class MdmModuleDependency extends MdmModule {
 		String versionActual = null;
 		if (repo != null)
 			try {
-				List<Ref> tags = new Git(repo).tagList().call();
+				List<Ref> tags = new Git(repo).branchList().call();
 				for (Ref tag : tags) {
 					if (tag.getObjectId().equals(getHeadId())) {
 						String[] tagChunks = tag.getName().split("/");
-						// for all tags, index 0 is 'refs', and 1 is 'tags'.
-						if (tagChunks[2].equals("release") && tagChunks.length > 2) {
-							versionActual = "";
-							for (int i = 3; i < tagChunks.length; i++)
-								versionActual += tagChunks[i];
-							break;
-						}
+						// An example release branch name is "refs/heads/mdm/release/v1".
+						// All release branch names must have at least those four prefix chunks (and thus at minimum five chunks total).
+						// For all branches, index 0 is 'refs', and 1 is 'heads', so we skip that check (branchList() already did that).
+						if (tagChunks.length < 5) continue;
+						if (!tagChunks[2].equals("mdm")) continue;
+						if (!tagChunks[3].equals("release")) continue;
+						// Found a release branch pattern.  Take the rest as version name.
+						StringBuilder vab = new StringBuilder();
+						for (int i = 4; i < tagChunks.length; i++)
+							// Note that we're trying to be nice to version names with slashes in them here, but really, that's not a
+							// generally supported feature (and trying to create a release with such a name is rejected by `mdm release`).
+							vab.append(tagChunks[i]).append('/');
+						versionActual = vab.substring(0, vab.length()-1);
+						break;
 					}
 				}
 			} catch (GitAPIException e) {}

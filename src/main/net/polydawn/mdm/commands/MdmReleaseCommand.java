@@ -65,6 +65,7 @@ public class MdmReleaseCommand extends MdmCommand {
 		MdmModuleRelease relModule = loadReleaseModule();
 		Repository relRepo = relModule.getRepo();
 
+		relModule.assertPresentsAsReleaseRepo();
 		assertReleaseRepoDoesntAlreadyContain(relModule, version);
 		assertReleaseRepoClean(relModule);
 
@@ -138,6 +139,9 @@ public class MdmReleaseCommand extends MdmCommand {
 				commit.setCommitter(convergenceIdent);
 			}
 			commit.call();
+
+			// this tag will be removed in a future release, as it's no longer required for any structural purpose
+			// (long long ago in a galaxy far away, this was used as an easy way for `mdm status` to report version names... but execing `git describe --tags` hasn't been the way we do this anymore for a long time now)
 			new Git(relRepo).tag()
 				.setName("release/"+version)
 				.setAnnotated(false)
