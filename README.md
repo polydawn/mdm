@@ -220,7 +220,7 @@ Building from Source
 Clone this repo, pull down submodules, and then call ```ant``` to build.  In other words:
 
 ```bash
-git clone https://github.com/heavenlyhash/mdm
+git clone https://github.com/polydawn/mdm.git
 cd mdm
 git submodule update --init
 ant
@@ -234,11 +234,11 @@ Downloading a release
 
 Browse the releases repo!
 
-https://github.com/heavenlyhash-releases/mdm-releases/
+https://github.com/mdm-releases/mdm-releases/
 
 The latest version is v2.14.0, available here:
 
-https://raw.github.com/heavenlyhash-releases/mdm-releases/master/v2.14.0/mdm
+https://raw.github.com/mdm-releases/mdm-releases/master/v2.14.0/mdm
 
 
 Testing MDM
