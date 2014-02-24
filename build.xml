@@ -36,10 +36,12 @@
 	<path id="mdm.path.deps.test">
 		<path refid="mdm.path.main" />
 		<pathelement location="${lib}/junit/junit.jar"/>
+		<pathelement location="${target.javac}/test-fixtures" />
 	</path>
 	<path id="mdm.path.test">
 		<path refid="mdm.path.deps.test" />
-		<pathelement location="${target.javac}/test" />
+		<pathelement location="${target.javac}/test-unit" />
+		<pathelement location="${target.javac}/test-integration" />
 	</path>
 
 
@@ -130,7 +132,15 @@
 
 	<target name="compile-test" depends="compile">
 		<exusJavac
-			tree="test"
+			tree="test-fixtures"
+			depends="${toString:mdm.path.deps.test}"
+		/>
+		<exusJavac
+			tree="test-unit"
+			depends="${toString:mdm.path.deps.test}"
+		/>
+		<exusJavac
+			tree="test-integration"
 			depends="${toString:mdm.path.deps.test}"
 		/>
 	</target>
@@ -144,14 +154,13 @@
 		<mkdir dir="${mdm.test.dir}"/>
 		<junit printsummary="off" haltonfailure="yes" dir="${mdm.test.dir}" newenvironment="true">
 			<formatter type="plain" usefile="false" />
-
 			<classpath refid="mdm.path.test"/>
-
 			<batchtest fork="yes">
-				<fileset dir="${target.javac}/test">
-					<include name="net/polydawn/${app}/commands/*Test*.class"/>
-					<include name="net/polydawn/${app}/jgit/*Test*.class"/>
-					<include name="net/polydawn/${app}/util/*Test*.class"/>
+				<fileset dir="${target.javac}/test-unit">
+					<include name="**/*Test*.class"/>
+				</fileset>
+				<fileset dir="${target.javac}/test-integration">
+					<include name="**/*Test*.class"/>
 				</fileset>
 			</batchtest>
 		</junit>

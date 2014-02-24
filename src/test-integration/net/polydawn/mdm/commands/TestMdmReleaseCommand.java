@@ -27,7 +27,7 @@ public class TestMdmReleaseCommand extends TestCaseUsingRepository {
 		cmd.call();
 	}
 
-	public void prepareParentedReleaseRepo(String path) throws Exception {
+	public void prepareParentedReleaseRepo(String path) throws Exception { //...unused?!
 		parentRepo = new RepositoryBuilder()
 			.setWorkTree(new File(path).getCanonicalFile())
 			.build();
