@@ -16,6 +16,7 @@
 	<property name="exus.build.java.version.target" value="1.6"/>
 
 	<import file="lib/exus-build/build-exultant.xml"/>
+	<import file="lib/exus-build/build-exultant-java.xml"/>
 
 
 	<target name="init" depends="exusInit">
@@ -30,7 +31,7 @@
 	</path>
 	<path id="mdm.path.main">
 		<path refid="mdm.path.deps.main" />
-		<pathelement location="${build}/main" />
+		<pathelement location="${target.javac}/main" />
 	</path>
 	<path id="mdm.path.deps.test">
 		<path refid="mdm.path.main" />
@@ -38,7 +39,7 @@
 	</path>
 	<path id="mdm.path.test">
 		<path refid="mdm.path.deps.test" />
-		<pathelement location="${build}/test" />
+		<pathelement location="${target.javac}/test" />
 	</path>
 
 
@@ -57,7 +58,7 @@
 			<manifest>
 				<attribute name="Main-Class" value="net.polydawn.${app}.Mdm"/>
 			</manifest>
-			<fileset file="${build}/main/**"/>
+			<fileset file="${target.javac}/main/**"/>
 			<zipfileset src="${lib}/jgit/jgit.jar" includes="**/*.class org/**/*.properties"/>
 			<zipfileset src="${lib}/ahslib/ahslib-core.jar" includes="**/*.class"/>
 			<zipfileset src="${lib}/argparse4j/argparse4j.jar" includes="**/*.class"/>
@@ -108,8 +109,7 @@
 
 
 	<target name="clean" description="clean up">
-		<delete dir="${build}"/>
-		<delete dir="${dist}"/>
+		<delete dir="${target}"/>
 	</target>
 
 
@@ -148,7 +148,7 @@
 			<classpath refid="mdm.path.test"/>
 
 			<batchtest fork="yes">
-				<fileset dir="${build}/test">
+				<fileset dir="${target.javac}/test">
 					<include name="net/polydawn/${app}/commands/*Test*.class"/>
 					<include name="net/polydawn/${app}/jgit/*Test*.class"/>
 					<include name="net/polydawn/${app}/util/*Test*.class"/>
