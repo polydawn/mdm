@@ -214,8 +214,25 @@ So, there's a couple of implications of that:
 Getting MDM
 ===========
 
-Building from Source
---------------------
+Building from Source, without mdm
+---------------------------------
+
+Clone this repo, pull down submodules, and then call ```ant``` to build.  In other words:
+
+```bash
+git clone https://github.com/polydawn/mdm.git
+cd mdm
+git submodule update --init --checkout
+ant
+```
+
+The freshly built ```mdm``` binary will now be located at ```target/dist/mdm```, ready to go.
+
+Typically, however, mdm uses mdm to manage its own dependencies, and this results in sigificantly less onerous download times and on-disk size.  This mechanism of bootstrapping dependency submodules works with plain git, but unnecessarily downloads all versions of dependencies, instead of only fetching the versions we need.
+
+
+Building from Source, *with* mdm
+--------------------------------
 
 Clone this repo, pull down submodules, and then call ```ant``` to build.  In other words:
 
@@ -223,6 +240,7 @@ Clone this repo, pull down submodules, and then call ```ant``` to build.  In oth
 git clone https://github.com/polydawn/mdm.git
 cd mdm
 git submodule update --init
+mdm update
 ant
 ```
 
