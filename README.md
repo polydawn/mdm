@@ -214,19 +214,39 @@ So, there's a couple of implications of that:
 Getting MDM
 ===========
 
-Building from Source
---------------------
+Building from Source, without mdm
+---------------------------------
 
 Clone this repo, pull down submodules, and then call ```ant``` to build.  In other words:
 
 ```bash
-git clone https://github.com/heavenlyhash/mdm
+git clone https://github.com/polydawn/mdm.git
 cd mdm
-git submodule update --init
+git submodule update --init --checkout
 ant
 ```
 
-The freshly built ```mdm``` binary will now be located at ```dist/mdm```, ready to go.
+The freshly built ```mdm``` binary will now be located at ```target/dist/mdm```, ready to go.
+
+Typically, however, mdm uses mdm to manage its own dependencies, and this results in sigificantly less onerous download times and on-disk size.  This mechanism of bootstrapping dependency submodules works with plain git, but unnecessarily downloads all versions of dependencies, instead of only fetching the versions we need.
+
+(The `--checkout` option on `git submodule update` asks git to disregrad instructions in the `.gitmodules` about whether or not to fetch a submodule.  `mdm` marks dependency repos such that a normal `git submodule update` will not fetch them by default, since `git submodule update` will fetch more data than necessary.)
+
+
+Building from Source, *with* mdm
+--------------------------------
+
+Clone this repo, pull down submodules, and then call ```ant``` to build.  In other words:
+
+```bash
+git clone https://github.com/polydawn/mdm.git
+cd mdm
+git submodule update --init
+mdm update
+ant
+```
+
+The freshly built ```mdm``` binary will now be located at ```target/dist/mdm```, ready to go.
 
 
 Downloading a release
@@ -234,11 +254,11 @@ Downloading a release
 
 Browse the releases repo!
 
-https://github.com/heavenlyhash-releases/mdm-releases/
+https://github.com/mdm-releases/mdm-releases/
 
-The latest version is v2.13.0, available here:
+The latest version is v2.14.0, available here:
 
-https://raw.github.com/heavenlyhash-releases/mdm-releases/master/v2.13.0/mdm
+https://raw.github.com/mdm-releases/mdm-releases/master/v2.14.0/mdm
 
 
 Testing MDM
@@ -248,7 +268,9 @@ There's a script called ```mdma.sh``` in this repository.
 Once you've gotten ahold of an ```mdm``` binary (either by building it from source or downloading an official release),
 you can use the mdma script to put mdm through its paces --
 it will create projects, make releases, and set up dependencies as you watch, and it pauses frequently if you want to take a peek around at the state of the demo projects.
+This script can also be invoked as part of a build cycle: `ant run-mdma`.
 
+Mdm is also covered by tests using junit.  These tests can be built and ran with `ant run-test`.
 
 
 Other Notes
