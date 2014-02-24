@@ -226,7 +226,7 @@ git submodule update --init
 ant
 ```
 
-The freshly built ```mdm``` binary will now be located at ```dist/mdm```, ready to go.
+The freshly built ```mdm``` binary will now be located at ```target/dist/mdm```, ready to go.
 
 
 Downloading a release
