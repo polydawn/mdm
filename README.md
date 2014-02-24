@@ -248,7 +248,9 @@ There's a script called ```mdma.sh``` in this repository.
 Once you've gotten ahold of an ```mdm``` binary (either by building it from source or downloading an official release),
 you can use the mdma script to put mdm through its paces --
 it will create projects, make releases, and set up dependencies as you watch, and it pauses frequently if you want to take a peek around at the state of the demo projects.
+This script can also be invoked as part of a build cycle: `ant run-mdma`.
 
+Mdm is also covered by tests using junit.  These tests can be built and ran with `ant run-test`.
 
 
 Other Notes
