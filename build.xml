@@ -24,7 +24,7 @@
 
 
 	<path id="mdm.path.deps.main" cache="true">
-		<pathelement location="${lib}/jgit/jgit.jar"/>
+		<pathelement location="${lib}/jgit/org.eclipse.jgit.jar"/>
 		<pathelement location="${lib}/ahslib/ahslib-core.jar"/>
 		<pathelement location="${lib}/argparse4j/argparse4j.jar"/>
 		<pathelement location="${lib}/jsch/jsch.jar"/>
@@ -61,7 +61,7 @@
 				<attribute name="Main-Class" value="net.polydawn.${app}.Mdm"/>
 			</manifest>
 			<fileset file="${target.javac}/main/**"/>
-			<zipfileset src="${lib}/jgit/jgit.jar" includes="**/*.class org/**/*.properties"/>
+			<zipfileset src="${lib}/jgit/org.eclipse.jgit.jar" includes="**/*.class org/**/*.properties"/>
 			<zipfileset src="${lib}/ahslib/ahslib-core.jar" includes="**/*.class"/>
 			<zipfileset src="${lib}/argparse4j/argparse4j.jar" includes="**/*.class"/>
 			<zipfileset src="${lib}/jsch/jsch.jar" includes="**/*.class"/>
