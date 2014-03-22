@@ -284,7 +284,7 @@ public class MdmReleaseCommand extends MdmCommand {
 	 */
 	void assertReleaseRepoClean(MdmModuleRelease relModule) throws MdmExitMessage {
 		if (relModule.hasDirtyFiles())
-			throw new MdmExitMessage(":(", "there is uncommitted changes in the release repo.  cannot release.");
+			throw new MdmExitMessage(":(", "there are uncommitted changes in the release repo.  cannot release.");
 	}
 
 	/**
