@@ -8,7 +8,6 @@ import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.*;
-import us.exultant.ahs.util.*;
 
 public class FixtureUtil {
 	public static Repository setUpPlainRepo(String path) {
@@ -19,7 +18,7 @@ public class FixtureUtil {
 			repo.create(false);
 			return repo;
 		} catch (IOException e) {
-			throw new MajorBug(e);
+			throw new FixtureSetupError(e);
 		}
 	}
 
@@ -34,11 +33,11 @@ public class FixtureUtil {
 				.build();
 			return releaserepo;
 		} catch (IOException e) {
-			throw new MajorBug(e);
+			throw new FixtureSetupError(e);
 		} catch (ConfigInvalidException e) {
-			throw new MajorBug(e);
+			throw new FixtureSetupError(e);
 		} catch (MdmException e) {
-			throw new MajorBug(e);
+			throw new FixtureSetupError(e);
 		}
 	}
 

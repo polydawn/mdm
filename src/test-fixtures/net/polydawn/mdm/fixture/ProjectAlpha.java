@@ -33,7 +33,7 @@ public class ProjectAlpha implements Fixture {
 		} catch (NoFilepatternException e) {
 			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
 		} catch (GitAPIException e) {
-			throw new MajorBug(e);
+			throw new FixtureSetupError(e);
 		}
 
 		try {
@@ -44,15 +44,15 @@ public class ProjectAlpha implements Fixture {
 		} catch (NoMessageException e) {
 			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
 		} catch (NoHeadException e) {
-			throw new MajorBug(e);
+			throw new FixtureSetupError(e);
 		} catch (UnmergedPathsException e) {
-			throw new MajorBug(e);
+			throw new FixtureSetupError(e);
 		} catch (ConcurrentRefUpdateException e) {
-			throw new MajorBug(e);
+			throw new FixtureSetupError(e);
 		} catch (WrongRepositoryStateException e) {
-			throw new MajorBug(e);
+			throw new FixtureSetupError(e);
 		} catch (GitAPIException e) {
-			throw new MajorBug(e);
+			throw new FixtureSetupError(e);
 		}
 	}
 
