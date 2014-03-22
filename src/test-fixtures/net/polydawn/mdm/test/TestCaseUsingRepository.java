@@ -3,9 +3,15 @@ package net.polydawn.mdm.test;
 import static org.junit.Assert.*;
 import java.io.*;
 import net.polydawn.mdm.*;
+import net.polydawn.mdm.jgit.*;
 import org.junit.*;
 
 public class TestCaseUsingRepository {
+	static {
+		// apply fixes for questionable jgit behavior
+		SystemReaderFilteringProxy.apply();
+	}
+
 	private WithCwd wd;
 
 	@After
