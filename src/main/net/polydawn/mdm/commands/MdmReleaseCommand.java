@@ -56,10 +56,10 @@ public class MdmReleaseCommand extends MdmCommand {
 
 	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("^(.*)-releases(?:.git)?$");
 
-	String relRepoPath;
-	String version;
+	public String relRepoPath;
+	public String version;
 	String snapshotPath;
-	String inputPath;
+	public String inputPath;
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException, MdmExitMessage {
 		MdmModuleRelease relModule = loadReleaseModule();
