@@ -11,7 +11,7 @@ public class TestCaseUsingRepository {
 	@After
 	public void cleanup() {
 		if (wd != null) {
-			wd.close();
+			wd.clear();
 			wd = null;
 		}
 	}

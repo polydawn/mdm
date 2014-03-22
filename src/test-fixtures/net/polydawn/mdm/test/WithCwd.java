@@ -66,6 +66,10 @@ public class WithCwd implements Closeable /*, Autocloseable */ {
 
 	public void close() {
 		cd(popDir);
+	}
+
+	public void clear() {
+		close();
 		delete(pushedDir);
 	}
 
