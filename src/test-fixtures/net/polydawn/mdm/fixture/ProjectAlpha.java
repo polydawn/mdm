@@ -1,11 +1,14 @@
 package net.polydawn.mdm.fixture;
 
 import static net.polydawn.mdm.fixture.FixtureUtil.*;
+import static org.junit.Assert.*;
 import java.io.*;
+import java.util.*;
 import net.polydawn.mdm.test.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.*;
+import org.junit.*;
 import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 
@@ -57,5 +60,21 @@ public class ProjectAlpha implements Fixture {
 
 	public Repository getRepo() {
 		return repo;
+	}
+
+
+
+	public static class SanityCheck {
+		@Test
+		public void sanityCheck() throws IOException {
+			WithCwd wd = WithCwd.temp(); {
+				Repository repo = new ProjectAlpha("proj").getRepo();
+				List<String> paths = listTreePaths(repo, "refs/heads/master");
+				assertEquals("two committed files", 2, paths.size());
+				int i = 0;
+				assertEquals("alpha", paths.get(i++));
+				assertEquals("dir/alpha2", paths.get(i++));
+			} wd.clear();
+		}
 	}
 }
