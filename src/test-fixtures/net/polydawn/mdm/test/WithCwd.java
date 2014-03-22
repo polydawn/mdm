@@ -15,6 +15,7 @@ public class WithCwd implements Closeable /*, Autocloseable */ {
 	public WithCwd(File relPath) {
 		popDir = new File(System.getProperties().getProperty("user.dir"));
 		pushedDir = relPath.isAbsolute() ? relPath : new File(popDir, relPath.toString());
+		pushedDir.mkdirs();
 		cd(pushedDir);
 	}
 
