@@ -3,6 +3,7 @@ package net.polydawn.mdm.commands;
 import static org.junit.Assert.*;
 import java.io.*;
 import java.util.*;
+import net.polydawn.mdm.*;
 import net.polydawn.mdm.fixture.*;
 import net.polydawn.mdm.test.*;
 import org.eclipse.jgit.api.*;
@@ -52,5 +53,24 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 		// check the actual desired artifacts are inside the release module location
 		assertEquals("exactly two files exist (.git and the artifact)", 2, depPath.listFiles().length);
 		assertEquals("content of artifact is correct", "alpha release", IOForge.readFileAsString(new File(depPath, "alpha")));
+	}
+
+	@Test
+	public void testAddNonexistingVersionFails() throws Exception {
+		Fixture project = new ProjectAlpha("projectRepo");
+		Fixture releases = new ProjectAlphaReleases("projectRepo-releases");
+
+		WithCwd wd = new WithCwd(project.getRepo().getWorkTree());
+		MdmAddCommand cmd = new MdmAddCommand(project.getRepo());
+		cmd.url = releases.getRepo().getWorkTree().toString();
+		cmd.name = "depname";
+		cmd.pathLibs = new File("lib");
+		cmd.version = "notaversion";
+		cmd.validate();
+		try {
+			cmd.call();
+			wd.close();
+			fail("adding should have failed, the requested version does not exist");
+		} catch (MdmExitMessage expected) {}
 	}
 }
