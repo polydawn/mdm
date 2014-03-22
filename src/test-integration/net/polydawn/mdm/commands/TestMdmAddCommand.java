@@ -1,5 +1,6 @@
 package net.polydawn.mdm.commands;
 
+import static net.polydawn.mdm.fixture.FixtureUtil.*;
 import static org.junit.Assert.*;
 import java.io.*;
 import java.util.*;
@@ -51,24 +52,6 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 		cmd.inputPath = "a";
 		cmd.validate();
 		cmd.call();
-	}
-
-	private static Repository setUpPlainRepo(String path) throws IOException {
-		Repository repo = new RepositoryBuilder()
-			.setWorkTree(new File(path).getCanonicalFile())
-			.build();
-		repo.create(false);
-		return repo;
-	}
-
-	private static Repository setUpReleaseRepo(String path) throws IOException {
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null);
-		cmd.path = new File(path).getCanonicalPath();
-		cmd.validate();
-		Repository repo = cmd.makeReleaseRepo();
-		cmd.makeReleaseRepoFoundingCommit(repo);
-		cmd.makeReleaseRepoInitBranch(repo);
-		return repo;
 	}
 
 	@Test

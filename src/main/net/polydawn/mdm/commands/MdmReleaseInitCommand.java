@@ -116,7 +116,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 	}
 
 	String name;
-	String path;
+	public String path;
 	boolean asSubmodule;
 	String remotePublicUrl;
 	String remotePublishUrl;
