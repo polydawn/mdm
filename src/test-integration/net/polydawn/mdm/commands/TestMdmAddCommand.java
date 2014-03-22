@@ -75,6 +75,24 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 	}
 
 	@Test
+	public void testAddFromNonexistingRepoFails() throws Exception {
+		Fixture project = new ProjectAlpha("projectRepo");
+
+		WithCwd wd = new WithCwd(project.getRepo().getWorkTree());
+		MdmAddCommand cmd = new MdmAddCommand(project.getRepo());
+		cmd.url = "/most/certainly/not/a/release/repo/of/any/kind";
+		cmd.name = "depname";
+		cmd.pathLibs = new File("lib");
+		cmd.version = "v1";
+		cmd.validate();
+		try {
+			cmd.call();
+			fail("adding should have failed, the no release repo exists there");
+		} catch (MdmExitMessage expected) {}
+		wd.close();
+	}
+
+	@Test
 	public void testAddFromLocalRelrepWithMultipleVersions() throws Exception {
 		Fixture project = new ProjectAlpha("projectRepo");
 		Fixture releases = new ProjectBetaReleases("projectRepo-releases");
