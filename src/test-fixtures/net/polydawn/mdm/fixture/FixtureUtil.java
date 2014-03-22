@@ -8,25 +8,38 @@ import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.*;
+import us.exultant.ahs.util.*;
 
 public class FixtureUtil {
-	public static Repository setUpPlainRepo(String path) throws IOException {
-		Repository repo = new RepositoryBuilder()
-			.setWorkTree(new File(path).getCanonicalFile())
-			.build();
-		repo.create(false);
-		return repo;
+	public static Repository setUpPlainRepo(String path) {
+		try {
+			Repository repo = new RepositoryBuilder()
+				.setWorkTree(new File(path).getCanonicalFile())
+				.build();
+			repo.create(false);
+			return repo;
+		} catch (IOException e) {
+			throw new MajorBug(e);
+		}
 	}
 
-	public static Repository setUpReleaseRepo(String path) throws IOException, ConfigInvalidException, MdmException {
-		MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null);
-		cmd.path = new File(path).getCanonicalPath();
-		cmd.validate();
-		cmd.call();
-		Repository releaserepo = new RepositoryBuilder()
-			.setWorkTree(new File(path).getCanonicalFile())
-			.build();
-		return releaserepo;
+	public static Repository setUpReleaseRepo(String path) {
+		try {
+			MdmReleaseInitCommand cmd = new MdmReleaseInitCommand(null);
+			cmd.path = new File(path).getCanonicalPath();
+			cmd.validate();
+			cmd.call();
+			Repository releaserepo = new RepositoryBuilder()
+				.setWorkTree(new File(path).getCanonicalFile())
+				.build();
+			return releaserepo;
+		} catch (IOException e) {
+			throw new MajorBug(e);
+		} catch (ConfigInvalidException e) {
+			throw new MajorBug(e);
+		} catch (MdmException e) {
+			throw new MajorBug(e);
+		}
 	}
 
 	public static List<String> listTreePaths(Repository repo, String ref) throws IOException {
