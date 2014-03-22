@@ -50,7 +50,7 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 		assertEquals("exactly these three refs present in dependency module", 3, refNames.size());
 
 		// check the actual desired artifacts are inside the release module location
-		assertEquals("exactly two files exist (.git and the arifact)", 2, depPath.listFiles().length);
+		assertEquals("exactly two files exist (.git and the artifact)", 2, depPath.listFiles().length);
 		assertEquals("content of artifact is correct", "alpha release", IOForge.readFileAsString(new File(depPath, "alpha")));
 	}
 }
