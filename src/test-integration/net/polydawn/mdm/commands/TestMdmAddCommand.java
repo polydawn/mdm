@@ -69,9 +69,9 @@ public class TestMdmAddCommand extends TestCaseUsingRepository {
 		cmd.validate();
 		try {
 			cmd.call();
-			wd.close();
 			fail("adding should have failed, the requested version does not exist");
 		} catch (MdmExitMessage expected) {}
+		wd.close();
 	}
 
 	@Test
