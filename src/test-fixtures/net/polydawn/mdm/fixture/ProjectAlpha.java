@@ -64,17 +64,15 @@ public class ProjectAlpha implements Fixture {
 
 
 
-	public static class SanityCheck {
+	public static class SanityCheck extends TestCaseUsingRepository {
 		@Test
 		public void sanityCheck() throws IOException {
-			WithCwd wd = WithCwd.temp(); {
-				Repository repo = new ProjectAlpha("proj").getRepo();
-				List<String> paths = listTreePaths(repo, "refs/heads/master");
-				assertEquals("two committed files", 2, paths.size());
-				int i = 0;
-				assertEquals("alpha", paths.get(i++));
-				assertEquals("dir/alpha2", paths.get(i++));
-			} wd.clear();
+			Repository repo = new ProjectAlpha("proj").getRepo();
+			List<String> paths = listTreePaths(repo, "refs/heads/master");
+			assertEquals("two committed files", 2, paths.size());
+			int i = 0;
+			assertEquals("alpha", paths.get(i++));
+			assertEquals("dir/alpha2", paths.get(i++));
 		}
 	}
 }
