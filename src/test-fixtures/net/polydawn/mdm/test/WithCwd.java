@@ -43,18 +43,16 @@ public class WithCwd implements Closeable /*, Autocloseable */ {
 
 	static final File tmp = new File(System.getProperty("java.io.tmpdir"), "mdm-test");
 	private static final List<File> tmpdirs = new ArrayList<File>();
+	private static final boolean keep = !System.getProperty("keep", "false").equals("false");
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				System.gc();
 				Iterator<File> itr = tmpdirs.iterator();
-				while (itr.hasNext())
-					try {
-						IOForge.delete(itr.next());
-						itr.remove();
-					} catch (IOException e) {
-						System.err.println("failed to delete tmpdir: "+e.getMessage());
-					}
+				while (itr.hasNext()) {
+					delete(itr.next());
+					itr.remove();
+				}
 			}
 		});
 	}
@@ -68,6 +66,14 @@ public class WithCwd implements Closeable /*, Autocloseable */ {
 
 	public void close() {
 		cd(popDir);
-		pushedDir.delete();
+		delete(pushedDir);
+	}
+
+	private static void delete(File f) {
+		try {
+			if (!keep) IOForge.delete(f);
+		} catch (IOException e) {
+			System.err.println("failed to delete tmpdir: "+e.getMessage());
+		}
 	}
 }
