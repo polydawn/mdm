@@ -85,9 +85,7 @@ public class MdmAddCommand extends MdmCommand {
 	String version;
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
-		try {
-			assertInRepoRoot();
-		} catch (MdmExitMessage e) { return e; }
+		assertInRepoRoot();
 
 		// git's behavior of assuming relative urls should be relative to the remote origin instead of relative to the local filesystem is almost certainly not what you want.
 		if (url.startsWith("../") || url.startsWith("./"))
@@ -96,7 +94,7 @@ public class MdmAddCommand extends MdmCommand {
 		// give a look at the remote url and see what versions are physically available.
 		List<String> versions = fetchVersions();
 		if (versions.size() == 0)
-			return new MdmExitMessage(":(", "no releases could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.\nare you sure this is the releases repo?  keep in mind that the release repo and the source repo isn't the same for most projects -- check the project readme for the location of their release repo.");
+			throw new MdmExitMessage(":(", "no releases could be found at the url you gave for a releases repository -- it doesn't look like releases that mdm understands are there.\nare you sure this is the releases repo?  keep in mind that the release repo and the source repo isn't the same for most projects -- check the project readme for the location of their release repo.");
 
 		// if we didn't get a name argument yet, prompt for one.
 		// note that this is *after* we tried to check that something at least exists on the far side of the url, in order to minimize bother.
@@ -107,9 +105,9 @@ public class MdmAddCommand extends MdmCommand {
 
 		// check for presence of other crap here already.  (`git submodule add` will also do this, but it's a more pleasant user experience to check this before popping up a prompt for version name.)
 		if (path.exists())
-			return new MdmExitMessage(":'(", "there are already files at "+path+" !\nWe can't pull down a dependency there until this conflict is cleared away.");
+			throw new MdmExitMessage(":'(", "there are already files at "+path+" !\nWe can't pull down a dependency there until this conflict is cleared away.");
 		if (SubmoduleWalk.forIndex(repo).setFilter(PathFilter.create(path.getPath())).next())
-			return new MdmExitMessage(":'(", "there is already a submodule in the git index at "+path+" !\nWe can't pull down a dependency there until this conflict is cleared away.");
+			throw new MdmExitMessage(":'(", "there is already a submodule in the git index at "+path+" !\nWe can't pull down a dependency there until this conflict is cleared away.");
 
 		// if a specific version name was given, we'll just go straight at it; otherwise we present options interactively from the manifest of versions the remote reported.
 		if (version == null)
@@ -117,7 +115,7 @@ public class MdmAddCommand extends MdmCommand {
 
 		// check yourself before you wreck yourself
 		if (!versions.contains(version))
-			return new MdmExitMessage(":(", "no version labelled "+version+" available from the provided remote url.");
+			throw new MdmExitMessage(":(", "no version labelled "+version+" available from the provided remote url.");
 
 		// finally, let's actually do the submodule/dependency adding
 		Config config = doSubmoduleConfig(path);

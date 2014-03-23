@@ -56,10 +56,10 @@ public class MdmReleaseCommand extends MdmCommand {
 
 	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("^(.*)-releases(?:.git)?$");
 
-	String relRepoPath;
-	String version;
+	public String relRepoPath;
+	public String version;
 	String snapshotPath;
-	String inputPath;
+	public String inputPath;
 
 	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException, MdmExitMessage {
 		MdmModuleRelease relModule = loadReleaseModule();
@@ -284,7 +284,7 @@ public class MdmReleaseCommand extends MdmCommand {
 	 */
 	void assertReleaseRepoClean(MdmModuleRelease relModule) throws MdmExitMessage {
 		if (relModule.hasDirtyFiles())
-			throw new MdmExitMessage(":(", "there is uncommitted changes in the release repo.  cannot release.");
+			throw new MdmExitMessage(":(", "there are uncommitted changes in the release repo.  cannot release.");
 	}
 
 	/**
