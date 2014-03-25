@@ -1,6 +1,22 @@
 CHANGELOG
 =========
 
+v2.14.1
+-------
+
+- Fix issue where fetching from packfiles containing unrequested objects could create unnecessary refs in the local repo.
+  - This issue could previously appear when using a 'dumb' git transport on an aggressively packed remote repo (it was otherwise unlikely to cause problems since smart transports repack during transport), and could cause use of unnecessary repository space on disk.
+- Upgrade jgit dependency to version '3.3.0.201403021825-r'.
+- Additional testing; see git log for details.
+
+- Note: the v2.14.x series is expected to be the last version of mdm that produces tags on release commits!  As of v2.14.0 tags on release commits have been stripped of meaning and are ignored.
+
+(Side note on git transports: using mdm with an aggressively packed remote repo over a 'dumb' git transport is inadvisable, as it is likely to use unnecessary amounts of bandwidth; this is the nature of git dumb transports, not of an issue of mdm.
+Use of smart transports is recommended for most cases; fortunately this is what almost all currently popular git hosting services provide.
+Use of dumb transports is ironically recommended for advanced users only, and interested parties should read the man pages for git repack and git fetch carefully.)
+
+
+
 v2.14.0
 -------
 
@@ -8,7 +24,7 @@ v2.14.0
 - Fix problems operating on repositories with a releases repo link but missing a fully constructed releases repo.
 - Various bugfixes; additional testing; see git log for details.
 
-- Note: this will be the last version of mdm that produces tags on release commits!
+- Note: the v2.14.x series is expected to be the last version of mdm that produces tags on release commits!  As of v2.14.0 tags on release commits have been stripped of meaning and are ignored.
 
 
 
