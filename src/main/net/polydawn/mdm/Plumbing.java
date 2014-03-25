@@ -69,13 +69,18 @@ public class Plumbing {
 
 				/* Fetch only the branch labelled with the version requested. */
 				try {
-					RefSpec ref = new RefSpec()
+					RefSpec releaseBranchRef = new RefSpec()
 						.setForceUpdate(true)
 						.setSource("refs/heads/"+versionBranchName)
 						.setDestination("refs/heads/"+versionBranchName);
+					RefSpec releaseTagRef = new RefSpec()
+						.setForceUpdate(true)
+						.setSource("refs/tags/release/"+module.getVersionName())
+						.setDestination("refs/tags/release/"+module.getVersionName());
 					new Git(module.getRepo()).fetch()
 						.setRemote("origin")
-						.setRefSpecs(ref)
+						.setRefSpecs(releaseBranchRef, releaseTagRef)
+						.setTagOpt(TagOpt.NO_TAGS)
 						.call();
 				} catch (InvalidRemoteException e) {
 					throw new MdmRepositoryStateException("find a valid remote origin in the config for the submodule", module.getHandle(), e);
