@@ -111,8 +111,7 @@ And finally, ```mdm``` can be used as shorthand when making a fresh clone or per
 (though these actions can also be easily performed by stringing some git commands together; ```mdm``` is just being a bit of porcelain when used this way).
 
 
-Usage: Releasing:
------------------
+### Usage: Releasing:
 
 ```
 	mdm release --version v0.1.3 --files ./target/
@@ -139,8 +138,7 @@ Alternatively, if you're the cautious type, you may wish to perform your build, 
 ```mdm``` also doesn't actually push any of the commits it creates, so you can manipulate or reset the release commits if something goes wrong, then push when everything is perfect.
 
 
-Usage: Initializing a release system:
--------------------------------------------------------
+### Usage: Initializing a release system:
 
 When you're setting up a project to perform releases with ```mdm```, you need to not only create the git repository for that project, but also a repository for its releases.
 ```mdm``` will happily automate this too:
@@ -162,43 +160,37 @@ If you want to do some sort of non-canonical setup, the rest of mdm will play ni
 doing releases for example just requires that you run ```mdm``` with an extra argument, a la ```mdm release --repo=../my/weird/path/releases-repo```.
 
 
-Usage: Adding a Dependency:
----------------------------
+### Usage: Adding a Dependency:
 
 ```mdm add [URL]``` is the general form.
 Specifying a version is optional, because ```mdm``` will look for the available versions and interactively prompt you to choose one.
 A local name and local path for the dependency can optionally be specified as well.
 
 
-Usage: Updating all Dependencies:
----------------------------------
+### Usage: Updating all Dependencies:
 
 ```mdm update``` asks mdm to pull the correct versions of all dependencies into the current project.
 
 Run this command whenever you clone a new repo, or pull changes that add or remove or alter dependencies, or whenever you switch between branches that have different dependencies.
 
 
-Usage: Looking at Dependencies:
--------------------------------
+### Usage: Looking at Dependencies:
 
 ```mdm status``` will list the all of the dependencies managed by mdm in the current project, as well as what's currently checked out in the working tree.
 If there are any dependencies that are out of sync with where your current branch wants them to be, warnings to that effect will also be displayed.
 
 
-Usage: Changing a Dependency Version:
--------------------------------------
+### Usage: Changing a Dependency Version:
 
 ```mdm alter [NAME]``` looks at the releases repository for something you already depend on and lets you switch which version your project specifies.
 
 
-Usage: Dropping a Dependency:
------------------------------
+### Usage: Dropping a Dependency:
 
 ```mdm remove [NAME]``` removes a dependency from the repo's submodule config and the git hash tree, and tosses that repo.
 
 
-Usage: just in general...
--------------------------
+### Usage: just in general...
 
 You can add a ```-h``` to any of these commands and get specific help and a full list of all available options, including descriptions of behaviors and default values.
 So for example, ```mdm -h``` will tell you all of the subcommands of mdm; ```mdm add -h``` will list all possible options of the ```add``` subcommand in detail.
