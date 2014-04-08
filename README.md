@@ -260,6 +260,8 @@ https://raw.github.com/mdm-releases/mdm-releases/master/v2.14.1/mdm.jar
 Portability
 -----------
 
+Mdm is explicitly designed to be easily portable anywhere you can drop an archive-file-format-of-your-choice.
+
 Mdm is distributed as a java jar, and so requires a java runtime (1.6 and above is supported).
 (If you prefer not to deploy a JRE, consider using the [robovm compiler](http://www.robovm.com/) to produce native binaries for your platform of choice.)
 
@@ -267,6 +269,12 @@ Mdm has no external dependencies -- in particular, it does NOT require a system-
 (Mdm uses the excellent [jgit](http://eclipse.org/jgit/) project for a portable full-featured git implementation.)
 
 Mdm observes the name and email configured in your user gitconfig, but ignores all other values.
+
+Mdm is under 2 megabytes.  It fits on a jumpdrive -- and if it wasn't obvious by now,
+mdm certainly won't try to connect to the internet in order to download plugins before gracing you with a list of subcommands,
+nor will it put critical components of itself in your home directory just to surprise you by failing when you try to drag-and-drop the mdm executable.
+
+Long story short, it actually *makes sense* to ship mdm around in a completely offline/sneakernet fashion -- this is considered a critical design goal.
 
 
 Testing MDM
