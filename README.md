@@ -257,6 +257,18 @@ The latest version is v2.14.1, available here:
 https://raw.github.com/mdm-releases/mdm-releases/master/v2.14.1/mdm.jar
 
 
+Portability
+-----------
+
+Mdm is distributed as a java jar, and so requires a java runtime (1.6 and above is supported).
+(If you prefer not to deploy a JRE, consider using the [robovm compiler](http://www.robovm.com/) to produce native binaries for your platform of choice.)
+
+Mdm has no external dependencies -- in particular, it does NOT require a system-installed git, nor is it capable of breaking because of variations of system installed git versions.
+(Mdm uses the excellent [jgit](http://eclipse.org/jgit/) project for a portable full-featured git implementation.)
+
+Mdm observes the name and email configured in your user gitconfig, but ignores all other values.
+
+
 Testing MDM
 -----------
 
