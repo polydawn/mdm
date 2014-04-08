@@ -240,6 +240,10 @@ ant
 
 The freshly built ```mdm``` binary will now be located at ```target/dist/mdm```, ready to go.
 
+(In this project, there's both a `git submodule` as well as an `mdm` command during setup.
+This is because the project uses standard git submodules for linking source files, as well as using mdm for linking libraries.
+If your project just uses mdm, your project won't need a `git submodule update --init` step; the `mdm` command is self contained.)
+
 
 Downloading a release
 ---------------------
