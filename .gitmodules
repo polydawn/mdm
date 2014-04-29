@@ -28,7 +28,7 @@
 	path = lib/jgit
 	url = http://mdm-releases.com/org.eclipse.jgit/org.eclipse.jgit-releases.git
 	mdm = dependency
-	mdm-version = 3.3.0.201403021825-r.mvn
+	mdm-version = 3.3.2.201404171909-r.mvn
 	update = none
 [submodule "lib/argparse4j"]
 	path = lib/argparse4j

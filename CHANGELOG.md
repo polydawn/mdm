@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+v2.xx.x (unreleased)
+--------------------
+
+- Improve detection of mdm release repositories (accept an mdm/init branch from the origin remote as valid; this removes an extra setup step between cloning a release repo and being able to perform new releases).
+- Update to release process: we now ship a single executable.  Linux/mac environments should be able to execute this file directly.  (A `java` command on the system path is still required.)
+  - This removes the shell script previously included for use on linux/mac environments.
+- Upgrade jgit dependency to version '3.3.0.201403021825-r'.
+
+
+
 v2.14.1
 -------
 
@@ -8,8 +18,6 @@ v2.14.1
   - This issue could previously appear when using a 'dumb' git transport on an aggressively packed remote repo (it was otherwise unlikely to cause problems since smart transports repack during transport), and could cause use of unnecessary repository space on disk.
 - Upgrade jgit dependency to version '3.3.0.201403021825-r'.
 - Additional testing; see git log for details.
-
-- Note: the v2.14.x series is expected to be the last version of mdm that produces tags on release commits!  As of v2.14.0 tags on release commits have been stripped of meaning and are ignored.
 
 (Side note on git transports: using mdm with an aggressively packed remote repo over a 'dumb' git transport is inadvisable, as it is likely to use unnecessary amounts of bandwidth; this is the nature of git dumb transports, not of an issue of mdm.
 Use of smart transports is recommended for most cases; fortunately this is what almost all currently popular git hosting services provide.
@@ -20,11 +28,9 @@ Use of dumb transports is ironically recommended for advanced users only, and in
 v2.14.0
 -------
 
-- Perceive the version of a dependency module from branch name.  Previously this was parsed from tags on release commits; these tags are now ignored.
+- Perceive the version of a dependency module from branch name.  Previously this was parsed from tags on release commits; these tags are now ignored (though they are still created).
 - Fix problems operating on repositories with a releases repo link but missing a fully constructed releases repo.
 - Various bugfixes; additional testing; see git log for details.
-
-- Note: the v2.14.x series is expected to be the last version of mdm that produces tags on release commits!  As of v2.14.0 tags on release commits have been stripped of meaning and are ignored.
 
 
 
