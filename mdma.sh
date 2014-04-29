@@ -16,15 +16,19 @@ ${clgreen}\
 #
 #  Running mdm through its paces!
 #
-#  The mdm executable must either be on your \$PATH (i.e. we'll get it from \`which\`) or in an env var called \$MDM.
+#  The mdm executable must either be on your \$PATH (i.e. we'll get it from
+#  \`which\`), or in an env var called \$MDM.
 #
-#  git must also be available on your \$PATH.  (mdm doesn't use it, but this demo script will use it for setting up the
-#  demonstration data, and also to show that normal git completely understands what mdm does to your repos.)
+#  git must also be available on your \$PATH.  (mdm doesn't use it, but this
+#  demo script will use it for setting up the demonstration data, and also to
+#  show that normal git completely understands what mdm does to your repos.)
 #
-#  By default, every major step will pause after completion so you can take a look around.
-#  If that behavior isn't desired and you just wanna shoot straight through as a sanity test, give the "-t" argument.
+#  By default, every major step will pause after completion so you can take a
+#  look around.  If that behavior isn't desired and you just wanna shoot
+#  straight through as a sanity test, give the "-t" argument.
 #
-#  A new directory in the current working directory called "mdm-demo" will be created and the system tests run inside there.
+#  A new directory in the current working directory called "mdm-demo" will be
+#  created and the system tests run inside there.
 #
 ################################################################################
 ${cnone}
