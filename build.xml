@@ -56,7 +56,7 @@
 	<target name="dist"
 		depends="compile"
 		description="pack distributable artifacts">
-		<exusPack destfile="${dist}/${app}.jar">
+		<exusPack destfile="${dist}/${app}">
 			<manifest>
 				<attribute name="Main-Class" value="net.polydawn.${app}.Mdm"/>
 			</manifest>
@@ -66,31 +66,19 @@
 			<zipfileset src="${lib}/argparse4j/argparse4j.jar" includes="**/*.class"/>
 			<zipfileset src="${lib}/jsch/jsch.jar" includes="**/*.class"/>
 		</exusPack>
-		<chmod file="${dist}/${app}.jar" perm="755"/>
-		<concat destfile="${dist}/${app}" encoding="UTF-8">
-			<concat>
-				#!/bin/bash
-				DIR="$(dirname "${BASH_SOURCE[0]}")"
-				java -jar "$DIR"/mdm.jar "$@"
-			</concat>
-			<filterchain>
-				<deletecharacters chars="\t"/>
-				<headfilter lines="-1" skip="1"/>
-			</filterchain>
-		</concat>
-		<chmod file="${dist}/${app}"     perm="755"/>
+		<chmod file="${dist}/${app}" perm="755"/>
 	</target>
 
 
 	<target name="dist-packed" depends="dist"
 		description="minify distributable artifact to contain only needed classes">
-		<move file="${dist}/${app}.jar" tofile="${dist}/${app}-loose.jar"/>
+		<move file="${dist}/${app}" tofile="${dist}/${app}-loose.jar"/>
 		<taskdef resource="proguard/ant/task.properties"
 			 classpath="lib/proguard/proguard.jar" />
 		<proguard>
 			-libraryjars ${java.home}/lib/rt.jar
 			-injars      ${dist}/${app}-loose.jar
-			-outjars     ${dist}/${app}.jar
+			-outjars     ${dist}/${app}-packed.jar
 			
 			-dontoptimize
 			-dontobfuscate
@@ -106,7 +94,23 @@
 			}
 		</proguard>
 		<delete file="${dist}/${app}-loose.jar"/>
-		<chmod file="${dist}/${app}.jar" perm="755"/>
+
+		<concat destfile="${dist}/${app}" binary="true">
+			<concat encoding="UTF-8">
+				<concat>
+					exec java -jar "$0" "$@"
+					exit
+				</concat>
+				<filterchain>
+					<deletecharacters chars="\t"/>
+					<headfilter lines="-1" skip="1"/>
+				</filterchain>
+			</concat>
+			<fileset file="${dist}/${app}-packed.jar" />
+		</concat>
+		<delete file="${dist}/${app}-packed.jar"/>
+
+		<chmod file="${dist}/${app}" perm="755"/>
 	</target>
 
 
