@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+v2.xx.x (unreleased)
+--------------------
+
+- Improve detection of mdm release repositories (accept an mdm/init branch from the origin remote as valid; this removes an extra setup step between cloning a release repo and being able to perform new releases).
+
+
+
 v2.14.1
 -------
 

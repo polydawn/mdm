@@ -90,8 +90,8 @@ public class MdmModuleRelease extends MdmModule {
 			if (repo == null)
 				throw new MdmRepositoryNonexistant(getHandle());
 			// check that the releases-repo has the branches we expect from an mdm releases repo
-			// TODO: both of these checks are the kind that don't well understand remote tracking branches without locals
-			if (repo.getRef("refs/heads/mdm/init") == null)
+			if (repo.getRef("refs/heads/mdm/init") == null &&
+			    repo.getRef("refs/remotes/origin/mdm/init") == null)
 				throw new MdmModuleReleaseNeedsBranch(getHandle(), "mdm/init");
 			if (repo.getRef("refs/heads/master") == null)
 				throw new MdmModuleReleaseNeedsBranch(getHandle(), "master");
