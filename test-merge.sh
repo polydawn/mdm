@@ -1,4 +1,12 @@
-#!/bin/bash -ve
+#!/bin/bash
+set -e
+set -v
+
+#
+# Demonstrate a merge between two branches with conflicting dependency changes.
+#
+
+
 
 # cleanup
 
@@ -131,5 +139,18 @@ git commit --no-edit
 # yes, and the commit looks perfectly reasonable.
 
 git show --stat
+
+
+
+set +v
+#
+# Tested on:
+#  git version 1.8.3.2
+#  git version 1.7.9.5
+# Older versions of git may also work,
+# but note that 1.7.9.5 is already over 2 years old as of the date of writing.
+# More recent versions of git should as a rule be prefered;
+# handling of submodules has generally improved as versions progress.
+#
 
 
