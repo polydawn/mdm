@@ -7,6 +7,7 @@ v2.xx.x (unreleased)
 - Improve detection of mdm release repositories (accept an mdm/init branch from the origin remote as valid; this removes an extra setup step between cloning a release repo and being able to perform new releases).
 - Update to release process: we now ship a single executable.  Linux/mac environments should be able to execute this file directly.  (A `java` command on the system path is still required.)
   - This removes the shell script previously included for use on linux/mac environments.
+- Upgrade jgit dependency to version '3.3.0.201403021825-r'.
 
 
 
