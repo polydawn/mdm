@@ -252,9 +252,9 @@ Browse the releases repo!
 
 https://github.com/mdm-releases/mdm-releases/
 
-The latest version is v2.14.1, available here:
+The latest version is v2.15.0, available here:
 
-https://raw.github.com/mdm-releases/mdm-releases/master/v2.14.1/mdm.jar
+https://raw.github.com/mdm-releases/mdm-releases/master/v2.15.0/mdm
 
 
 Portability
