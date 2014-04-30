@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+
+v2.xx.x (unreleased)
+--------------------
+
+- give a meaningful error message from the status and update subcommands in case of a parse error in a .gitmodules file.
+
+
+
 v2.15.0
 -------
 

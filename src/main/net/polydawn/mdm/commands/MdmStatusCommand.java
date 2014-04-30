@@ -46,12 +46,17 @@ public class MdmStatusCommand extends MdmCommand {
 
 	public void validate() throws MdmExitMessage {}
 
-	public MdmExitMessage call() throws IOException, ConfigInvalidException {
+	public MdmExitMessage call() throws IOException {
 		try {
 			assertInRepo();
 		} catch (MdmExitMessage e) { return e; }
 
-		MdmModuleSet moduleSet = new MdmModuleSet(repo);
+		MdmModuleSet moduleSet;
+		try {
+			moduleSet = new MdmModuleSet(repo);
+		} catch (ConfigInvalidException e) {
+			return new MdmExitMessage(":(", "your .gitmodules config file can't be parsed.  sorry, we're flying blind.\n(Try asking `git submodule` what it thinks for a more specific parse error.)");
+		}
 		Map<String,MdmModuleDependency> modules = moduleSet.getDependencyModules();
 
 		if (modules.size() == 0) {
