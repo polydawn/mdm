@@ -6,6 +6,7 @@ v2.xx.x (unreleased)
 --------------------
 
 - give a meaningful error messages in case of parse error in a .gitmodules file.
+- emit a warning if running `mdm update` leaves a submodule checked out on a different hash than the parent repo expects.  `mdm status` would already report the mismatch after the fact, but if it occurs during an update, it most likely indicates either a misconfiguration, or shenanigans upstream.
 
 
 

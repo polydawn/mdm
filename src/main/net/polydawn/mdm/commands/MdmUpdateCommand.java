@@ -57,9 +57,17 @@ public class MdmUpdateCommand extends MdmCommand {
 		List<MdmModule> contorted = new ArrayList<MdmModule>();
 		for (MdmModuleDependency module : modules.values()) {
 			try {
-				if (Plumbing.fetch(repo, module))
+				if (Plumbing.fetch(repo, module)) {
 					impacted.add(module);
-				else
+					if (!module.getHeadId().equals(module.getIndexId())) {
+						// in putting the module to the version named in .gitmodules, we made it disagree with the parent index.
+						// this probably indicates oddness.
+						System.err.println(
+							"notice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than the parent repo expected.\n"+
+							"  this may be because the repository you are fetching from has moved what commit the version branch points to (which is cause for concern), or it may be a local misconfiguration (did you resolve a merge conflict recently?  audit your log; the version name in gitmodules config must move at the same time as the submodule hash)."
+						);
+					}
+				} else
 					unphased.add(module);
 			} catch (MdmException e) {
 				contorted.add(module);
