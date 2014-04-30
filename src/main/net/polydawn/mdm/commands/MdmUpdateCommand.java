@@ -55,6 +55,7 @@ public class MdmUpdateCommand extends MdmCommand {
 		List<MdmModule> impacted = new ArrayList<MdmModule>();
 		List<MdmModule> unphased = new ArrayList<MdmModule>();
 		List<MdmModule> contorted = new ArrayList<MdmModule>();
+		int hashMismatchWarnings = 0;
 		for (MdmModuleDependency module : modules.values()) {
 			try {
 				if (Plumbing.fetch(repo, module)) {
@@ -62,10 +63,8 @@ public class MdmUpdateCommand extends MdmCommand {
 					if (!module.getHeadId().equals(module.getIndexId())) {
 						// in putting the module to the version named in .gitmodules, we made it disagree with the parent index.
 						// this probably indicates oddness.
-						System.err.println(
-							"notice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than the parent repo expected.\n"+
-							"  this may be because the repository you are fetching from has moved what commit the version branch points to (which is cause for concern), or it may be a local misconfiguration (did you resolve a merge conflict recently?  audit your log; the version name in gitmodules config must move at the same time as the submodule hash)."
-						);
+						hashMismatchWarnings++;
+						System.err.println("notice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than the parent repo expected.");
 					}
 				} else
 					unphased.add(module);
@@ -75,6 +74,15 @@ public class MdmUpdateCommand extends MdmCommand {
 			//rm("-rf", join(".git/modules",subm));	# if this is one of the newer version of git (specifically, 1.7.8 or newer) that stores the submodule's data in the parent projects .git dir, clear that out forcefully as well or else git does some very silly things (you end up with the url changed but it recreates the old files and doesn't change the object id like it should).
 			//XXX: we have no special detection or handling for when submodule deletes are pulled from upstream.  what you end up with after that is just untracked files.  that's a little suprising, in my mind, but it's not exactly wrong, either.
 		}
+
+		// explain notices about hash mismatches, if any occured.
+		if (hashMismatchWarnings > 0) {
+			System.err.println();
+			System.err.println("warnings about submodule checkouts not matching the hash expected by the parent repo may indicate a problem which you should investigate immediately to make sure your dependencies are repeatable to others.");
+			System.err.println("this issue may be because the repository you are fetching from has moved what commit the version branch points to (which is cause for concern), or it may be a local misconfiguration (did you resolve a merge conflict recently?  audit your log; the version name in gitmodules config must move at the same time as the submodule hash).");
+			System.err.println();
+		}
+
 
 		// That's all.  Compose a status string.
 		StringBuilder status = new StringBuilder();
