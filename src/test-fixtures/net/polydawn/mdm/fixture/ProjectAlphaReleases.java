@@ -7,7 +7,6 @@ import java.util.*;
 import net.polydawn.mdm.*;
 import net.polydawn.mdm.commands.*;
 import net.polydawn.mdm.test.*;
-import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.junit.*;
 import us.exultant.ahs.iob.*;
@@ -33,8 +32,6 @@ public class ProjectAlphaReleases implements Fixture {
 		} catch (IOException e) {
 			throw new FixtureSetupError(e);
 		} catch (MdmExitMessage e) {
-			throw new FixtureSetupError(e);
-		} catch (ConfigInvalidException e) {
 			throw new FixtureSetupError(e);
 		} catch (MdmException e) {
 			throw new FixtureSetupError(e);

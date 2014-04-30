@@ -84,8 +84,16 @@ public class MdmAddCommand extends MdmCommand {
 
 	String version;
 
-	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
+	public MdmExitMessage call() throws IOException, MdmException {
 		assertInRepoRoot();
+
+		// load other config (so we can error early on in case there's a problem)
+		StoredConfig gitmodulesCfg = new FileBasedConfig(new File(repo.getWorkTree(), Constants.DOT_GIT_MODULES), repo.getFS());
+		try {
+			gitmodulesCfg.load();
+		} catch (ConfigInvalidException e) {
+			throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
+		}
 
 		// git's behavior of assuming relative urls should be relative to the remote origin instead of relative to the local filesystem is almost certainly not what you want.
 		if (url.startsWith("../") || url.startsWith("./"))
@@ -118,8 +126,9 @@ public class MdmAddCommand extends MdmCommand {
 			throw new MdmExitMessage(":(", "no version labelled "+version+" available from the provided remote url.");
 
 		// finally, let's actually do the submodule/dependency adding
-		Config config = doSubmoduleConfig(path);
-		doSubmoduleFetch(path, config);
+		doSubmoduleConfig(gitmodulesCfg, path);
+		gitmodulesCfg.save();
+		doSubmoduleFetch(path, gitmodulesCfg);
 
 		// commit the changes
 		doGitStage(path);
@@ -140,20 +149,17 @@ public class MdmAddCommand extends MdmCommand {
 		}
 	}
 
-	Config doSubmoduleConfig(File path) throws ConfigInvalidException, IOException {
+	Config doSubmoduleConfig(Config gitmodulesCfg, File path) {
 		// write gitmodule config for the new submodule
-		StoredConfig gitmodulesCfg = new FileBasedConfig(new File(repo.getWorkTree(), Constants.DOT_GIT_MODULES), repo.getFS());
-		gitmodulesCfg.load();
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), ConfigConstants.CONFIG_KEY_PATH, path.getPath());
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), ConfigConstants.CONFIG_KEY_URL, url);
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), MdmConfigConstants.Module.MODULE_TYPE.toString(), MdmModuleType.DEPENDENCY.toString());
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), MdmConfigConstants.Module.DEPENDENCY_VERSION.toString(), version);
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), ConfigConstants.CONFIG_KEY_UPDATE, "none"); // since almost all git commands by default will pull down waaaay too much data if they operate naively on our dependencies, we tell them to ignore all dependencies by default.  And of course, commands like `git pull` just steamroll right ahead and ignore this anyway, so those require even more drastic counters.
-		gitmodulesCfg.save();
 		return gitmodulesCfg;
 	}
 
-	void doSubmoduleFetch(File path, Config gitmodulesCfg) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException {
+	void doSubmoduleFetch(File path, Config gitmodulesCfg) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException, IOException {
 		// fetch the release data to our local submodule repo
 		MdmModuleDependency module = MdmModuleDependency.load(repo, path.getPath(), gitmodulesCfg);
 		Plumbing.fetch(repo, module);

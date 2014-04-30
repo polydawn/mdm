@@ -121,7 +121,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 	String remotePublicUrl;
 	String remotePublishUrl;
 
-	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
+	public MdmExitMessage call() throws IOException, MdmException {
 		// check for clean working area.
 		try {
 			assertReleaseRepoAreaClean();
@@ -137,7 +137,11 @@ public class MdmReleaseInitCommand extends MdmCommand {
 			return new MdmExitMessage(":D", "releases repo initialized");
 
 		// add the new releases-repo as a submodule to the project repo.
-		writeParentGitmoduleConfig(repo);
+		try {
+			writeParentGitmoduleConfig(repo);
+		} catch (ConfigInvalidException e) {
+			throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
+		}
 		writeReleaseRepoConfig(releaserepo);
 		makeParentRepoLinkCommit(repo);
 

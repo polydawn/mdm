@@ -40,7 +40,7 @@ public class MdmRemoveCommand extends MdmCommand {
 
 	public void validate() throws MdmExitMessage {}
 
-	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException {
+	public MdmExitMessage call() throws IOException, MdmException {
 		try {
 			assertInRepoRoot();
 		} catch (MdmExitMessage e) { return e; }
@@ -51,7 +51,11 @@ public class MdmRemoveCommand extends MdmCommand {
 
 		// load up config
 		StoredConfig gitmodulesCfg = new FileBasedConfig(new File(repo.getWorkTree(), Constants.DOT_GIT_MODULES), repo.getFS());
-		gitmodulesCfg.load();
+		try {
+			gitmodulesCfg.load();
+		} catch (ConfigInvalidException e) {
+			throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
+		}
 
 		// if there's no module there, we haven't got much to do
 		try {

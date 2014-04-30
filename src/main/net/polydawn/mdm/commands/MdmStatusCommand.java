@@ -22,6 +22,7 @@ package net.polydawn.mdm.commands;
 import java.io.*;
 import java.util.*;
 import net.polydawn.mdm.*;
+import net.polydawn.mdm.errors.*;
 import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
@@ -46,12 +47,17 @@ public class MdmStatusCommand extends MdmCommand {
 
 	public void validate() throws MdmExitMessage {}
 
-	public MdmExitMessage call() throws IOException, ConfigInvalidException {
+	public MdmExitMessage call() throws IOException {
 		try {
 			assertInRepo();
 		} catch (MdmExitMessage e) { return e; }
 
-		MdmModuleSet moduleSet = new MdmModuleSet(repo);
+		MdmModuleSet moduleSet;
+		try {
+			moduleSet = new MdmModuleSet(repo);
+		} catch (ConfigInvalidException e) {
+			throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
+		}
 		Map<String,MdmModuleDependency> modules = moduleSet.getDependencyModules();
 
 		if (modules.size() == 0) {

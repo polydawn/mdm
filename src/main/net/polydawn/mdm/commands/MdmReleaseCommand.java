@@ -61,7 +61,7 @@ public class MdmReleaseCommand extends MdmCommand {
 	String snapshotPath;
 	public String inputPath;
 
-	public MdmExitMessage call() throws IOException, ConfigInvalidException, MdmException, MdmExitMessage {
+	public MdmExitMessage call() throws IOException, MdmException, MdmExitMessage {
 		MdmModuleRelease relModule = loadReleaseModule();
 		Repository relRepo = relModule.getRepo();
 

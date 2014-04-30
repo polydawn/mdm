@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.*;
 import net.polydawn.mdm.*;
 import net.polydawn.mdm.commands.*;
-import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.*;
@@ -33,8 +32,6 @@ public class FixtureUtil {
 				.build();
 			return releaserepo;
 		} catch (IOException e) {
-			throw new FixtureSetupError(e);
-		} catch (ConfigInvalidException e) {
 			throw new FixtureSetupError(e);
 		} catch (MdmException e) {
 			throw new FixtureSetupError(e);
