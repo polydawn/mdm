@@ -64,12 +64,12 @@ public class MdmUpdateCommand extends MdmCommand {
 						// in putting the module to the version named in .gitmodules, we made it disagree with the parent index.
 						// this probably indicates oddness.
 						hashMismatchWarnings++;
-						System.err.println("notice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than the parent repo expected.");
+						os.println("notice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than the parent repo expected.");
 					}
 				} else
 					unphased.add(module);
 			} catch (MdmException e) {
-				System.err.println("error: in updating "+module.getHandle()+" to version "+module.getVersionName()+", "+e);
+				os.println("error: in updating "+module.getHandle()+" to version "+module.getVersionName()+", "+e);
 				contorted.add(module);
 			}
 			//rm("-rf", join(".git/modules",subm));	# if this is one of the newer version of git (specifically, 1.7.8 or newer) that stores the submodule's data in the parent projects .git dir, clear that out forcefully as well or else git does some very silly things (you end up with the url changed but it recreates the old files and doesn't change the object id like it should).
@@ -78,12 +78,12 @@ public class MdmUpdateCommand extends MdmCommand {
 
 		// explain notices about hash mismatches, if any occured.
 		if (hashMismatchWarnings > 0) {
-			System.err.println();
-			System.err.println("warnings about submodule checkouts not matching the hash expected by the parent repo may indicate a problem which you should investigate immediately to make sure your dependencies are repeatable to others.");
-			System.err.println("this issue may be because the repository you are fetching from has moved what commit the version branch points to (which is cause for concern), or it may be a local misconfiguration (did you resolve a merge conflict recently?  audit your log; the version name in gitmodules config must move at the same time as the submodule hash).");
-			System.err.println();
+			os.println();
+			os.println("warnings about submodule checkouts not matching the hash expected by the parent repo may indicate a problem which you should investigate immediately to make sure your dependencies are repeatable to others.");
+			os.println("this issue may be because the repository you are fetching from has moved what commit the version branch points to (which is cause for concern), or it may be a local misconfiguration (did you resolve a merge conflict recently?  audit your log; the version name in gitmodules config must move at the same time as the submodule hash).");
+			os.println();
 		} else if (contorted.size() > 0) {
-			System.err.println();
+			os.println();
 		}
 
 
