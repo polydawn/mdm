@@ -60,7 +60,7 @@ public class MdmUpdateCommand extends MdmCommand {
 			try {
 				if (Plumbing.fetch(repo, module)) {
 					impacted.add(module);
-					if (!module.getHeadId().equals(module.getIndexId())) {
+					if (!module.getRepo().resolve(Constants.HEAD).equals(module.getIndexId())) {
 						// in putting the module to the version named in .gitmodules, we made it disagree with the parent index.
 						// this probably indicates oddness.
 						hashMismatchWarnings++;
