@@ -34,7 +34,8 @@ import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.util.*;
 
 public class Plumbing {
-	public static boolean fetch(Repository repo, MdmModuleDependency module) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException {
+	// this method is getting to be quite a misnomer, it enforces a lot more state than just fetching
+	public static boolean fetch(Repository repo, MdmModuleDependency module) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException, IOException {
 		switch (module.getStatus().getType()) {
 			case MISSING:
 				throw new MajorBug();
@@ -65,18 +66,19 @@ public class Plumbing {
 				if (module.getVersionName() == null || module.getVersionName().equals(module.getVersionActual()))
 					return false;
 			case REV_CHECKED_OUT:
-				final String versionBranchName = "mdm/release/"+module.getVersionName();
+				final String versionBranchName = "refs/heads/mdm/release/"+module.getVersionName();
+				final String versionTagName = "refs/tags/release/"+module.getVersionName();
 
 				/* Fetch only the branch labelled with the version requested. */
-				try {
+				if (module.getRepo().getRef(versionBranchName) == null) try {
 					RefSpec releaseBranchRef = new RefSpec()
 						.setForceUpdate(true)
-						.setSource("refs/heads/"+versionBranchName)
-						.setDestination("refs/heads/"+versionBranchName);
+						.setSource(versionBranchName)
+						.setDestination(versionBranchName);
 					RefSpec releaseTagRef = new RefSpec()
 						.setForceUpdate(true)
-						.setSource("refs/tags/release/"+module.getVersionName())
-						.setDestination("refs/tags/release/"+module.getVersionName());
+						.setSource(versionTagName)
+						.setDestination(versionTagName);
 					new Git(module.getRepo()).fetch()
 						.setRemote("origin")
 						.setRefSpecs(releaseBranchRef, releaseTagRef)

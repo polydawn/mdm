@@ -159,7 +159,7 @@ public class MdmAddCommand extends MdmCommand {
 		return gitmodulesCfg;
 	}
 
-	void doSubmoduleFetch(File path, Config gitmodulesCfg) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException {
+	void doSubmoduleFetch(File path, Config gitmodulesCfg) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException, IOException {
 		// fetch the release data to our local submodule repo
 		MdmModuleDependency module = MdmModuleDependency.load(repo, path.getPath(), gitmodulesCfg);
 		Plumbing.fetch(repo, module);
