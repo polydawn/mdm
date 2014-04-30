@@ -5,9 +5,9 @@ CHANGELOG
 v2.xx.x (unreleased)
 --------------------
 
-- give a meaningful error messages in case of parse error in a .gitmodules file.
-- emit a warning if running `mdm update` leaves a submodule checked out on a different hash than the parent repo expects.  `mdm status` would already report the mismatch after the fact, but if it occurs during an update, it most likely indicates either a misconfiguration, or shenanigans upstream.
-- when a dependency already has a version name locally, do not engage transport at all.  (Previously the remote origin would still be contacted; near zero work would be performed, but it was still Some Network where it should be None Network.)
+- Give a meaningful error messages in case of parse error in a .gitmodules file.
+- Emit a warning if running `mdm update` leaves a submodule checked out on a different hash than the parent repo expects.  `mdm status` would already report the mismatch after the fact, but if it occurs during an update, it most likely indicates either a misconfiguration, or shenanigans upstream.
+- When a dependency already has a version name locally, do not engage transport at all.  (Previously the remote origin would still be contacted; near zero work would be performed, but it was still Some Network where it should be None Network.)
 
 
 
