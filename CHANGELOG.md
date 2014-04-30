@@ -2,6 +2,14 @@ CHANGELOG
 =========
 
 
+v2.xx.x (unreleased)
+--------------------
+
+- Fix exceptions when attempting to use ssh transports.
+  - Configure proguard's minimization of release builds to explicitly retain jsch (the ssh client library) classes (this library is referred to by reflection, and so is needed in more situations than proguard can statically detect).
+
+
+
 v2.16.0
 -------
 
