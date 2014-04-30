@@ -92,7 +92,7 @@ public class MdmAddCommand extends MdmCommand {
 		try {
 			gitmodulesCfg.load();
 		} catch (ConfigInvalidException e) {
-			throw new MdmExitInvalidConfig(".gitmodules");
+			throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
 		}
 
 		// git's behavior of assuming relative urls should be relative to the remote origin instead of relative to the local filesystem is almost certainly not what you want.

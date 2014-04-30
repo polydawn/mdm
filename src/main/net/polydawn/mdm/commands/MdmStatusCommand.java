@@ -56,7 +56,7 @@ public class MdmStatusCommand extends MdmCommand {
 		try {
 			moduleSet = new MdmModuleSet(repo);
 		} catch (ConfigInvalidException e) {
-			throw new MdmExitInvalidConfig(".gitmodules");
+			throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
 		}
 		Map<String,MdmModuleDependency> modules = moduleSet.getDependencyModules();
 

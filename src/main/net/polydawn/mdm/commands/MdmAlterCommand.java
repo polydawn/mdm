@@ -55,7 +55,7 @@ public class MdmAlterCommand extends MdmCommand {
 		try {
 			gitmodulesCfg.load();
 		} catch (ConfigInvalidException e) {
-			throw new MdmExitInvalidConfig(".gitmodules");
+			throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
 		}
 		MdmModuleDependency module;
 		try {

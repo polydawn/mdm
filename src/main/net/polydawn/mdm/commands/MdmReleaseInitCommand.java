@@ -140,7 +140,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		try {
 			writeParentGitmoduleConfig(repo);
 		} catch (ConfigInvalidException e) {
-			throw new MdmExitInvalidConfig(".gitmodules");
+			throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
 		}
 		writeReleaseRepoConfig(releaserepo);
 		makeParentRepoLinkCommit(repo);
