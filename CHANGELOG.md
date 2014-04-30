@@ -5,7 +5,7 @@ CHANGELOG
 v2.xx.x (unreleased)
 --------------------
 
-- give a meaningful error message from the status and update subcommands in case of a parse error in a .gitmodules file.
+- give a meaningful error messages in case of parse error in a .gitmodules file.
 
 
 

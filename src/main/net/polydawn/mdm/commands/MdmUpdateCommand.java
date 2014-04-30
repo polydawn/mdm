@@ -22,6 +22,7 @@ package net.polydawn.mdm.commands;
 import java.io.*;
 import java.util.*;
 import net.polydawn.mdm.*;
+import net.polydawn.mdm.errors.*;
 import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
@@ -46,7 +47,7 @@ public class MdmUpdateCommand extends MdmCommand {
 		try {
 			moduleSet = new MdmModuleSet(repo);
 		} catch (ConfigInvalidException e) {
-			return new MdmExitMessage(":(", "your .gitmodules config file can't be parsed.  sorry, we're flying blind.\n(Try asking `git submodule` what it thinks for a more specific parse error.)");
+			throw new MdmExitInvalidConfig(".gitmodules");
 		}
 		Map<String,MdmModuleDependency> modules = moduleSet.getDependencyModules();
 
