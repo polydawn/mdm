@@ -127,10 +127,16 @@ git diff
 # now what do we do about it?
 # resolve the same way as any other merge:
 
-git checkout --theirs -- .gitmodules lib/junit
+git checkout --theirs -- .gitmodules
+
+# now use update again to put the submodule where you want it
+# (or you could go into that directory and use git-checkout; same thing)
+
+mdm update
+
+# now add to staging, and commit the resolve
 
 git add .
-
 git commit --no-edit
 
 
