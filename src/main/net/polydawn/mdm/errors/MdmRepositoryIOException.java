@@ -24,15 +24,15 @@ import org.eclipse.jgit.api.errors.*;
 
 public class MdmRepositoryIOException extends MdmRuntimeException {
 	public MdmRepositoryIOException(boolean writing, String path, IOException cause) {
-		super("mdm failed to "+(writing ? "write" : "read")+" data at "+path, cause);
+		super("mdm failed to "+(writing ? "write" : "read")+" data at "+path+": "+cause.getMessage(), cause);
 	}
 
 	public MdmRepositoryIOException(String tryingTo, boolean writing, String path, IOException cause) {
-		super("mdm failed to "+(writing ? "write" : "read")+" data while trying to "+tryingTo+" at "+path, cause);
+		super("mdm failed to "+(writing ? "write" : "read")+" data while trying to "+tryingTo+" at "+path+": "+cause.getMessage(), cause);
 	}
 
 	public MdmRepositoryIOException(String tryingTo, boolean writing, String path, TransportException /* doesn't extend IOException, loolkay */ cause) {
-		super("mdm failed to "+(writing ? "write" : "read")+" data while trying to "+tryingTo+" at "+path, cause);
+		super("mdm failed to "+(writing ? "write" : "read")+" data while trying to "+tryingTo+" at "+path+": "+cause.getMessage(), cause);
 	}
 
 	protected MdmRepositoryIOException() { super(); }
