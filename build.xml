@@ -92,6 +92,8 @@
 				public static **[] values();
 				public static ** valueOf(java.lang.String);
 			}
+			
+			-keep class com.jcraft.jsch.** { *; }
 		</proguard>
 		<delete file="${dist}/${app}-loose.jar"/>
 
