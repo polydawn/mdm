@@ -111,19 +111,10 @@
 		</proguard>
 		<delete file="${dist}/${app}-loose.jar"/>
 
-		<concat destfile="${dist}/${app}" binary="true">
-			<concat encoding="UTF-8">
-				<concat>
-					exec java -jar "$0" "$@"
-					exit
-				</concat>
-				<filterchain>
-					<deletecharacters chars="\t"/>
-					<headfilter lines="-1" skip="1"/>
-				</filterchain>
-			</concat>
-			<fileset file="${dist}/${app}-packed.jar" />
-		</concat>
+		<exusJavaBang
+			src="${dist}/${app}-packed.jar"
+			dest="${dist}/${app}"
+		/>
 		<delete file="${dist}/${app}-packed.jar"/>
 
 		<chmod file="${dist}/${app}" perm="755"/>
