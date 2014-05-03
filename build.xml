@@ -15,11 +15,25 @@
 	<property name="exus.build.java.version.source" value="1.6"/>
 	<property name="exus.build.java.version.target" value="1.6"/>
 
+
+	<exec executable="git" failonerror="true">
+		<arg value="submodule"/>
+		<arg value="update"/>
+		<arg value="--init"/>
+		<arg value="lib/exus-build"/>
+	</exec>
 	<import file="lib/exus-build/build-exultant.xml"/>
 	<import file="lib/exus-build/build-exultant-java.xml"/>
+	<import file="lib/exus-build/bootstrap-mdm.xml"/>
 
 
-	<target name="init" depends="exusInit">
+	<target name="bootstrap"
+		depends="-bootstrap-mdm-modules">
+	</target>
+
+
+	<target name="init"
+		depends="exusInit,bootstrap">
 	</target>
 
 
