@@ -56,25 +56,29 @@ public class MdmUpdateCommand extends MdmCommand {
 		List<MdmModule> unphased = new ArrayList<MdmModule>();
 		List<MdmModule> contorted = new ArrayList<MdmModule>();
 		int hashMismatchWarnings = 0;
+		int i = 0;
 		for (MdmModuleDependency module : modules.values()) {
+			i++;
 			try {
+				os.print("\033[2K\rupdating module "+i+" of "+modules.size()+": "+module.getHandle());
 				if (Plumbing.fetch(repo, module)) {
 					impacted.add(module);
 					if (!module.getRepo().resolve(Constants.HEAD).equals(module.getIndexId())) {
 						// in putting the module to the version named in .gitmodules, we made it disagree with the parent index.
 						// this probably indicates oddness.
 						hashMismatchWarnings++;
-						os.println("notice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than the parent repo expected.");
+						os.println("\033[2K\rnotice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than the parent repo expected.");
 					}
 				} else
 					unphased.add(module);
 			} catch (MdmException e) {
-				os.println("error: in updating "+module.getHandle()+" to version "+module.getVersionName()+", "+e);
+				os.println("\033[2K\rerror: in updating "+module.getHandle()+" to version "+module.getVersionName()+", "+e);
 				contorted.add(module);
 			}
 			//rm("-rf", join(".git/modules",subm));	# if this is one of the newer version of git (specifically, 1.7.8 or newer) that stores the submodule's data in the parent projects .git dir, clear that out forcefully as well or else git does some very silly things (you end up with the url changed but it recreates the old files and doesn't change the object id like it should).
 			//XXX: we have no special detection or handling for when submodule deletes are pulled from upstream.  what you end up with after that is just untracked files.  that's a little suprising, in my mind, but it's not exactly wrong, either.
 		}
+		os.print("\033[2K\r");
 
 		// explain notices about hash mismatches, if any occured.
 		if (hashMismatchWarnings > 0) {
