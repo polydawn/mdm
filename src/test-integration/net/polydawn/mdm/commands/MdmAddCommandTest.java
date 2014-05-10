@@ -39,7 +39,7 @@ public class MdmAddCommandTest extends TestCaseUsingRepository {
 		assertTrue("dependency module path exists on fs", depPath.exists());
 		assertTrue("dependency module path is dir", depPath.isDirectory());
 
-		// assert on the refs in the release module we added to the project repo
+		// assert on the refs in the dependency module we added to the project repo
 		Collection<Ref> refs = new Git(project.getRepo()).lsRemote()
 				.setRemote(depPath.toString())
 				.call();
@@ -113,7 +113,7 @@ public class MdmAddCommandTest extends TestCaseUsingRepository {
 		assertTrue("dependency module path exists on fs", depPath.exists());
 		assertTrue("dependency module path is dir", depPath.isDirectory());
 
-		// assert on the refs in the release module we added to the project repo
+		// assert on the refs in the dependency module we added to the project repo
 		Collection<Ref> refs = new Git(project.getRepo()).lsRemote()
 				.setRemote(depPath.toString())
 				.call();
