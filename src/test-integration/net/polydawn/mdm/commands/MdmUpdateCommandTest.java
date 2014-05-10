@@ -12,7 +12,7 @@ import org.junit.runner.*;
 import us.exultant.ahs.iob.*;
 
 @RunWith(OrderedJUnit4ClassRunner.class)
-public class TestMdmUpdateCommand extends TestCaseUsingRepository {
+public class MdmUpdateCommandTest extends TestCaseUsingRepository {
 	@Test
 	public void testUpdateFromLocalRelrepWithMutipleVersions() throws Exception {
 		Fixture remoteProject = new ProjectAlpha("projectRemote");

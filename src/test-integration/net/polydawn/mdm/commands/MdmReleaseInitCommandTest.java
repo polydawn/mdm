@@ -13,7 +13,7 @@ import org.junit.runner.*;
 import us.exultant.ahs.iob.*;
 
 @RunWith(OrderedJUnit4ClassRunner.class)
-public class TestMdmReleaseInitCommand extends TestCaseUsingRepository {
+public class MdmReleaseInitCommandTest extends TestCaseUsingRepository {
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 
