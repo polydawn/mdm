@@ -33,15 +33,16 @@ public class MdmAddCommandTest extends TestCaseUsingRepository {
 			assertJoy(cmd.call());
 		} wd.close();
 
-		File depPath = new File(project.getRepo().getWorkTree()+"/lib/depname").getCanonicalFile();
+		File depWorkTreePath = new File(project.getRepo().getWorkTree()+"/lib/depname").getCanonicalFile();
+		File depGitDataPath = new File(project.getRepo().getDirectory()+"/modules/lib/depname").getCanonicalFile();
 
 		// i do hope there's a filesystem there now
-		assertTrue("dependency module path exists on fs", depPath.exists());
-		assertTrue("dependency module path is dir", depPath.isDirectory());
+		assertTrue("dependency module path exists on fs", depWorkTreePath.exists());
+		assertTrue("dependency module path is dir", depWorkTreePath.isDirectory());
 
 		// assert on the refs in the dependency module we added to the project repo
 		Collection<Ref> refs = new Git(project.getRepo()).lsRemote()
-				.setRemote(depPath.toString())
+				.setRemote(depGitDataPath.toString())
 				.call();
 		List<String> refNames = new ArrayList<String>(refs.size());
 		for (Ref r : refs) refNames.add(r.getName());
@@ -51,8 +52,8 @@ public class MdmAddCommandTest extends TestCaseUsingRepository {
 		assertEquals("exactly these three refs present in dependency module", 3, refNames.size());
 
 		// check the actual desired artifacts are inside the release module location
-		assertEquals("exactly two files exist (.git and the artifact)", 2, depPath.listFiles().length);
-		assertEquals("content of artifact is correct", "alpha release", IOForge.readFileAsString(new File(depPath, "alpha")));
+		assertEquals("exactly two files exist (.git and the artifact)", 2, depWorkTreePath.listFiles().length);
+		assertEquals("content of artifact is correct", "alpha release", IOForge.readFileAsString(new File(depWorkTreePath, "alpha")));
 	}
 
 	@Test
@@ -107,15 +108,16 @@ public class MdmAddCommandTest extends TestCaseUsingRepository {
 			assertJoy(cmd.call());
 		} wd.close();
 
-		File depPath = new File(project.getRepo().getWorkTree()+"/lib/depname").getCanonicalFile();
+		File depWorkTreePath = new File(project.getRepo().getWorkTree()+"/lib/depname").getCanonicalFile();
+		File depGitDataPath = new File(project.getRepo().getDirectory()+"/modules/lib/depname").getCanonicalFile();
 
 		// i do hope there's a filesystem there now
-		assertTrue("dependency module path exists on fs", depPath.exists());
-		assertTrue("dependency module path is dir", depPath.isDirectory());
+		assertTrue("dependency module path exists on fs", depWorkTreePath.exists());
+		assertTrue("dependency module path is dir", depWorkTreePath.isDirectory());
 
 		// assert on the refs in the dependency module we added to the project repo
 		Collection<Ref> refs = new Git(project.getRepo()).lsRemote()
-				.setRemote(depPath.toString())
+				.setRemote(depGitDataPath.toString())
 				.call();
 		List<String> refNames = new ArrayList<String>(refs.size());
 		for (Ref r : refs) refNames.add(r.getName());
@@ -125,7 +127,7 @@ public class MdmAddCommandTest extends TestCaseUsingRepository {
 		assertEquals("exactly these three refs present in dependency module", 3, refNames.size());
 
 		// check the actual desired artifacts are inside the release module location
-		assertEquals("exactly two files exist (.git and the artifact)", 2, depPath.listFiles().length);
-		assertEquals("content of artifact is correct", "beta release 1.1", IOForge.readFileAsString(new File(depPath, "beta")));
+		assertEquals("exactly two files exist (.git and the artifact)", 2, depWorkTreePath.listFiles().length);
+		assertEquals("content of artifact is correct", "beta release 1.1", IOForge.readFileAsString(new File(depWorkTreePath, "beta")));
 	}
 }

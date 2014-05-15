@@ -32,7 +32,8 @@ public class MdmUpdateCommandTest extends TestCaseUsingRepository {
 		// Clone.  After update, all the asserts that would have passed against the original should pass against the clone.
 		Fixture project = new ProjectClone("projectRepo", remoteProject.getRepo());
 
-		File depPath = new File(project.getRepo().getWorkTree()+"/lib/depname").getCanonicalFile();
+		File depWorkTreePath = new File(project.getRepo().getWorkTree()+"/lib/depname").getCanonicalFile();
+		File depGitDataPath = new File(project.getRepo().getDirectory()+"/modules/lib/depname").getCanonicalFile();
 
 		// note that at present jgit clone doesn't appear realize it needs to mkdir for submodules even if absent, or they show up as deleted.
 		// mdmupdate currently blazes right by this without stopping, but not's not necessarily the most correct behavior either.
@@ -42,12 +43,12 @@ public class MdmUpdateCommandTest extends TestCaseUsingRepository {
 		new MdmUpdateCommand(project.getRepo()).call();
 
 		// i do hope there's a filesystem there now
-		assertTrue("dependency module path exists on fs", depPath.exists());
-		assertTrue("dependency module path is dir", depPath.isDirectory());
+		assertTrue("dependency module path exists on fs", depWorkTreePath.exists());
+		assertTrue("dependency module path is dir", depWorkTreePath.isDirectory());
 
 		// assert on the refs in the dependency module we added to the project repo
 		Collection<Ref> refs = new Git(project.getRepo()).lsRemote()
-				.setRemote(depPath.toString())
+				.setRemote(depGitDataPath.toString())
 				.call();
 		List<String> refNames = new ArrayList<String>(refs.size());
 		for (Ref r : refs) refNames.add(r.getName());
@@ -57,7 +58,7 @@ public class MdmUpdateCommandTest extends TestCaseUsingRepository {
 		assertEquals("exactly these three refs present in dependency module", 3, refNames.size());
 
 		// check the actual desired artifacts are inside the release module location
-		assertEquals("exactly two files exist (.git and the artifact)", 2, depPath.listFiles().length);
-		assertEquals("content of artifact is correct", "beta release 1.1", IOForge.readFileAsString(new File(depPath, "beta")));
+		assertEquals("exactly two files exist (.git and the artifact)", 2, depWorkTreePath.listFiles().length);
+		assertEquals("content of artifact is correct", "beta release 1.1", IOForge.readFileAsString(new File(depWorkTreePath, "beta")));
 	}
 }

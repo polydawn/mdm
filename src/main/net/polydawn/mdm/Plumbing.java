@@ -31,6 +31,7 @@ import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.submodule.*;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.filter.*;
+import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 
 public class Plumbing {
@@ -44,8 +45,18 @@ public class Plumbing {
 					try {
 						RepositoryBuilder builder = new RepositoryBuilder();
 						builder.setWorkTree(new File(repo.getWorkTree()+"/"+module.getPath()));
+						builder.setGitDir(new File(repo.getDirectory()+"/modules/"+module.getPath()));
 						module.repo = builder.build();
 						module.repo.create(false);
+						// jgit does not appear to create the .git file correctly here :/
+						// nor even consider it to be jgit's job to create the worktree yet, apparently, so do that
+						module.repo.getWorkTree().mkdirs();
+						// need modules/[module]/config to contain 'core.worktree' = appropriate
+						StoredConfig cnf = module.repo.getConfig();
+						cnf.setString("core", null, "worktree", module.repo.getWorkTree().toString());
+						cnf.save();
+						// need [module]/.git to contain 'gitdir: appropriate' (which appears to not be normal gitconfig)
+						IOForge.saveFile("gitdir: "+module.repo.getDirectory()+"\n", new File(module.repo.getWorkTree(), ".git"));
 					} catch (IOException e) {
 						throw new MdmRepositoryIOException("create a new submodule", true, module.getHandle(), e);
 					}

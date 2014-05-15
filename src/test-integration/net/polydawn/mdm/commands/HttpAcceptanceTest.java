@@ -32,15 +32,16 @@ public class HttpAcceptanceTest extends TestCaseUsingRepository {
 			assertJoy(cmd.call());
 		} wd.close();
 
-		File depPath = new File(project.getRepo().getWorkTree()+"/lib/netty").getCanonicalFile();
+		File depWorkTreePath = new File(project.getRepo().getWorkTree()+"/lib/netty").getCanonicalFile();
+		File depGitDataPath = new File(project.getRepo().getDirectory()+"/modules/lib/netty").getCanonicalFile();
 
 		// i do hope there's a filesystem there now
-		assertTrue("dependency module path exists on fs", depPath.exists());
-		assertTrue("dependency module path is dir", depPath.isDirectory());
+		assertTrue("dependency module path exists on fs", depWorkTreePath.exists());
+		assertTrue("dependency module path is dir", depWorkTreePath.isDirectory());
 
 		// assert on the refs in the release module we added to the project repo
 		Collection<Ref> refs = new Git(project.getRepo()).lsRemote()
-				.setRemote(depPath.toString())
+				.setRemote(depGitDataPath.toString())
 				.call();
 		List<String> refNames = new ArrayList<String>(refs.size());
 		for (Ref r : refs) refNames.add(r.getName());
@@ -50,7 +51,7 @@ public class HttpAcceptanceTest extends TestCaseUsingRepository {
 		assertEquals("exactly these three refs present in dependency module", 3, refNames.size());
 
 		// check the actual desired artifacts are inside the release module location
-		String[] artifacts = depPath.list();
+		String[] artifacts = depWorkTreePath.list();
 		Arrays.sort(artifacts);
 		assertEquals("expected list of artifacts obtained",
 			Arrays.asList(new String[] {
@@ -75,7 +76,7 @@ public class HttpAcceptanceTest extends TestCaseUsingRepository {
 			+ "NKoAn2CyvOmShPT8vsg9wIsAQQ044EPC\n"
 			+ "=h1u4\n"
 			+ "-----END PGP SIGNATURE-----\n",
-			IOForge.readFileAsString(new File(depPath, "netty-all.jar.asc"))
+			IOForge.readFileAsString(new File(depWorkTreePath, "netty-all.jar.asc"))
 		);
 	}
 }
