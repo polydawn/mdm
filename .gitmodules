@@ -38,9 +38,9 @@
 	update = none
 [submodule "lib/jsch"]
 	path = lib/jsch
-	url = https://github.com/mdm-releases/jsch-releases.git
+	url = http://mdm-releases.com/com.jcraft/jsch-releases.git
 	mdm = dependency
-	mdm-version = v0.1.49
+	mdm-version = 0.1.51.mvn
 	update = none
 [submodule "lib/junit"]
 	path = lib/junit
