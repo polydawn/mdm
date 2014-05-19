@@ -24,6 +24,7 @@ import java.net.*;
 import java.util.*;
 import net.polydawn.mdm.errors.*;
 import net.polydawn.mdm.util.*;
+import org.apache.commons.lang.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.*;
@@ -48,15 +49,19 @@ public class Plumbing {
 						builder.setGitDir(new File(repo.getDirectory()+"/modules/"+module.getPath()));
 						module.repo = builder.build();
 						module.repo.create(false);
+						// handling paths in java, god forbid relative paths, is such an unbelievable backwater.  someday please make a whole library that actually disambiguates pathnames from filedescriptors properly
+						int ups = StringUtils.countMatches(module.getPath(), "/");
 						// jgit does not appear to create the .git file correctly here :/
 						// nor even consider it to be jgit's job to create the worktree yet, apparently, so do that
 						module.repo.getWorkTree().mkdirs();
 						// need modules/[module]/config to contain 'core.worktree' = appropriate
+						String submoduleWorkTreeRelativeToGitDir = StringUtils.repeat("../", ups+3)+module.getPath();
 						StoredConfig cnf = module.repo.getConfig();
-						cnf.setString("core", null, "worktree", module.repo.getWorkTree().toString());
+						cnf.setString("core", null, "worktree", submoduleWorkTreeRelativeToGitDir);
 						cnf.save();
 						// need [module]/.git to contain 'gitdir: appropriate' (which appears to not be normal gitconfig)
-						IOForge.saveFile("gitdir: "+module.repo.getDirectory()+"\n", new File(module.repo.getWorkTree(), ".git"));
+						String submoduleGitDirRelativeToWorkTree = StringUtils.repeat("../", ups+1)+".git/modules/"+module.getPath();
+						IOForge.saveFile("gitdir: "+submoduleGitDirRelativeToWorkTree+"\n", new File(module.repo.getWorkTree(), ".git"));
 					} catch (IOException e) {
 						throw new MdmRepositoryIOException("create a new submodule", true, module.getHandle(), e);
 					}
