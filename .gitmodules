@@ -54,3 +54,9 @@
 	mdm = dependency
 	mdm-version = v4.9
 	update = none
+[submodule "lib/commons-lang"]
+	path = lib/commons-lang
+	url = http://mdm-releases.com/commons-lang/commons-lang-releases.git
+	mdm = dependency
+	mdm-version = 2.6.mvn
+	update = none
