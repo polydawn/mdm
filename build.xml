@@ -42,6 +42,7 @@
 		<pathelement location="${lib}/ahslib/ahslib-core.jar"/>
 		<pathelement location="${lib}/argparse4j/argparse4j.jar"/>
 		<pathelement location="${lib}/jsch/jsch.jar"/>
+		<pathelement location="${lib}/commons-lang/commons-lang.jar"/>
 	</path>
 	<path id="mdm.path.main">
 		<path refid="mdm.path.deps.main" />
@@ -79,6 +80,7 @@
 			<zipfileset src="${lib}/ahslib/ahslib-core.jar" includes="**/*.class"/>
 			<zipfileset src="${lib}/argparse4j/argparse4j.jar" includes="**/*.class"/>
 			<zipfileset src="${lib}/jsch/jsch.jar" includes="**/*.class"/>
+			<zipfileset src="${lib}/commons-lang/commons-lang.jar" includes="**/*.class"/>
 		</exusPack>
 		<chmod file="${dist}/${app}" perm="755"/>
 	</target>
