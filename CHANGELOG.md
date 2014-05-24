@@ -2,6 +2,18 @@ CHANGELOG
 =========
 
 
+v2.xx.x (unreleased)
+--------------------
+
+- The `mdm update` command now reports each of the dependencies as it proceeds.  When doing an update on a project with a lot of dependencies, there's now a pulse visible during the work.
+- Git data directories are now stored in the parent project's git data directory!
+  - This is a significant improvement in that your entire lib/* directory can be blown away, and yet the cache of locally available repositories and their commits remains available.
+  - In particular, this means after switching to a branch without a dependency, you can `git clean -xdff`, yet when switching back and "fetching" the dependency again, no fetch is necessary; all the data is still locally available.
+- Improved deployment: binaries from v2.15.0 and later were sometimes not considered as valid executables in some contexts on POSIX (i.e. linux, mac) systems; this is now fixed.
+  - Specifically, if executing mdm via the execlp, execvp, or execvpe syscalls, everything would be fine; when using the execl, execle, or execv syscalls an error would be encountered.  Practically speaking, exec'ing in java doesn't encounter problems, nor of course does the shell; I did however find that exec'ing in golang would hit the stricter behavior.  See `man exec` for additional entertainment.
+
+
+
 v2.16.1
 -------
 
