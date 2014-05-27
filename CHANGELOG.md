@@ -2,8 +2,8 @@ CHANGELOG
 =========
 
 
-v2.xx.x (unreleased)
---------------------
+v2.17.0
+-------
 
 - The `mdm update` command now reports each of the dependencies as it proceeds.  When doing an update on a project with a lot of dependencies, there's now a pulse visible during the work.
 - Git data directories are now stored in the parent project's git data directory!
