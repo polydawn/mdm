@@ -67,8 +67,8 @@ public class Plumbing {
 					}
 
 				try {
-					initLocalConfig(repo, module);
-					repo.getConfig().save();
+					if (initLocalConfig(repo, module))
+						repo.getConfig().save();
 				} catch (IOException e) {
 					throw new MdmRepositoryIOException("save changes", true, "the local git configuration file", e);
 				}
