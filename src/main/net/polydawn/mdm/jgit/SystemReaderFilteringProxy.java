@@ -28,6 +28,7 @@ public class SystemReaderFilteringProxy extends SystemReader {
 		Config whitelist = new Config();
 		whitelist.setBoolean("user", null, "name", true);
 		whitelist.setBoolean("user", null, "email", true);
+		whitelist.setBoolean("url", null, "*", true);
 		SystemReader proxy = new SystemReaderFilteringProxy(SystemReader.getInstance(), whitelist);
 		SystemReader.setInstance(proxy);
 	}

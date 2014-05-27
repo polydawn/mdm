@@ -43,10 +43,17 @@ public class FilteredConfig extends FileBasedConfig {
 		for (String section : original.getSections()) {
 			for (String subsection : original.getSubsections(section))
 				for (String key : original.getNames(section, subsection))
-					if (whitelist.getBoolean(section, subsection, key, false))
+					if (
+						   whitelist.getBoolean(section, subsection, key, false)
+						|| whitelist.getBoolean(section, subsection, "*", false)
+						|| whitelist.getBoolean(section, null, "*", false)
+					)
 						this.setStringList(section, subsection, key, Arrays.asList(original.getStringList(section, subsection, key)));
 			for (String key : original.getNames(section))
-				if (whitelist.getBoolean(section, null, key, false))
+				if (
+					   whitelist.getBoolean(section, null, key, false)
+					|| whitelist.getBoolean(section, null, "*", false)
+				)
 					this.setStringList(section, null, key, Arrays.asList(original.getStringList(section, null, key)));
 		}
 	}

@@ -27,8 +27,10 @@ import net.polydawn.mdm.util.*;
 import org.apache.commons.lang.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
+import org.eclipse.jgit.storage.file.*;
 import org.eclipse.jgit.submodule.*;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.filter.*;
@@ -37,7 +39,7 @@ import us.exultant.ahs.util.*;
 
 public class Plumbing {
 	// this method is getting to be quite a misnomer, it enforces a lot more state than just fetching
-	public static boolean fetch(Repository repo, MdmModuleDependency module) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException, IOException {
+	public static boolean fetch(Repository repo, MdmModuleDependency module) throws ConfigInvalidException, MdmRepositoryIOException, MdmRepositoryStateException, MdmException, IOException {
 		switch (module.getStatus().getType()) {
 			case MISSING:
 				throw new MajorBug();
@@ -166,10 +168,18 @@ public class Plumbing {
 	 * This allows for easily having per-project 'insteadof' url rewrites which apply even
 	 * when mdm is doing the creation of new repos (which is otherwise a tad hard to get at with git submodules).
 	 * @return true if module.getRepo().getConfig() has been modified and should be saved.
+	 * @throws ConfigInvalidException
+	 * @throws IOException
 	 */
-	public static boolean initModuleConfig(Repository repo, MdmModule module) {
-		Config parentConfig = repo.getConfig();
+	public static boolean initModuleConfig(Repository repo, MdmModule module) throws IOException, ConfigInvalidException {
 		Config moduleConfig = module.getRepo().getConfig();
+		// have to explicitly load the parent repo config in isolate, because `repo.getConfig` includes views of the system and user gitconfig, which we won't want to proxy here.
+		FileBasedConfig parentConfig = new FileBasedConfig(new File(repo.getDirectory(), "config"), repo.getFS());
+		try {
+			parentConfig.load();
+		} catch (IOException e) {
+			throw new MdmRepositoryIOException(false, "the local git configuration file", e);
+		}
 
 		// copy any url_insteadof patterns from the parent repo's git config into the module's git config.
 		// note that we do not strip out any additional insteadof's the module may have; if you've added those, it's none of our business (though at this point, we do overwrite).

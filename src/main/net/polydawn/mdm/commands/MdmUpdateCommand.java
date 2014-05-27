@@ -38,7 +38,7 @@ public class MdmUpdateCommand extends MdmCommand {
 
 	public void validate() throws MdmExitMessage {}
 
-	public MdmExitMessage call() throws IOException {
+	public MdmExitMessage call() throws ConfigInvalidException, IOException {
 		try {
 			assertInRepo();
 		} catch (MdmExitMessage e) { return e; }
