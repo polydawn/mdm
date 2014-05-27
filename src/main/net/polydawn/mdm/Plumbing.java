@@ -86,7 +86,7 @@ public class Plumbing {
 					if (initModuleConfig(repo, module))
 						module.getRepo().getConfig().save();
 				} catch (IOException e) {
-					throw new MdmRepositoryIOException("save changes", true, "the dependency submodule git configuration file", e);
+					throw new MdmRepositoryIOException("save changes", true, "the git configuration file for submodule "+module.getHandle(), e);
 				}
 
 				final String versionBranchName = "refs/heads/mdm/release/"+module.getVersionName();
