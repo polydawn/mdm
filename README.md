@@ -254,7 +254,7 @@ http://mdm-releases.net/net.polydawn/mdm-releases/v2.17.0/mdm
 
 Or, alternatively, mirrored here:
 
-https://raw.github.com/mdm-releases/mdm-releases/master/v2.17.0/mdm
+https://raw.githubusercontent.com/mdm-releases/mdm-releases/master/v2.17.0/mdm
 
 You can browse the whole releases repo on github!
 
