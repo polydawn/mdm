@@ -84,7 +84,7 @@ public class MdmAddCommand extends MdmCommand {
 
 	String version;
 
-	public MdmExitMessage call() throws IOException, MdmException {
+	public MdmExitMessage call() throws ConfigInvalidException, IOException, MdmException {
 		assertInRepoRoot();
 
 		// load other config (so we can error early on in case there's a problem)
@@ -159,7 +159,7 @@ public class MdmAddCommand extends MdmCommand {
 		return gitmodulesCfg;
 	}
 
-	void doSubmoduleFetch(File path, Config gitmodulesCfg) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException, IOException {
+	void doSubmoduleFetch(File path, Config gitmodulesCfg) throws ConfigInvalidException, MdmRepositoryIOException, MdmRepositoryStateException, MdmException, IOException {
 		// fetch the release data to our local submodule repo
 		MdmModuleDependency module = MdmModuleDependency.load(repo, path.getPath(), gitmodulesCfg);
 		Plumbing.fetch(repo, module);

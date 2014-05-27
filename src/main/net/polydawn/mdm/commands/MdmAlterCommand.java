@@ -41,7 +41,7 @@ public class MdmAlterCommand extends MdmCommand {
 
 	public void validate() throws MdmExitMessage {}
 
-	public MdmExitMessage call() throws IOException, MdmException {
+	public MdmExitMessage call() throws ConfigInvalidException, IOException, MdmException {
 		try {
 			assertInRepoRoot();
 		} catch (MdmExitMessage e) { return e; }

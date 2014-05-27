@@ -15,11 +15,25 @@
 	<property name="exus.build.java.version.source" value="1.6"/>
 	<property name="exus.build.java.version.target" value="1.6"/>
 
+
+	<exec executable="git" failonerror="true">
+		<arg value="submodule"/>
+		<arg value="update"/>
+		<arg value="--init"/>
+		<arg value="lib/exus-build"/>
+	</exec>
 	<import file="lib/exus-build/build-exultant.xml"/>
 	<import file="lib/exus-build/build-exultant-java.xml"/>
+	<import file="lib/exus-build/bootstrap-mdm.xml"/>
 
 
-	<target name="init" depends="exusInit">
+	<target name="bootstrap"
+		depends="-bootstrap-mdm-modules">
+	</target>
+
+
+	<target name="init"
+		depends="exusInit,bootstrap">
 	</target>
 
 
@@ -28,6 +42,7 @@
 		<pathelement location="${lib}/ahslib/ahslib-core.jar"/>
 		<pathelement location="${lib}/argparse4j/argparse4j.jar"/>
 		<pathelement location="${lib}/jsch/jsch.jar"/>
+		<pathelement location="${lib}/commons-lang/commons-lang.jar"/>
 	</path>
 	<path id="mdm.path.main">
 		<path refid="mdm.path.deps.main" />
@@ -48,8 +63,9 @@
 	<target name="compile" depends="init" description="compile the source">
 		<exusJavac
 			classes="net/polydawn/${app}/Mdm.java"
-			depends="${toString:mdm.path.deps.main}"
-		/>
+			>
+			<classpath refid="mdm.path.deps.main" />
+		</exusJavac>
 	</target>
 
 
@@ -65,6 +81,7 @@
 			<zipfileset src="${lib}/ahslib/ahslib-core.jar" includes="**/*.class"/>
 			<zipfileset src="${lib}/argparse4j/argparse4j.jar" includes="**/*.class"/>
 			<zipfileset src="${lib}/jsch/jsch.jar" includes="**/*.class"/>
+			<zipfileset src="${lib}/commons-lang/commons-lang.jar" includes="**/*.class"/>
 		</exusPack>
 		<chmod file="${dist}/${app}" perm="755"/>
 	</target>
@@ -97,19 +114,10 @@
 		</proguard>
 		<delete file="${dist}/${app}-loose.jar"/>
 
-		<concat destfile="${dist}/${app}" binary="true">
-			<concat encoding="UTF-8">
-				<concat>
-					exec java -jar "$0" "$@"
-					exit
-				</concat>
-				<filterchain>
-					<deletecharacters chars="\t"/>
-					<headfilter lines="-1" skip="1"/>
-				</filterchain>
-			</concat>
-			<fileset file="${dist}/${app}-packed.jar" />
-		</concat>
+		<exusJavaBang
+			src="${dist}/${app}-packed.jar"
+			dest="${dist}/${app}"
+		/>
 		<delete file="${dist}/${app}-packed.jar"/>
 
 		<chmod file="${dist}/${app}" perm="755"/>

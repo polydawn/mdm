@@ -24,18 +24,22 @@ import java.net.*;
 import java.util.*;
 import net.polydawn.mdm.errors.*;
 import net.polydawn.mdm.util.*;
+import org.apache.commons.lang.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
+import org.eclipse.jgit.storage.file.*;
 import org.eclipse.jgit.submodule.*;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.filter.*;
+import us.exultant.ahs.iob.*;
 import us.exultant.ahs.util.*;
 
 public class Plumbing {
 	// this method is getting to be quite a misnomer, it enforces a lot more state than just fetching
-	public static boolean fetch(Repository repo, MdmModuleDependency module) throws MdmRepositoryIOException, MdmRepositoryStateException, MdmException, IOException {
+	public static boolean fetch(Repository repo, MdmModuleDependency module) throws ConfigInvalidException, MdmRepositoryIOException, MdmRepositoryStateException, MdmException, IOException {
 		switch (module.getStatus().getType()) {
 			case MISSING:
 				throw new MajorBug();
@@ -44,15 +48,29 @@ public class Plumbing {
 					try {
 						RepositoryBuilder builder = new RepositoryBuilder();
 						builder.setWorkTree(new File(repo.getWorkTree()+"/"+module.getPath()));
+						builder.setGitDir(new File(repo.getDirectory()+"/modules/"+module.getPath()));
 						module.repo = builder.build();
 						module.repo.create(false);
+						// handling paths in java, god forbid relative paths, is such an unbelievable backwater.  someday please make a whole library that actually disambiguates pathnames from filedescriptors properly
+						int ups = StringUtils.countMatches(module.getPath(), "/");
+						// jgit does not appear to create the .git file correctly here :/
+						// nor even consider it to be jgit's job to create the worktree yet, apparently, so do that
+						module.repo.getWorkTree().mkdirs();
+						// need modules/[module]/config to contain 'core.worktree' = appropriate
+						String submoduleWorkTreeRelativeToGitDir = StringUtils.repeat("../", ups+3)+module.getPath();
+						StoredConfig cnf = module.repo.getConfig();
+						cnf.setString("core", null, "worktree", submoduleWorkTreeRelativeToGitDir);
+						cnf.save();
+						// need [module]/.git to contain 'gitdir: appropriate' (which appears to not be normal gitconfig)
+						String submoduleGitDirRelativeToWorkTree = StringUtils.repeat("../", ups+1)+".git/modules/"+module.getPath();
+						IOForge.saveFile("gitdir: "+submoduleGitDirRelativeToWorkTree+"\n", new File(module.repo.getWorkTree(), ".git"));
 					} catch (IOException e) {
 						throw new MdmRepositoryIOException("create a new submodule", true, module.getHandle(), e);
 					}
 
 				try {
-					initLocalConfig(repo, module);
-					repo.getConfig().save();
+					if (initLocalConfig(repo, module))
+						repo.getConfig().save();
 				} catch (IOException e) {
 					throw new MdmRepositoryIOException("save changes", true, "the local git configuration file", e);
 				}
@@ -66,6 +84,13 @@ public class Plumbing {
 				if (module.getVersionName() == null || module.getVersionName().equals(module.getVersionActual()))
 					return false;
 			case REV_CHECKED_OUT:
+				try {
+					if (initModuleConfig(repo, module))
+						module.getRepo().getConfig().save();
+				} catch (IOException e) {
+					throw new MdmRepositoryIOException("save changes", true, "the git configuration file for submodule "+module.getHandle(), e);
+				}
+
 				final String versionBranchName = "refs/heads/mdm/release/"+module.getVersionName();
 				final String versionTagName = "refs/tags/release/"+module.getVersionName();
 
@@ -135,6 +160,36 @@ public class Plumbing {
 		module.urlLocal = module.getUrlHistoric();
 		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_URL, module.getUrlLocal());
 		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_UPDATE, "none");
+		return true;
+	}
+
+	/**
+	 * Copy in `url` git config keys from the parent repo config into the submodule config.
+	 * This allows for easily having per-project 'insteadof' url rewrites which apply even
+	 * when mdm is doing the creation of new repos (which is otherwise a tad hard to get at with git submodules).
+	 * @return true if module.getRepo().getConfig() has been modified and should be saved.
+	 * @throws ConfigInvalidException
+	 * @throws IOException
+	 */
+	public static boolean initModuleConfig(Repository repo, MdmModule module) throws IOException, ConfigInvalidException {
+		Config moduleConfig = module.getRepo().getConfig();
+		// have to explicitly load the parent repo config in isolate, because `repo.getConfig` includes views of the system and user gitconfig, which we won't want to proxy here.
+		FileBasedConfig parentConfig = new FileBasedConfig(new File(repo.getDirectory(), "config"), repo.getFS());
+		try {
+			parentConfig.load();
+		} catch (IOException e) {
+			throw new MdmRepositoryIOException(false, "the local git configuration file", e);
+		}
+
+		// copy any url_insteadof patterns from the parent repo's git config into the module's git config.
+		// note that we do not strip out any additional insteadof's the module may have; if you've added those, it's none of our business (though at this point, we do overwrite).
+		// see org.eclipse.jgit.transport.RemoteConfig for how these actually get used.
+		for (String url : parentConfig.getSubsections(ConfigConstants.CONFIG_KEY_URL))
+			for (String insteadOf : parentConfig.getStringList(ConfigConstants.CONFIG_KEY_URL, url, "insteadof"))
+				moduleConfig.setString(ConfigConstants.CONFIG_KEY_URL, url, "insteadof", insteadOf);
+		for (String url : parentConfig.getSubsections(ConfigConstants.CONFIG_KEY_URL))
+			for (String insteadOf : parentConfig.getStringList(ConfigConstants.CONFIG_KEY_URL, url, "pushinsteadof"))
+				moduleConfig.setString(ConfigConstants.CONFIG_KEY_URL, url, "pushinsteadof", insteadOf);
 		return true;
 	}
 

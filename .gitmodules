@@ -38,9 +38,9 @@
 	update = none
 [submodule "lib/jsch"]
 	path = lib/jsch
-	url = https://github.com/mdm-releases/jsch-releases.git
+	url = http://mdm-releases.com/com.jcraft/jsch-releases.git
 	mdm = dependency
-	mdm-version = v0.1.49
+	mdm-version = 0.1.51.mvn
 	update = none
 [submodule "lib/junit"]
 	path = lib/junit
@@ -53,4 +53,10 @@
 	url = https://github.com/mdm-releases/proguard-releases.git
 	mdm = dependency
 	mdm-version = v4.9
+	update = none
+[submodule "lib/commons-lang"]
+	path = lib/commons-lang
+	url = http://mdm-releases.com/commons-lang/commons-lang-releases.git
+	mdm = dependency
+	mdm-version = 2.6.mvn
 	update = none

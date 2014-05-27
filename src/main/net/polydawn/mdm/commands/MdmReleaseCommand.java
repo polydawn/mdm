@@ -29,7 +29,6 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.api.errors.CheckoutConflictException;
-import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.*;
