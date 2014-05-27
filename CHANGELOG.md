@@ -9,6 +9,10 @@ v2.xx.x (unreleased)
 - Git data directories are now stored in the parent project's git data directory!
   - This is a significant improvement in that your entire lib/* directory can be blown away, and yet the cache of locally available repositories and their commits remains available.
   - In particular, this means after switching to a branch without a dependency, you can `git clean -xdff`, yet when switching back and "fetching" the dependency again, no fetch is necessary; all the data is still locally available.
+- Added enhanced support around use of URL "insteadof" git config: url.*.insteadof and url.*.pushinsteadof git config chunks in the parent repo's config will now be copied into a dependency module's config.
+  - This means it's easy to configure url replacements on a project and have `mdm update` pick up the replacement on the very first use.
+  - If you're not familiar with this feature of git: play around with `git config url."file:///my/local/cache/".insteadof "http://mdm-releases.com/"`.
+  - Note that "insteadof" config was already supported by mdm previously; the change here is merely the convenience of injecting config from the parent into submodules to smooth initialization.
 - Improved deployment: binaries from v2.15.0 and later were sometimes not considered as valid executables in some contexts on POSIX (i.e. linux, mac) systems; this is now fixed.
   - Specifically, if executing mdm via the execlp, execvp, or execvpe syscalls, everything would be fine; when using the execl, execle, or execv syscalls an error would be encountered.  Practically speaking, exec'ing in java doesn't encounter problems, nor of course does the shell; I did however find that exec'ing in golang would hit the stricter behavior.  See `man exec` for additional entertainment.
 - Upgrade jsch dependency to to version '0.1.51' (from '0.1.49').

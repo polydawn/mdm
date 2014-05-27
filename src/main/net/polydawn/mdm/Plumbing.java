@@ -82,6 +82,13 @@ public class Plumbing {
 				if (module.getVersionName() == null || module.getVersionName().equals(module.getVersionActual()))
 					return false;
 			case REV_CHECKED_OUT:
+				try {
+					if (initModuleConfig(repo, module))
+						module.getRepo().getConfig().save();
+				} catch (IOException e) {
+					throw new MdmRepositoryIOException("save changes", true, "the dependency submodule git configuration file", e);
+				}
+
 				final String versionBranchName = "refs/heads/mdm/release/"+module.getVersionName();
 				final String versionTagName = "refs/tags/release/"+module.getVersionName();
 
@@ -151,6 +158,28 @@ public class Plumbing {
 		module.urlLocal = module.getUrlHistoric();
 		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_URL, module.getUrlLocal());
 		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_UPDATE, "none");
+		return true;
+	}
+
+	/**
+	 * Copy in `url` git config keys from the parent repo config into the submodule config.
+	 * This allows for easily having per-project 'insteadof' url rewrites which apply even
+	 * when mdm is doing the creation of new repos (which is otherwise a tad hard to get at with git submodules).
+	 * @return true if module.getRepo().getConfig() has been modified and should be saved.
+	 */
+	public static boolean initModuleConfig(Repository repo, MdmModule module) {
+		Config parentConfig = repo.getConfig();
+		Config moduleConfig = module.getRepo().getConfig();
+
+		// copy any url_insteadof patterns from the parent repo's git config into the module's git config.
+		// note that we do not strip out any additional insteadof's the module may have; if you've added those, it's none of our business (though at this point, we do overwrite).
+		// see org.eclipse.jgit.transport.RemoteConfig for how these actually get used.
+		for (String url : parentConfig.getSubsections(ConfigConstants.CONFIG_KEY_URL))
+			for (String insteadOf : parentConfig.getStringList(ConfigConstants.CONFIG_KEY_URL, url, "insteadof"))
+				moduleConfig.setString(ConfigConstants.CONFIG_KEY_URL, url, "insteadof", insteadOf);
+		for (String url : parentConfig.getSubsections(ConfigConstants.CONFIG_KEY_URL))
+			for (String insteadOf : parentConfig.getStringList(ConfigConstants.CONFIG_KEY_URL, url, "pushinsteadof"))
+				moduleConfig.setString(ConfigConstants.CONFIG_KEY_URL, url, "pushinsteadof", insteadOf);
 		return true;
 	}
 
