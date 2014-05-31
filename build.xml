@@ -50,6 +50,7 @@
 	</path>
 	<path id="mdm.path.deps.test">
 		<path refid="mdm.path.main" />
+		<pathelement location="${lib}/josh/josh.jar"/>
 		<pathelement location="${lib}/junit/junit.jar"/>
 		<pathelement location="${target.javac}/test-fixtures" />
 	</path>
