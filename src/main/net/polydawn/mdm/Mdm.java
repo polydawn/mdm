@@ -37,23 +37,33 @@ public class Mdm {
 	}
 
 	public static void main(String[] args) {
-		MdmExitMessage answer = main(args, null);
+		MdmExitMessage answer = _main(args);
 		answer.print(System.err);
 		answer.exit();
 	}
 
-	public static MdmExitMessage main(String[] args, Repository repo) {
-		ArgumentParser parser = new MdmArgumentParser().parser;
-
-		if (repo == null) try {
+	/**
+	 * Like the main method (does full args parsing, takes your cwd as serious
+	 * business, etc) except passes out exceptions instead of logging or halting the
+	 * jvm, so it can be used in tests.
+	 * @throws Exception
+	 */
+	public static MdmExitMessage run(String... args) throws Exception {
+		// find the repo to operate on
+		Repository repo;
+		try {
 			FileRepositoryBuilder builder = new FileRepositoryBuilder();
 			builder.findGitDir();
 			if (builder.getGitDir() != null)
 				repo = builder.build();
+			else
+				throw new MdmExitMessage(":(", "could not find a git project repo here");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 
+		// parse args
+		ArgumentParser parser = new MdmArgumentParser().parser;
 		Namespace parsedArgs = null;
 		try {
 			parsedArgs = parser.parseArgs(args);
@@ -61,11 +71,17 @@ public class Mdm {
 			parser.handleError(e);
 			System.exit(1);
 		}
+
+		// fire command
+		MdmCommand cmd = getCommand(parsedArgs.getString("subcommand"), repo, parsedArgs);
+		cmd.parse(parsedArgs);
+		cmd.validate();
+		return cmd.call();
+	}
+
+	private static MdmExitMessage _main(String[] args) {
 		try {
-			MdmCommand cmd = getCommand(parsedArgs.getString("subcommand"), repo, parsedArgs);
-			cmd.parse(parsedArgs);
-			cmd.validate();
-			return cmd.call();
+			return run(args);
 		} catch (MdmExitMessage e) {
 			return e;
 		} catch (MdmRuntimeException e) {
