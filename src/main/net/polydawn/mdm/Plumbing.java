@@ -21,13 +21,16 @@ package net.polydawn.mdm;
 
 import java.io.*;
 import java.net.*;
+import java.text.*;
 import java.util.*;
 import net.polydawn.mdm.errors.*;
 import net.polydawn.mdm.util.*;
 import org.apache.commons.lang.*;
 import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.ResetCommand.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.eclipse.jgit.internal.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.storage.file.*;
@@ -50,7 +53,29 @@ public class Plumbing {
 						builder.setWorkTree(new File(repo.getWorkTree()+"/"+module.getPath()));
 						builder.setGitDir(new File(repo.getDirectory()+"/modules/"+module.getPath()));
 						module.repo = builder.build();
-						module.repo.create(false);
+
+						// we actually *might* not have to make the repo from zero.
+						// this getRepo gets its effective data from SubmoduleWalk.getSubmoduleRepository...
+						// which does its job by looking in the working tree of the parent repo.
+						// meaning if it finds nothing, it certainly won't find any gitdir indirections.
+						// so, even if this is null, we might well have a gitdir cached that we still have to go find.
+						final FileBasedConfig cfg = (FileBasedConfig) module.repo.getConfig();
+						if (!cfg.getFile().exists()) {	// though seemly messy, this is the same question the jgit create() function asks, and it's not exposed to us, so.
+							module.repo.create(false);
+						} else {
+							// do something crazy, because... i think the user's expectation after blowing away their submodule working tree is likely wanting a clean state of index and such here
+							try {
+								new Git(module.getRepo()).reset().setMode(ResetType.HARD).call();
+							} catch (CheckoutConflictException e) {
+								/* Can a hard reset even have a conflict? */
+								throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+							} catch (GitAPIException e) {
+								throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+							}
+						}
+
+						// set up a working tree which points to the gitdir in the parent repo:
+
 						// handling paths in java, god forbid relative paths, is such an unbelievable backwater.  someday please make a whole library that actually disambiguates pathnames from filedescriptors properly
 						int ups = StringUtils.countMatches(module.getPath(), "/");
 						// jgit does not appear to create the .git file correctly here :/

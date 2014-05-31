@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+v2.xx.x (unreleased)
+--------------------
+
+- Bugfix for crash when removing a dependency's checked out files and then running `mdm update` again (mdm would try to 'create' the submodule repo, even though it would still exist in the parent repo's .git/ data dir) introduced by v2.17.0.
+  - If you need to work around this in v2.17.0, you can simply remove the files under the parent repo's `.git/modules/{the-dep-path}` directory -- or, as with most things, just reclone for an aggressively clean slate.
+
+
 
 v2.17.0
 -------
