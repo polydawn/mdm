@@ -12,6 +12,7 @@ import net.polydawn.josh.*;
 import net.polydawn.mdm.*;
 import net.polydawn.mdm.fixture.*;
 import net.polydawn.mdm.test.*;
+import net.polydawn.mdm.test.WithCwd;
 
 @RunWith(OrderedJUnit4ClassRunner.class)
 public class RevivingEmptyWorkdirsTest extends TestCaseUsingRepository {
