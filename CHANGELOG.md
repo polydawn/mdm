@@ -8,6 +8,8 @@ v2.xx.x (unreleased)
 - Calmly report and exit when altering a version encounters dirty files in a dependency's working tree.
 - Bugfix for crash when removing a dependency's checked out files and then running `mdm update` again (mdm would try to 'create' the submodule repo, even though it would still exist in the parent repo's .git/ data dir) introduced by v2.17.0.
   - If you need to work around this in v2.17.0, you can simply remove the files under the parent repo's `.git/modules/{the-dep-path}` directory -- or, as with most things, just reclone for an aggressively clean slate.
+- Fix for handling operation inside a repository that is itself a submodule (or otherwise has an unusually advanced configuration with a relocated git data dir) (also a new concern from v2.17.0's separation of git dir from working tree).
+  - If you need to work around this in v2.17.0, you can do so by taking the n-1'th layer of submodule (what mdm would normally consider "the project dir"), and making sure its `.git` path is a real directory (one way to do this is by doing a git-init/git-clone into place directly instead of using the git-submodule-update mechanics, which as of git>=1.7.8 generate relocated git dirs the same way mdm does).
 
 
 
