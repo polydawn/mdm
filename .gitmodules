@@ -64,5 +64,5 @@
 	path = lib/josh
 	url = http://mdm-releases.com/net.polydawn/josh-releases.git
 	mdm = dependency
-	mdm-version = v0.1
+	mdm-version = v0.2
 	update = none
