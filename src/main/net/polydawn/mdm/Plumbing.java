@@ -78,16 +78,31 @@ public class Plumbing {
 
 						// handling paths in java, god forbid relative paths, is such an unbelievable backwater.  someday please make a whole library that actually disambiguates pathnames from filedescriptors properly
 						int ups = StringUtils.countMatches(module.getPath(), "/");
+						// look up the path between the `repo` and its possible git dir location.  if the gitdir is relocated, we have adjust our own relocations to compensate.
+						String parentGitPointerStr = ".git/";
+						String parentWorktreePointerStr = "../";
+						// load it ourselves because we explicitly want the unresolved path, not what jgit would give us back from `repo.getDirectory().toString()`.
+						File parentGitPointer = new File(repo.getWorkTree(), ".git");
+						if (parentGitPointer.isFile()) {
+							// this shouldn't have to be recursive fortunately (that recursion is done implicitly by the chaining of each guy at each stage).
+							// this does however feel fairly fragile.  it's considerable that perhaps we should try to heuristically determine when paths are just to crazy to deal with.  but, on the off chance that check was overzealous, it would be very irritating, so let's not.
+							// frankly, if you're doing deeply nested submodules, or other advanced gitdir relocations, at some point you're taking it upon yourself to deal with the inevitably complex outcomes and edge case limitations.
+							parentGitPointerStr = IOForge.readFileAsString(parentGitPointer);
+							if (!"gitdir:".equals(parentGitPointerStr.substring(0, 7)))
+								throw new ConfigInvalidException("cannot understand location of parent project git directory");
+							parentGitPointerStr = parentGitPointerStr.substring(7).trim() + "/";
+							parentWorktreePointerStr = repo.getConfig().getString("core", null, "worktree") + "/";
+						}
 						// jgit does not appear to create the .git file correctly here :/
 						// nor even consider it to be jgit's job to create the worktree yet, apparently, so do that
 						module.repo.getWorkTree().mkdirs();
 						// need modules/[module]/config to contain 'core.worktree' = appropriate
-						String submoduleWorkTreeRelativeToGitDir = StringUtils.repeat("../", ups+3)+module.getPath();
+						String submoduleWorkTreeRelativeToGitDir = StringUtils.repeat("../", ups+2)+parentWorktreePointerStr+module.getPath();
 						StoredConfig cnf = module.repo.getConfig();
 						cnf.setString("core", null, "worktree", submoduleWorkTreeRelativeToGitDir);
 						cnf.save();
 						// need [module]/.git to contain 'gitdir: appropriate' (which appears to not be normal gitconfig)
-						String submoduleGitDirRelativeToWorkTree = StringUtils.repeat("../", ups+1)+".git/modules/"+module.getPath();
+						String submoduleGitDirRelativeToWorkTree = StringUtils.repeat("../", ups+1)+parentGitPointerStr+"modules/"+module.getPath();
 						IOForge.saveFile("gitdir: "+submoduleGitDirRelativeToWorkTree+"\n", new File(module.repo.getWorkTree(), ".git"));
 					} catch (IOException e) {
 						throw new MdmRepositoryIOException("create a new submodule", true, module.getHandle(), e);
@@ -162,8 +177,8 @@ public class Plumbing {
 					/* I just got this branch, so we shouldn't have a problem here. */
 					throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 				} catch (CheckoutConflictException e) {
-					/* I'm using force mode, so this shouldnt happen. */
-					throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+					// this one is just a perfectly reasonable message with a list of files in conflict; we'll take it.
+					throw new MdmRepositoryStateException(module.getHandle(), e); // this currently gets translated to a :'( exception and it's probably more like a :(
 				} catch (GitAPIException e) {
 					throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 				}

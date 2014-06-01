@@ -92,6 +92,9 @@ public class MdmAlterCommand extends MdmCommand {
 			version = Loco.promptForVersion(os, versions);
 		}
 
+		// if you specify the version you already had, okay, we'll just put our tools down.
+		if (module.getVersionName().equals(version))
+			return new MdmExitMessage(":I", "that version is already specified!  no changes made.");
 
 		// do the submodule/dependency dancing
 		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getHandle(), MdmConfigConstants.Module.DEPENDENCY_VERSION.toString(), version);

@@ -51,6 +51,10 @@ public class MdmRepositoryStateException extends MdmException {
 		this(tryingTo, path, (Exception)cause);
 	}
 
+	public MdmRepositoryStateException(String path, CheckoutConflictException cause) {
+		this("perform a checkout", path, cause);
+	}
+
 	private MdmRepositoryStateException(String tryingTo, String path, Exception cause) {
 		super("mdm failed while trying to "+tryingTo+" at "+path+"; "+cause.getMessage(), cause);
 	}
