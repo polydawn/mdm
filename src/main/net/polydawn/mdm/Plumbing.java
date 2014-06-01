@@ -162,8 +162,8 @@ public class Plumbing {
 					/* I just got this branch, so we shouldn't have a problem here. */
 					throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 				} catch (CheckoutConflictException e) {
-					/* I'm using force mode, so this shouldnt happen. */
-					throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+					// this one is just a perfectly reasonable message with a list of files in conflict; we'll take it.
+					throw new MdmRepositoryStateException(module.getHandle(), e); // this currently gets translated to a :'( exception and it's probably more like a :(
 				} catch (GitAPIException e) {
 					throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 				}
