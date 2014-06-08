@@ -1,8 +1,8 @@
 CHANGELOG
 =========
 
-v2.xx.x (unreleased)
---------------------
+v2.17.1
+-------
 
 - Exit with success code when requesting alteration of a depedency version to what you already have.
 - Calmly report and exit when altering a version encounters dirty files in a dependency's working tree.
