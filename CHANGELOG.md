@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+v2.xx.x (unreleased)
+--------------------
+
+- Fix regression in v2.17.1 where asking mdm for '--help' or '--version' outside of a git repo would result in a demand for a git repo.
+
+
+
 v2.17.1
 -------
 

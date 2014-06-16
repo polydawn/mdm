@@ -1,5 +1,6 @@
 package net.polydawn.mdm;
 
+import java.util.*;
 import net.sourceforge.argparse4j.*;
 import net.sourceforge.argparse4j.impl.*;
 import net.sourceforge.argparse4j.inf.*;
@@ -8,7 +9,23 @@ public class MdmArgumentParser {
 	public MdmArgumentParser() {
 		parser = ArgumentParsers.newArgumentParser("mdm").version(Package.getPackage("net.polydawn.mdm").getImplementationVersion());
 
-		parser.addArgument("--version").action(Arguments.version());
+		parser.addArgument("--version").action(new ArgumentAction() {
+			@Override
+			public void run(ArgumentParser parser, Argument arg, Map<String,Object> attrs, String flag, Object value)
+				throws ArgumentParserException {
+				parser.printVersion();
+				// this is forked here just so we can get this bit of control flow (cough) instead of being shoehorned System.exit(0)
+				throw new VersionExit();
+			}
+
+			@Override
+			public boolean consumeArgument() {
+				return false;
+			}
+
+			@Override
+			public void onAttach(Argument arg) {}
+		});
 
 		Subparsers subparsers = parser.addSubparsers().dest("subcommand").title("subcommands");
 
@@ -99,4 +116,6 @@ public class MdmArgumentParser {
 	}
 
 	public final ArgumentParser parser;
+
+	public static class VersionExit extends RuntimeException {}
 }
