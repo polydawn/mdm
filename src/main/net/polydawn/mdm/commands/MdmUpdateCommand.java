@@ -75,8 +75,6 @@ public class MdmUpdateCommand extends MdmCommand {
 				os.println("\033[2K\rerror: in updating "+module.getHandle()+" to version "+module.getVersionName()+", "+e);
 				contorted.add(module);
 			}
-			//rm("-rf", join(".git/modules",subm));	# if this is one of the newer version of git (specifically, 1.7.8 or newer) that stores the submodule's data in the parent projects .git dir, clear that out forcefully as well or else git does some very silly things (you end up with the url changed but it recreates the old files and doesn't change the object id like it should).
-			//XXX: we have no special detection or handling for when submodule deletes are pulled from upstream.  what you end up with after that is just untracked files.  that's a little suprising, in my mind, but it's not exactly wrong, either.
 		}
 		os.print("\033[2K\r");
 
