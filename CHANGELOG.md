@@ -5,6 +5,7 @@ v2.xx.x (unreleased)
 --------------------
 
 - Fix regression in v2.17.1 where asking mdm for '--help' or '--version' outside of a git repo would result in a demand for a git repo.
+- Detect the presense of a terminal and format output accordingly: `mdm update` will use the fancy terse progress output in the presense of a terminal, and fall back to plain line-after-line printing if a terminal is not detected.
 
 
 

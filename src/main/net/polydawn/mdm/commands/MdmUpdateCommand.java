@@ -57,26 +57,27 @@ public class MdmUpdateCommand extends MdmCommand {
 		List<MdmModule> contorted = new ArrayList<MdmModule>();
 		int hashMismatchWarnings = 0;
 		int i = 0;
+		boolean fancy = System.console() != null;
 		for (MdmModuleDependency module : modules.values()) {
 			i++;
 			try {
-				os.print("\033[2K\rupdating module "+i+" of "+modules.size()+": "+module.getHandle());
+				os.print((fancy ? "\033[2K\r" : "") + "updating module "+i+" of "+modules.size()+": "+module.getHandle() +" ..." + (fancy ? "" : "\n"));
 				if (Plumbing.fetch(repo, module)) {
 					impacted.add(module);
 					if (!module.getRepo().resolve(Constants.HEAD).equals(module.getIndexId())) {
 						// in putting the module to the version named in .gitmodules, we made it disagree with the parent index.
 						// this probably indicates oddness.
 						hashMismatchWarnings++;
-						os.println("\033[2K\rnotice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than the parent repo expected.");
+						os.println((fancy ? "\033[2K\r" : "") + "notice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than the parent repo expected.");
 					}
 				} else
 					unphased.add(module);
 			} catch (MdmException e) {
-				os.println("\033[2K\rerror: in updating "+module.getHandle()+" to version "+module.getVersionName()+", "+e);
+				os.println((fancy ? "\033[2K\r" : "") + "error: in updating "+module.getHandle()+" to version "+module.getVersionName()+", "+e);
 				contorted.add(module);
 			}
 		}
-		os.print("\033[2K\r");
+		os.print((fancy ? "\033[2K\r" : ""));
 
 		// explain notices about hash mismatches, if any occured.
 		if (hashMismatchWarnings > 0) {
