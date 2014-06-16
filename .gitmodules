@@ -30,12 +30,6 @@
 	mdm = dependency
 	mdm-version = 3.3.2.201404171909-r.mvn
 	update = none
-[submodule "lib/argparse4j"]
-	path = lib/argparse4j
-	url = https://github.com/mdm-releases/argparse4j-releases.git
-	mdm = dependency
-	mdm-version = v0.4.0
-	update = none
 [submodule "lib/jsch"]
 	path = lib/jsch
 	url = http://mdm-releases.com/com.jcraft/jsch-releases.git
@@ -65,4 +59,10 @@
 	url = http://mdm-releases.com/net.polydawn/josh-releases.git
 	mdm = dependency
 	mdm-version = v0.2
+	update = none
+[submodule "lib/argparse4j"]
+	path = lib/argparse4j
+	url = http://mdm-releases.com/net.sourceforge.argparse4j/argparse4j-releases.git
+	mdm = dependency
+	mdm-version = 0.4.3.mvn
 	update = none
