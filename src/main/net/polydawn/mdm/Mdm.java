@@ -25,6 +25,7 @@ import net.polydawn.mdm.commands.*;
 import net.polydawn.mdm.errors.*;
 import net.polydawn.mdm.jgit.*;
 import net.sourceforge.argparse4j.inf.*;
+import net.sourceforge.argparse4j.internal.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.storage.file.*;
 import us.exultant.ahs.iob.*;
@@ -37,10 +38,13 @@ public class Mdm {
 	}
 
 	public static void main(String[] args) {
+		real = true;
 		MdmExitMessage answer = _main(args);
 		answer.print(System.err);
 		answer.exit();
 	}
+
+	private static boolean real = false;
 
 	/**
 	 * Like the main method (does full args parsing, takes your cwd as serious
@@ -50,14 +54,12 @@ public class Mdm {
 	 */
 	public static MdmExitMessage run(String... args) throws Exception {
 		// find the repo to operate on
-		Repository repo;
+		Repository repo = null;
 		try {
 			FileRepositoryBuilder builder = new FileRepositoryBuilder();
 			builder.findGitDir();
 			if (builder.getGitDir() != null)
 				repo = builder.build();
-			else
-				throw new MdmExitMessage(":(", "could not find a git project repo here");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -67,9 +69,16 @@ public class Mdm {
 		Namespace parsedArgs = null;
 		try {
 			parsedArgs = parser.parseArgs(args);
+		} catch (HelpScreenException e) {
+			if (real) System.exit(0);
+			return null;
+		} catch (MdmArgumentParser.VersionExit e) {
+			if (real) System.exit(0);
+			return null;
 		} catch (ArgumentParserException e) {
 			parser.handleError(e);
-			System.exit(1);
+			if (real) System.exit(1);
+			return null;
 		}
 
 		// fire command
