@@ -1,8 +1,8 @@
 CHANGELOG
 =========
 
-v2.xx.x (unreleased)
---------------------
+v2.17.3
+-------
 
 - Windows support!
   - Consider this preliminary, but all basic issues with path uniformity are now addressed, enough to enable successfully using `mdm update`, `mdm alter`, etc, in a Windows environment.  So if additional issues are found, you should have all the tools necessary to make contributions from Windows ;)
