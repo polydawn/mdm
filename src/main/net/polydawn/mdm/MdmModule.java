@@ -91,7 +91,8 @@ public abstract class MdmModule {
 				throw new MdmModuleTypeException("expected module of type " + type + " for repository " + handle + ", but gitmodules file states this is a " + type_configured + " module.");
 
 			// load real path from gitmodule config (probably same as handle, but theoretically allowed to be different)
-			this.path = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, ConfigConstants.CONFIG_KEY_PATH);
+			String path = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, ConfigConstants.CONFIG_KEY_PATH);
+			this.path = (File.separatorChar != '/') ? path.replace(File.separatorChar, '/') : path;
 
 			// load remote urls
 			this.urlHistoric = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, ConfigConstants.CONFIG_KEY_URL);
