@@ -56,6 +56,7 @@ public abstract class MdmModule {
 	 *                 if disks reject our advances
 	 */
 	protected MdmModule(Repository repo, String handle, Repository parent, Config gitmodulesCfg, ObjectId indexId) throws MdmRepositoryIOException, MdmModuleTypeException {
+		handle = (File.separatorChar != '/') ? handle.replace(File.separatorChar, '/') : handle;
 		this.handle = handle;
 		this.repo = repo;
 
