@@ -151,11 +151,12 @@ public class MdmAddCommand extends MdmCommand {
 
 	Config doSubmoduleConfig(Config gitmodulesCfg, File path) {
 		// write gitmodule config for the new submodule
-		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), ConfigConstants.CONFIG_KEY_PATH, path.getPath());
-		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), ConfigConstants.CONFIG_KEY_URL, url);
-		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), MdmConfigConstants.Module.MODULE_TYPE.toString(), MdmModuleType.DEPENDENCY.toString());
-		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), MdmConfigConstants.Module.DEPENDENCY_VERSION.toString(), version);
-		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, path.getPath(), ConfigConstants.CONFIG_KEY_UPDATE, "none"); // since almost all git commands by default will pull down waaaay too much data if they operate naively on our dependencies, we tell them to ignore all dependencies by default.  And of course, commands like `git pull` just steamroll right ahead and ignore this anyway, so those require even more drastic counters.
+		String slashedPath = (File.separatorChar != '/') ? path.getPath().replace(File.separatorChar, '/') : path.getPath();
+		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, slashedPath, ConfigConstants.CONFIG_KEY_PATH, slashedPath);
+		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, slashedPath, ConfigConstants.CONFIG_KEY_URL, url);
+		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, slashedPath, MdmConfigConstants.Module.MODULE_TYPE.toString(), MdmModuleType.DEPENDENCY.toString());
+		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, slashedPath, MdmConfigConstants.Module.DEPENDENCY_VERSION.toString(), version);
+		gitmodulesCfg.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, slashedPath, ConfigConstants.CONFIG_KEY_UPDATE, "none"); // since almost all git commands by default will pull down waaaay too much data if they operate naively on our dependencies, we tell them to ignore all dependencies by default.  And of course, commands like `git pull` just steamroll right ahead and ignore this anyway, so those require even more drastic counters.
 		return gitmodulesCfg;
 	}
 

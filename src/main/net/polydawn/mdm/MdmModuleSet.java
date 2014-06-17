@@ -44,8 +44,12 @@ public class MdmModuleSet {
 		SubmoduleWalk generator = SubmoduleWalk.forIndex(repo);
 		while (generator.next()) {
 			try {
+				// get the handle.  which we presume to be rather like the path, but git config always uses forward slashes.
+				// (the MdmModule constructor will also enforce this, but here we have to walk config ourselves before we get that far.)
+				String handle = (File.separatorChar != '/') ? generator.getPath().replace(File.separatorChar, '/') : generator.getPath();
+
 				// get submodule.[handle].mdm config value from gitmodules config file
-				String type_configured_string = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, generator.getPath(), MdmConfigConstants.Module.MODULE_TYPE.toString());
+				String type_configured_string = gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, MdmConfigConstants.Module.MODULE_TYPE.toString());
 				MdmModuleType type_configured = MdmModuleType.fromString(type_configured_string);
 
 				// if the submodule.[handle].mdm config value was unrecognized or missing, ignore; it's not ours.
