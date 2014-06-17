@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+v2.xx.x (unreleased)
+--------------------
+
+- Windows support!
+  - Consider this preliminary, but all basic issues with path uniformity are now addressed, enough to enable successfully using `mdm update`, `mdm alter`, etc, in a Windows environment.  So if additional issues are found, you should have all the tools necessary to make contributions from Windows ;)
+  - Use of absolute local filesystem paths in any git configuration is not recommended; significantly remapped filesystems may also pose challenges (namely, cygwin's translation layer between '/cygdrive/c/' and 'C:/' is likely to create amusing issues when programs from a cygwin context versus the native windows context look at config files they share).
+
+
+
 v2.17.2
 -------
 
