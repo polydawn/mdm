@@ -198,8 +198,8 @@ public class Plumbing {
 
 		// Copy 'url' and 'update' fields to local repo config
 		module.urlLocal = module.getUrlHistoric();
-		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_URL, module.getUrlLocal());
-		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getPath(), ConfigConstants.CONFIG_KEY_UPDATE, "none");
+		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getHandle(), ConfigConstants.CONFIG_KEY_URL, module.getUrlLocal());
+		repo.getConfig().setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, module.getHandle(), ConfigConstants.CONFIG_KEY_UPDATE, "none");
 		return true;
 	}
 
