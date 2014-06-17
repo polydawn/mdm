@@ -50,8 +50,7 @@ public class MdmReleaseInitCommand extends MdmCommand {
 		// pick out the name, if not given.
 		if (name == null) {
 			String prompt = "what's the name of this project";
-			String[] pwdchunks = System.getProperty("user.dir").split("/");
-			String nameSuggest = pwdchunks[pwdchunks.length-1];
+			String nameSuggest = new File(System.getProperty("user.dir")).getName();
 			if (args.getBoolean("use_defaults"))
 				name = nameSuggest;
 			else if (asSubmodule)
