@@ -111,6 +111,9 @@ public class MdmReleaseInitCommand extends MdmCommand {
 			else			// if we're not a submodule, then the default is to make use of the current directory.
 				path = ".";
 
+		// if running on windows, flip their directory chars to normal slashes, since committing escaped backslashes to a gitmodules config file is almost certainly not what want
+		path = (File.separatorChar != '/') ? path.replace(File.separatorChar, '/') : path;
+
 		// normalize the path if necessary.  (jgit commit trips over relative paths.  and it's pretty weird for a submodule handle, too.)
 		if (asSubmodule && path.startsWith("./")) path = path.substring(2);
 	}
