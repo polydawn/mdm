@@ -248,13 +248,13 @@ If your project just uses mdm, your project won't need a `git submodule update -
 Downloading a release
 ---------------------
 
-The latest version is v2.17.2, available here:
+The latest version is v2.17.3, available here:
 
-http://mdm-releases.net/net.polydawn/mdm-releases/v2.17.2/mdm
+http://mdm-releases.net/net.polydawn/mdm-releases/v2.17.3/mdm
 
 Or, alternatively, mirrored here:
 
-https://raw.githubusercontent.com/mdm-releases/mdm-releases/master/v2.17.2/mdm
+https://raw.githubusercontent.com/mdm-releases/mdm-releases/master/v2.17.3/mdm
 
 You can browse the whole releases repo on github!
 
