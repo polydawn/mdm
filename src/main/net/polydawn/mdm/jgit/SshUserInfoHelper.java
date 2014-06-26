@@ -20,7 +20,7 @@ public class SshUserInfoHelper {
 					}
 
 					public String getPassword() {
-						return System.console().readLine();
+						return new String(System.console().readPassword());
 					}
 
 					public boolean promptPassphrase(String message) {
@@ -33,7 +33,7 @@ public class SshUserInfoHelper {
 					}
 
 					public String getPassphrase() {
-						return System.console().readLine();
+						return new String(System.console().readPassword());
 					}
 
 					public boolean promptYesNo(String message) {
