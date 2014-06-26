@@ -35,6 +35,7 @@ public class Mdm {
 	static {
 		// apply fixes for questionable jgit behavior
 		SystemReaderFilteringProxy.apply();
+		SshUserInfoHelper.apply();
 	}
 
 	public static void main(String[] args) {
