@@ -34,52 +34,7 @@ Anyone who clones myproject can now fetch all myproject's dependencies based on 
 And because the hash of the projUpstream1 release artifacts is now embedded in myproject's history,
 it's impossible for anyone to be hoodwinked into getting anything other than the *exact* versions of myproject's dependencies that the author intended.
 
-
-### Anatomy of a Releases Repo History
-
-```
-
-.               <-- branch="master"
-.                       The master branch keeps going, and every time a new
-.                       release is made, those files are merged in to master.
-|
-*               <-- commit=07  tag="mdm/master/v2.1"
-|\                      moved artifact.jar -> v2.1/artifact.jar
-| \                     moved artifact.so -> v2.1/artifact.so
-|  |   
-|  *            <-- commit=06  branch="mdm/release/v2.1"
-|                       added artifact.jar
-|                       added artifact.so
-|      
-*               <-- commit=05  tag="mdm/master/v2.0"
-|\                      moved artifact.jar -> v2.0/artifact.jar
-| \                     moved artifact.so -> v2.0/artifact.so
-|  |   
-|  *            <-- commit=04  branch="mdm/release/v2.0"
-|                       added artifact.jar
-|                       added artifact.so
-|      
-*               <-- commit=03  tag="mdm/master/v1.0"
-|\                      moved artifact.jar -> v1.0/artifact.jar
-| \                     moved artifact.so -> v1.0/artifact.so
-|  |   
-|  *            <-- commit=02  branch="mdm/release/v1.0"
-|                       added artifact.jar
-|                       added artifact.so
-|    
-|   
-|  
-| 
-*               <-- commit=01  branch="mdm/init"
-                        Nothing really to see here.  This is just the commit
-                        created to inaugurate the releases repository.
-```
-
-There are two key features of this graph:
-
-1. the release branches don't accumulate each other's history, so you can fetch them independently, without needing to pull down any data from the other branches.
-1. the master branch does accumulate history from each of the release branches, so by fetching the master branch, you get *all* of the release branches, which makes it easy to make a local cache for your workgroup or to take backups of things you depend on.
-1. when a release branch merges into the master branch, the actual artifact files from the release are moved to a subfolder, so it's easy to have every release ever checked out in one working tree (which in turns makes it dang handy to just throw the whole release repo up on an http server to make direct downloads available).
+Also check out the documentation on [Anatomy of a Releases Repo History](4.4-anatomy-of-releases-repo-history.md) for an example of the git commit graph.
 
 ### submodules keep your history clean
 
