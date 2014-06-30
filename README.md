@@ -161,44 +161,6 @@ So, there's a couple of implications of that:
 Getting MDM
 ===========
 
-Building from Source, without mdm
----------------------------------
-
-Clone this repo, pull down submodules, and then call ```ant``` to build.  In other words:
-
-```bash
-git clone https://github.com/polydawn/mdm.git
-cd mdm
-git submodule update --init --checkout
-ant
-```
-
-The freshly built ```mdm``` binary will now be located at ```target/dist/mdm```, ready to go.
-
-Typically, however, mdm uses mdm to manage its own dependencies, and this results in sigificantly less onerous download times and on-disk size.  This mechanism of bootstrapping dependency submodules works with plain git, but unnecessarily downloads all versions of dependencies, instead of only fetching the versions we need.
-
-(The `--checkout` option on `git submodule update` asks git to disregrad instructions in the `.gitmodules` about whether or not to fetch a submodule.  `mdm` marks dependency repos such that a normal `git submodule update` will not fetch them by default, since `git submodule update` will fetch more data than necessary.)
-
-
-Building from Source, *with* mdm
---------------------------------
-
-Clone this repo, pull down submodules, and then call ```ant``` to build.  In other words:
-
-```bash
-git clone https://github.com/polydawn/mdm.git
-cd mdm
-git submodule update --init
-mdm update
-ant
-```
-
-The freshly built ```mdm``` binary will now be located at ```target/dist/mdm```, ready to go.
-
-(In this project, there's both a `git submodule` as well as an `mdm` command during setup.
-This is because the project uses standard git submodules for linking source files, as well as using mdm for linking libraries.
-If your project just uses mdm, your project won't need a `git submodule update --init` step; the `mdm` command is self contained.)
-
 
 Downloading a release
 ---------------------
@@ -216,22 +178,17 @@ You can browse the whole releases repo on github!
 https://github.com/mdm-releases/mdm-releases/
 
 
+Building from source
+--------------------
+
+If downloading a binary release isn't your cup of tea, [Section 4.1 -- building from source](4.1-building-from-source.md) documents your way.
+
+
 Portability
 -----------
 
 See [portability](doc/5.1-portability.md).
 
-
-Testing MDM
------------
-
-There's a script called ```mdma.sh``` in this repository.
-Once you've gotten ahold of an ```mdm``` binary (either by building it from source or downloading an official release),
-you can use the mdma script to put mdm through its paces --
-it will create projects, make releases, and set up dependencies as you watch, and it pauses frequently if you want to take a peek around at the state of the demo projects.
-This script can also be invoked as part of a build cycle: `ant run-mdma`.
-
-Mdm is also covered by tests using junit.  These tests can be built and ran with `ant run-test`.
 
 
 Other Notes
