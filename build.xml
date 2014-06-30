@@ -88,13 +88,18 @@
 	</target>
 
 
+	<!-- Mac doesn't put things in the standard location -->
+	<condition property="mdm.java.lib.path" value="${java.home}/../Classes/classes.jar" else="${java.home}/lib/rt.jar">
+		<os family="mac" />
+	</condition>
+
 	<target name="dist-packed" depends="dist"
 		description="minify distributable artifact to contain only needed classes">
 		<move file="${dist}/${app}" tofile="${dist}/${app}-loose.jar"/>
 		<taskdef resource="proguard/ant/task.properties"
 			 classpath="lib/proguard/proguard.jar" />
 		<proguard>
-			-libraryjars ${java.home}/lib/rt.jar
+			-libraryjars ${mdm.java.lib.path}
 			-injars      ${dist}/${app}-loose.jar
 			-outjars     ${dist}/${app}-packed.jar
 			

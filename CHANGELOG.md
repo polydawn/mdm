@@ -1,6 +1,18 @@
 CHANGELOG
 =========
 
+v2.xx.x (unreleased)
+--------------------
+
+- Add support for ssh transport to use interactive prompts for passwords.
+- Add support for ssh transport to use encrypted private keys, using interactive prompts for the encryption passphrase.  (See the [jsch readme](http://jcraft.com/jsch/README) for a full list of supported ciphers.)
+- Add support for ssh transport to contact unknown hosts if confirmed at interactive prompt.
+  - The exception will not be permanently added to a system known_hosts file by mdm.  But you will see the key fingerprint, so you can validate the system yourself and take appropriate steps.
+  - In previous releases, mdm would simply fail to establish ssh transport if the hostkey was unrecognized.
+- All of the above prompts will be skipped if there is not attached interactive terminal; the (unanswered) prompt will still now be logged however (so you can easily see if your jenkins job is failing because of an unrecognized host key, for example).
+
+
+
 v2.17.3
 -------
 
