@@ -1,8 +1,8 @@
 CHANGELOG
 =========
 
-v2.xx.x (unreleased)
---------------------
+v2.17.4
+-------
 
 - Add support for ssh transport to use interactive prompts for passwords.
 - Add support for ssh transport to use encrypted private keys, using interactive prompts for the encryption passphrase.  (See the [jsch readme](http://jcraft.com/jsch/README) for a full list of supported ciphers.)
