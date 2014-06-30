@@ -34,52 +34,7 @@ Anyone who clones myproject can now fetch all myproject's dependencies based on 
 And because the hash of the projUpstream1 release artifacts is now embedded in myproject's history,
 it's impossible for anyone to be hoodwinked into getting anything other than the *exact* versions of myproject's dependencies that the author intended.
 
-
-### Anatomy of a Releases Repo History
-
-```
-
-.               <-- branch="master"
-.                       The master branch keeps going, and every time a new
-.                       release is made, those files are merged in to master.
-|
-*               <-- commit=07  tag="mdm/master/v2.1"
-|\                      moved artifact.jar -> v2.1/artifact.jar
-| \                     moved artifact.so -> v2.1/artifact.so
-|  |   
-|  *            <-- commit=06  branch="mdm/release/v2.1"
-|                       added artifact.jar
-|                       added artifact.so
-|      
-*               <-- commit=05  tag="mdm/master/v2.0"
-|\                      moved artifact.jar -> v2.0/artifact.jar
-| \                     moved artifact.so -> v2.0/artifact.so
-|  |   
-|  *            <-- commit=04  branch="mdm/release/v2.0"
-|                       added artifact.jar
-|                       added artifact.so
-|      
-*               <-- commit=03  tag="mdm/master/v1.0"
-|\                      moved artifact.jar -> v1.0/artifact.jar
-| \                     moved artifact.so -> v1.0/artifact.so
-|  |   
-|  *            <-- commit=02  branch="mdm/release/v1.0"
-|                       added artifact.jar
-|                       added artifact.so
-|    
-|   
-|  
-| 
-*               <-- commit=01  branch="mdm/init"
-                        Nothing really to see here.  This is just the commit
-                        created to inaugurate the releases repository.
-```
-
-There are two key features of this graph:
-
-1. the release branches don't accumulate each other's history, so you can fetch them independently, without needing to pull down any data from the other branches.
-1. the master branch does accumulate history from each of the release branches, so by fetching the master branch, you get *all* of the release branches, which makes it easy to make a local cache for your workgroup or to take backups of things you depend on.
-1. when a release branch merges into the master branch, the actual artifact files from the release are moved to a subfolder, so it's easy to have every release ever checked out in one working tree (which in turns makes it dang handy to just throw the whole release repo up on an http server to make direct downloads available).
+Also check out the documentation on [Anatomy of a Releases Repo History](4.4-anatomy-of-releases-repo-history.md) for an example of the git commit graph.
 
 ### submodules keep your history clean
 
@@ -206,44 +161,6 @@ So, there's a couple of implications of that:
 Getting MDM
 ===========
 
-Building from Source, without mdm
----------------------------------
-
-Clone this repo, pull down submodules, and then call ```ant``` to build.  In other words:
-
-```bash
-git clone https://github.com/polydawn/mdm.git
-cd mdm
-git submodule update --init --checkout
-ant
-```
-
-The freshly built ```mdm``` binary will now be located at ```target/dist/mdm```, ready to go.
-
-Typically, however, mdm uses mdm to manage its own dependencies, and this results in sigificantly less onerous download times and on-disk size.  This mechanism of bootstrapping dependency submodules works with plain git, but unnecessarily downloads all versions of dependencies, instead of only fetching the versions we need.
-
-(The `--checkout` option on `git submodule update` asks git to disregrad instructions in the `.gitmodules` about whether or not to fetch a submodule.  `mdm` marks dependency repos such that a normal `git submodule update` will not fetch them by default, since `git submodule update` will fetch more data than necessary.)
-
-
-Building from Source, *with* mdm
---------------------------------
-
-Clone this repo, pull down submodules, and then call ```ant``` to build.  In other words:
-
-```bash
-git clone https://github.com/polydawn/mdm.git
-cd mdm
-git submodule update --init
-mdm update
-ant
-```
-
-The freshly built ```mdm``` binary will now be located at ```target/dist/mdm```, ready to go.
-
-(In this project, there's both a `git submodule` as well as an `mdm` command during setup.
-This is because the project uses standard git submodules for linking source files, as well as using mdm for linking libraries.
-If your project just uses mdm, your project won't need a `git submodule update --init` step; the `mdm` command is self contained.)
-
 
 Downloading a release
 ---------------------
@@ -261,36 +178,17 @@ You can browse the whole releases repo on github!
 https://github.com/mdm-releases/mdm-releases/
 
 
+Building from source
+--------------------
+
+If downloading a binary release isn't your cup of tea, [Section 4.1 -- building from source](4.1-building-from-source.md) documents your way.
+
+
 Portability
 -----------
 
-Mdm is explicitly designed to be easily portable anywhere you can drop an archive-file-format-of-your-choice.
+See [portability](doc/5.1-portability.md).
 
-Mdm is distributed as a java jar, and so requires a java runtime (1.6 and above is supported).
-(If you prefer not to deploy a JRE, consider using the [robovm compiler](http://www.robovm.com/) to produce native binaries for your platform of choice.)
-
-Mdm has no external dependencies -- in particular, it does NOT require a system-installed git, nor is it capable of breaking because of variations of system installed git versions.
-(Mdm uses the excellent [jgit](http://eclipse.org/jgit/) project for a portable full-featured git implementation.)
-
-Mdm observes the name and email configured in your user gitconfig, but ignores all other values.
-
-Mdm is under 2 megabytes.  It fits on a jumpdrive -- and if it wasn't obvious by now,
-mdm certainly won't try to connect to the internet in order to download plugins before gracing you with a list of subcommands,
-nor will it put critical components of itself in your home directory just to surprise you by failing when you try to drag-and-drop the mdm executable.
-
-Long story short, it actually *makes sense* to ship mdm around in a completely offline/sneakernet fashion -- this is considered a critical design goal.
-
-
-Testing MDM
------------
-
-There's a script called ```mdma.sh``` in this repository.
-Once you've gotten ahold of an ```mdm``` binary (either by building it from source or downloading an official release),
-you can use the mdma script to put mdm through its paces --
-it will create projects, make releases, and set up dependencies as you watch, and it pauses frequently if you want to take a peek around at the state of the demo projects.
-This script can also be invoked as part of a build cycle: `ant run-mdma`.
-
-Mdm is also covered by tests using junit.  These tests can be built and ran with `ant run-test`.
 
 
 Other Notes
