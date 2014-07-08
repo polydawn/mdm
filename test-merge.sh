@@ -68,7 +68,7 @@ mdm update
 mdm status
 
 
-# mergine the second... well...
+# merging the second... well...
 
 git checkout master
 
