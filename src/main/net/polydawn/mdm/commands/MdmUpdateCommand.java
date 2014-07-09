@@ -92,8 +92,15 @@ public class MdmUpdateCommand extends MdmCommand {
 		// explain notices about hash mismatches, if any occured.
 		if (hashMismatchWarnings > 0) {
 			os.println();
-			os.println("warnings about submodule checkouts not matching the hash expected by the parent repo may indicate a problem which you should investigate immediately to make sure your dependencies are repeatable to others.");
-			os.println("this issue may be because the repository you are fetching from has moved what commit the version branch points to (which is cause for concern), or it may be a local misconfiguration (did you resolve a merge conflict recently?  audit your log; the version name in gitmodules config must move at the same time as the submodule hash).");
+			os.println("Warnings about submodule checkouts not matching the hash expected by the parent");
+			os.println("repo may indicate a problem which you should investigate immediately to make");
+			os.println("sure your dependencies are repeatable to others.");
+			os.println();
+			os.println("This issue may be because the repository you are fetching from has moved what");
+			os.println("commit the version branch points to (which is cause for concern), or it may be");
+			os.println("a local misconfiguration (did you resolve a merge conflict recently?  audit");
+			os.println("your log; the version name in gitmodules config must move at the same time as");
+			os.println("the submodule hash).");
 			os.println();
 		} else if (contorted.size() > 0) {
 			os.println();
