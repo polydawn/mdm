@@ -46,6 +46,9 @@ public class MergeTest extends TestCaseUsingRepository {
 				"lib/beta",
 				"--version=v2.0"
 			));
+
+			git.args("checkout", "master").start().get();
+			assertJoy(Mdm.run("update"));
 		} wd.close();
 	}
 
@@ -55,9 +58,6 @@ public class MergeTest extends TestCaseUsingRepository {
 
 		// do a merges.  the second should fail with conflicts.
 		WithCwd wd = new WithCwd(project.getRepo().getWorkTree()); {
-			git.args("checkout", "master").start().get();
-			// TODO: notice how we didn't switch to the master's state, we left it in... green?  should probably affix this in setup and make tests covering the range of start points
-
 			// merge one branch.  should go clean.
 			git.args("merge", "--no-ff", "blue").start().get();
 
@@ -92,9 +92,6 @@ public class MergeTest extends TestCaseUsingRepository {
 
 		// do a merges.  the second should fail with conflicts.
 		WithCwd wd = new WithCwd(project.getRepo().getWorkTree()); {
-			git.args("checkout", "master").start().get();
-			// TODO: notice how we didn't switch to the master's state, we left it in... green?  should probably affix this in setup and make tests covering the range of start points
-
 			// merge one branch.  should go clean.
 			git.args("merge", "--no-ff", "blue").start().get();
 
@@ -135,8 +132,6 @@ public class MergeTest extends TestCaseUsingRepository {
 
 		// do a merges.  the second should fail with conflicts.
 		WithCwd wd = new WithCwd(project.getRepo().getWorkTree()); {
-			git.args("checkout", "master").start().get();
-
 			// merge one branch.  should go clean.
 			git.args("merge", "--no-ff", "blue").start().get();
 
