@@ -68,6 +68,12 @@ public class MdmUpdateCommand extends MdmCommand {
 				os.print((fancy ? "\033[2K\r" : "") + "updating module "+i+" of "+modules.size()+": "+module.getHandle() +" ..." + (fancy ? "" : "\n"));
 				if (Plumbing.fetch(repo, module)) {
 					impacted.add(module);
+					if (repo.readMergeHeads() != null) {
+						// if we're in the middle of a merge, we skip the normal hash validity check, because
+						// module.getIndexId() contains the index's hash for the submodule only, and that can set off false alarms.
+						// there's actually a valid *set* of hashes here, one from each merge head, and TODO: we could consider them all.
+						continue;
+					}
 					if (!module.getRepo().resolve(Constants.HEAD).equals(module.getIndexId())) {
 						// in putting the module to the version named in .gitmodules, we made it disagree with the parent index.
 						// this probably indicates oddness.
