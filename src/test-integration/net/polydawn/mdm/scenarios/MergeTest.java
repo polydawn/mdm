@@ -66,7 +66,7 @@ public class MergeTest extends TestCaseUsingRepository {
 
 			// choose their gitmodules file, then update to put that version in place
 			git.args("checkout", "--theirs", ".gitmodules").start().get();
-			assertJoy(Mdm.run("update"));
+			assertJoy(Mdm.run("update", "--strict"));
 
 			// should be able to stage changes and commit
 			git.args("add", ".gitmodules", "lib/beta").start().get();
@@ -103,8 +103,7 @@ public class MergeTest extends TestCaseUsingRepository {
 
 			// choose their gitmodules file, then update to put that version in place
 			git.args("checkout", "--ours", ".gitmodules").start().get();
-			assertJoy(Mdm.run("update"));
-			// FIXME: you're not detecting if this outputs warnings!!! the stringy execy interface is not doing us favors here
+			assertJoy(Mdm.run("update", "--strict"));
 
 			// should be able to stage changes and commit
 			git.args("add", ".gitmodules", "lib/beta").start().get();

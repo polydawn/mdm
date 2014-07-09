@@ -1,5 +1,6 @@
 package net.polydawn.mdm;
 
+import static net.sourceforge.argparse4j.impl.Arguments.storeTrue;
 import java.util.*;
 import net.sourceforge.argparse4j.*;
 import net.sourceforge.argparse4j.impl.*;
@@ -38,7 +39,10 @@ public class MdmArgumentParser {
 		Subparser parser_update = subparsers
 			.addParser("update")
 			.help("pull all dependencies up to date.  Run this after cloning a fresh repo, or pulling or checking out commits that change a dependency.");
-
+		parser_update
+			.addArgument("--strict")
+			.action(storeTrue())
+			.help("check hashes strictly: if a version fetched has a different hash than this repo expects, in addition to the normal warning message, report a failure code on exit.");
 
 		Subparser parser_add = subparsers
 			.addParser("add")

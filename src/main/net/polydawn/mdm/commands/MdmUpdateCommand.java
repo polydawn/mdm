@@ -34,7 +34,11 @@ public class MdmUpdateCommand extends MdmCommand {
 		super(repo);
 	}
 
-	public void parse(Namespace args) {}
+	public void parse(Namespace args) {
+		treatHashMismatchAsError = args.getBoolean("strict") == Boolean.TRUE;
+	}
+
+	private boolean treatHashMismatchAsError = false;
 
 	public void validate() throws MdmExitMessage {}
 
@@ -103,6 +107,12 @@ public class MdmUpdateCommand extends MdmCommand {
 		if (contorted.size() > 0)
 			status.append("\n  contorted: \t").append(join(toHandles(contorted), "\n\t\t"));
 
-		return new MdmExitMessage(contorted.size() > 0 ? ":(" : ":D", status.toString());
+		// the exit code depends on whether or not strict mode was enabled
+		if (contorted.size() > 0)
+			return new MdmExitMessage(":(", status.toString());
+		else if (treatHashMismatchAsError && hashMismatchWarnings > 0)
+			return new MdmExitMessage(":(", status.toString());
+		else
+			return new MdmExitMessage(":D", status.toString());
 	}
 }

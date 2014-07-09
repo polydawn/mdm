@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+v2.xx.x (unreleased)
+--------------------
+
+- `mdm update` learned a `--strict` option, which causes it to exit with a non-zero status code in the event that fetching a library version my name resulted in a hash not matching the one committed in the project.  (As before, this scenario will always generate warnings, but without the `--strict` option it will exit with 0/success.)
+
+
+
 v2.17.4
 -------
 
