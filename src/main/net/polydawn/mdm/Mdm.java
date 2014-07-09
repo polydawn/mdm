@@ -79,7 +79,7 @@ public class Mdm {
 		} catch (ArgumentParserException e) {
 			parser.handleError(e);
 			if (real) System.exit(1);
-			return null;
+			throw e;
 		}
 
 		// fire command
