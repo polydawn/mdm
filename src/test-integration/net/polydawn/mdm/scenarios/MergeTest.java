@@ -85,4 +85,42 @@ public class MergeTest extends TestCaseUsingRepository {
 		new Josh("git").args("status").cwd(project.getRepo().getWorkTree())/*.opts(Opts.NullIO)*/.start().get();
 		new Josh("git").args("status").cwd(depWorkTreePath)/*.opts(Opts.NullIO)*/.start().get();
 	}
+
+	@Test
+	public void mergeTakingOurs() throws Exception {
+		setup();
+
+		// do a merges.  the second should fail with conflicts.
+		WithCwd wd = new WithCwd(project.getRepo().getWorkTree()); {
+			git.args("checkout", "master").start().get();
+			// TODO: notice how we didn't switch to the master's state, we left it in... green?  should probably affix this in setup and make tests covering the range of start points
+
+			// merge one branch.  should go clean.
+			git.args("merge", "--no-ff", "blue").start().get();
+
+			// merge second branch.  should conflict (exit code is nonzero)
+			git.args("merge", "--no-ff", "green").okExit(new int[] { 1 }).start().get();
+
+			// choose their gitmodules file, then update to put that version in place
+			git.args("checkout", "--ours", ".gitmodules").start().get();
+			assertJoy(Mdm.run("update"));
+			// FIXME: you're not detecting if this outputs warnings!!! the stringy execy interface is not doing us favors here
+
+			// should be able to stage changes and commit
+			git.args("add", ".gitmodules", "lib/beta").start().get();
+			git.args("commit", "--no-edit").start().get();
+		} wd.close();
+
+		// now verify.
+		File depWorkTreePath = new File(project.getRepo().getWorkTree()+"/lib/beta").getCanonicalFile();
+		File depGitDataPath = new File(project.getRepo().getDirectory()+"/modules/lib/beta").getCanonicalFile();
+
+		// i do hope there's a filesystem there now
+		assertTrue("dependency module path exists on fs", depWorkTreePath.exists());
+		assertTrue("dependency module path is dir", depWorkTreePath.isDirectory());
+
+		// check that anyone else can read this state with a straight face; status should be clean
+		new Josh("git").args("status").cwd(project.getRepo().getWorkTree())/*.opts(Opts.NullIO)*/.start().get();
+		new Josh("git").args("status").cwd(depWorkTreePath)/*.opts(Opts.NullIO)*/.start().get();
+	}
 }
