@@ -122,4 +122,49 @@ public class MergeTest extends TestCaseUsingRepository {
 		new Josh("git").args("status").cwd(project.getRepo().getWorkTree())/*.opts(Opts.NullIO)*/.start().get();
 		new Josh("git").args("status").cwd(depWorkTreePath)/*.opts(Opts.NullIO)*/.start().get();
 	}
+
+	/**
+	 * Tosses out the dependency checkout in the working tree right before attempting
+	 * the usual resolve steps. This is to check that mdm-update correctly fetches and
+	 * drops things in place on disk even when run in a repo that's in the merging
+	 * state.
+	 */
+	@Test
+	public void mergeWithMissingDependencyWorkTree() throws Exception {
+		setup();
+
+		// do a merges.  the second should fail with conflicts.
+		WithCwd wd = new WithCwd(project.getRepo().getWorkTree()); {
+			git.args("checkout", "master").start().get();
+
+			// merge one branch.  should go clean.
+			git.args("merge", "--no-ff", "blue").start().get();
+
+			// screw with the working tree, because fuck you that's why
+			IOForge.delete(new File("./lib/beta").getCanonicalFile());
+
+			// merge second branch.  should conflict (exit code is nonzero)
+			git.args("merge", "--no-ff", "green").okExit(new int[] { 1 }).start().get();
+
+			// choose their gitmodules file, then update to put that version in place
+			git.args("checkout", "--theirs", ".gitmodules").start().get();
+			assertJoy(Mdm.run("update", "--strict"));
+
+			// should be able to stage changes and commit
+			git.args("add", ".gitmodules", "lib/beta").start().get();
+			git.args("commit", "--no-edit").start().get();
+		} wd.close();
+
+		// now verify.
+		File depWorkTreePath = new File(project.getRepo().getWorkTree()+"/lib/beta").getCanonicalFile();
+		File depGitDataPath = new File(project.getRepo().getDirectory()+"/modules/lib/beta").getCanonicalFile();
+
+		// i do hope there's a filesystem there now
+		assertTrue("dependency module path exists on fs", depWorkTreePath.exists());
+		assertTrue("dependency module path is dir", depWorkTreePath.isDirectory());
+
+		// check that anyone else can read this state with a straight face; status should be clean
+		new Josh("git").args("status").cwd(project.getRepo().getWorkTree())/*.opts(Opts.NullIO)*/.start().get();
+		new Josh("git").args("status").cwd(depWorkTreePath)/*.opts(Opts.NullIO)*/.start().get();
+	}
 }
