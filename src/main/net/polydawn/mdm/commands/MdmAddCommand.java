@@ -32,6 +32,7 @@ import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.storage.file.*;
 import org.eclipse.jgit.submodule.*;
+import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.util.*;
 import static net.polydawn.mdm.Loco.*;
@@ -171,6 +172,16 @@ public class MdmAddCommand extends MdmCommand {
 			new Git(repo).add()
 				.addFilepattern(path.getPath())
 				.addFilepattern(Constants.DOT_GIT_MODULES)
+				// god.  damnit.  we're going to have to write raw fucking objects to get around an api that doesn't expose "--force".
+				// ... maybe the setWorkingTreeIterator() method lets us inject something that will ignore gitignore?
+				.setWorkingTreeIterator(new FileTreeIterator(repo) {
+					@Override
+					public boolean isEntryIgnored() {
+						System.err.println("path: "+new String(this.path));
+						// huh, apparently this is only getting called for ".gitmodules".  why?
+						return false;
+					}
+				})
 				.call();
 		} catch (NoFilepatternException e) {
 			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
