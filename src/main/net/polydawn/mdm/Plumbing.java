@@ -125,6 +125,7 @@ public class Plumbing {
 					return false;
 			case REV_CHECKED_OUT:
 				try {
+					markMdmClaim(module);
 					if (initModuleConfig(repo, module))
 						module.getRepo().getConfig().save();
 				} catch (IOException e) {
@@ -231,6 +232,38 @@ public class Plumbing {
 			for (String insteadOf : parentConfig.getStringList(ConfigConstants.CONFIG_KEY_URL, url, "pushinsteadof"))
 				moduleConfig.setString(ConfigConstants.CONFIG_KEY_URL, url, "pushinsteadof", insteadOf);
 		return true;
+	}
+
+	/**
+	 * <p>
+	 * Place a flag in the git config of an mdm module so that it can be recognized as
+	 * a repo managed by mdm even without the context of the parent repo's gitmodules
+	 * file.
+	 * </p>
+	 *
+	 * <p>
+	 * This is useful for example when trying to do cleanup of unlinked dependencies
+	 * after checking out to a branch that doesn't need some of the things on the
+	 * branch you came from. Like any other system where the config is versioned and
+	 * there's a tool yanking the state of the world after it (provisioning frameworks
+	 * like salt/puppet/chef/etc are notorious for this), we have trouble *removing*
+	 * things: the gitmodules and the hash link aren't here anymore, so we don't know
+	 * where these things came from. Thence this hint: it can help know when we're in
+	 * our rights to clear something out of the way.
+	 * </p>
+	 *
+	 * <p>
+	 * (No, the reflog won't help. Nice idea, but the trouble is: which commit your
+	 * HEAD was on last isn't the same thing as the HEAD when you last ran mdm
+	 * update.)
+	 * </p>
+	 *
+	 * @throws IOException
+	 */
+	public static void markMdmClaim(MdmModule module) throws IOException {
+		StoredConfig config = module.getRepo().getConfig();
+		config.setString("mdm", null, "mdm", module.getType().toString());
+		config.save();
 	}
 
 	/**

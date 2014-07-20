@@ -89,6 +89,9 @@ public class MdmUpdateCommand extends MdmCommand {
 		}
 		os.print((fancy ? "\033[2K\r" : ""));
 
+		// look for other repositories that *aren't* currently linked as submodules.  if they were created by mdm, we should sweep up.
+		// TODO
+
 		// explain notices about hash mismatches, if any occured.
 		if (hashMismatchWarnings > 0) {
 			os.println();
