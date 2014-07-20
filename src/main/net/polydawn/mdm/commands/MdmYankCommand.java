@@ -20,6 +20,9 @@ public class MdmYankCommand extends MdmCommand {
 		// doing this well might be a fairly huge project, but would also likely result in
 		// dramatically improving the composability of add/alter/remove/update, and probably fetch itself.
 
+		// scripting *deletes* might be hard, because of that "dragging the world behind the config... that dissappeared" generic problem.
+		// we have the option of looking at parent commits when doing a merge resolve, at least.  not sure if that works well in all scenarios, might need some logic to handle not mussing submodules that aren't mdm's to boss around.
+
 		return null;
 	}
 }
