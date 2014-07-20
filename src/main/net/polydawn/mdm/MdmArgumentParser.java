@@ -73,6 +73,11 @@ public class MdmArgumentParser {
 			.help("the version name of the dependency to set up.  If not provided, a mdm will obtain a list of available versions and prompt you to choose one interactively.");
 
 
+		Subparser parser_yank = subparsers
+			.addParser("yank")
+			.help("bulk add/alter/delete based on state of the .gitmodules file.  Useful for starting a new project or resolving merge conflicts.");
+
+
 		Subparser parser_remove = subparsers
 			.addParser("remove")
 			.help("remove an existing dependency.");
