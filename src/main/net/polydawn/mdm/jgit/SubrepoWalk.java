@@ -20,9 +20,11 @@
 package net.polydawn.mdm.jgit;
 
 import java.io.*;
+import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.submodule.*;
 import org.eclipse.jgit.treewalk.*;
+import org.eclipse.jgit.util.*;
 
 /**
  * <p>
@@ -44,14 +46,16 @@ import org.eclipse.jgit.treewalk.*;
 public class SubrepoWalk {
 
 	public SubrepoWalk(Repository repo) throws IOException {
+		this.repo = repo;
 		walk = new TreeWalk(repo);
 		walk.addTree(new FileTreeIterator(repo));
 		walk.setRecursive(true);
 	}
 
+	private final Repository repo;
 	private final TreeWalk walk;
 
-	public String next() throws IOException {
+	public boolean next() throws IOException {
 		while (walk.next()) {
 			// if one wanted to handle gitignores it would look something like this:
 			// if (walk.getTree(0, DirCacheIterator.class) == null && f.isEntryIgnored()) {}
@@ -59,8 +63,26 @@ public class SubrepoWalk {
 			// interestingly enough, a FileTreeIterator appears to consider something a gitlink
 			//  if it so much as has a .git file or directory -- it doesn't have to be in the dircache.
 			if (walk.getFileMode(0) == FileMode.GITLINK)
-				return walk.getPathString();
+				return true;
 		}
-		return null;
+		return false;
+	}
+
+	public String getPathString() {
+		return walk.getPathString();
+	}
+
+	public Repository getRepo() throws IOException {
+		File subWorkTree = new File(repo.getWorkTree(), getPathString());
+		if (!subWorkTree.isDirectory()) return null; // should already be out of scope, but.
+		try {
+			return new RepositoryBuilder()
+					.setMustExist(true)
+					.setFS(FS.DETECTED)
+					.setWorkTree(subWorkTree)
+					.build();
+		} catch (RepositoryNotFoundException e) {
+			return null;
+		}
 	}
 }

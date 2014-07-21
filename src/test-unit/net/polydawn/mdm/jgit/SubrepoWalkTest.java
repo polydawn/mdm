@@ -40,7 +40,8 @@ public class SubrepoWalkTest extends TestCaseUsingRepository {
 
 		// test we find it
 		SubrepoWalk generator = new SubrepoWalk(project.getRepo());
-		assertEquals("should find the so-called submodule path", "submodule", generator.next());
-		assertEquals("should find nothing else", null, generator.next());
+		assertEquals("should find the so-called submodule path", true, generator.next());
+		assertEquals("should find the so-called submodule path", "submodule", generator.getPathString());
+		assertEquals("should find nothing else", false, generator.next());
 	}
 }

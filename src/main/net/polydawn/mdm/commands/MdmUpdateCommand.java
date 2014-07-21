@@ -23,9 +23,11 @@ import java.io.*;
 import java.util.*;
 import net.polydawn.mdm.*;
 import net.polydawn.mdm.errors.*;
+import net.polydawn.mdm.jgit.*;
 import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
+import us.exultant.ahs.iob.*;
 import static net.polydawn.mdm.Loco.*;
 import static us.exultant.ahs.util.Strings.join;
 
@@ -59,6 +61,7 @@ public class MdmUpdateCommand extends MdmCommand {
 		List<MdmModule> impacted = new ArrayList<MdmModule>();
 		List<MdmModule> unphased = new ArrayList<MdmModule>();
 		List<MdmModule> contorted = new ArrayList<MdmModule>();
+		List<String> removed = new ArrayList<String>();
 		int hashMismatchWarnings = 0;
 		int i = 0;
 		boolean fancy = System.console() != null;
@@ -90,7 +93,22 @@ public class MdmUpdateCommand extends MdmCommand {
 		os.print((fancy ? "\033[2K\r" : ""));
 
 		// look for other repositories that *aren't* currently linked as submodules.  if they were created by mdm, we should sweep up.
-		// TODO
+		SubrepoWalk subrepos = new SubrepoWalk(repo);
+		while (subrepos.next()) {
+			System.err.println("considering: "+subrepos.getPathString());
+			Repository subrepo = subrepos.getRepo();
+
+			// if it didn't actually manifest enough config to look like a real git repo, it's something odd and we'll leave it alone.
+			if (subrepo == null)
+				continue;
+			System.err.println("beep: "+subrepo.getConfig().getString("mdm", null, "mdm"));
+
+			// if it's been flagged as our demense, weapons free
+			if (MdmModuleType.DEPENDENCY.toString().equals(subrepo.getConfig().getString("mdm", null, "mdm"))) {
+				removed.add(subrepos.getPathString());
+				IOForge.delete(subrepo.getWorkTree());
+			}
+		}
 
 		// explain notices about hash mismatches, if any occured.
 		if (hashMismatchWarnings > 0) {
@@ -117,11 +135,15 @@ public class MdmUpdateCommand extends MdmCommand {
 		status.append(unphased.size()).append(" unaffected");
 		if (contorted.size() > 0)
 			status.append(", ").append(contorted.size()).append(" contorted");
+		if (removed.size() > 0)
+			status.append(", ").append(removed.size()).append(" removed");
 		status.append(")");
 		if (impacted.size() > 0)
 			status.append("\n  changed: \t").append(join(toHandles(impacted), "\n\t\t"));
 		if (contorted.size() > 0)
 			status.append("\n  contorted: \t").append(join(toHandles(contorted), "\n\t\t"));
+		if (removed.size() > 0)
+			status.append("\n  removed: \t").append(join(removed, "\n\t\t"));
 
 		// the exit code depends on whether or not strict mode was enabled
 		if (contorted.size() > 0)
