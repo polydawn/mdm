@@ -51,6 +51,8 @@ public class MdmReleaseCommand extends MdmCommand {
 		// Reject version names with slashes.  It's physically possible to deal with these, but just... why?  Even if mdm itself were to handle it smoothly, it would make life that much more annoying for any other scripts ever, and it would make the directory structure on the master branch just a mess of irregular depth.
 		if (version.contains("/"))
 			throw new MdmExitMessage(":(", "you can't use version names that have slashes in them, sorry.  it gets messy.");
+		if (!Repository.isValidRefName(Constants.R_HEADS + version))
+			throw new MdmExitMessage(":(", "this version name contains unusual characters that would be hard to represent.  please choose a different version name.");
 	}
 
 	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("^(.*)-releases(?:.git)?$");
