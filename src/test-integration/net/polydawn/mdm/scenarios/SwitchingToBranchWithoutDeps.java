@@ -67,7 +67,7 @@ public class SwitchingToBranchWithoutDeps extends TestCaseUsingRepository {
 		// checkout back onto master.  update.
 		wd = new WithCwd(project.getRepo().getWorkTree()); {
 			git.args("checkout", "master").start().get();
-			assertJoy(Mdm.run("update")); // TODO: should this fail?
+			assertJoy(Mdm.run("update"));
 		} wd.close();
 
 		// dep path should remain

@@ -25,6 +25,8 @@ import net.polydawn.mdm.*;
 import net.polydawn.mdm.errors.*;
 import net.polydawn.mdm.jgit.*;
 import net.sourceforge.argparse4j.inf.*;
+import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import us.exultant.ahs.iob.*;
@@ -44,7 +46,7 @@ public class MdmUpdateCommand extends MdmCommand {
 
 	public void validate() throws MdmExitMessage {}
 
-	public MdmExitMessage call() throws ConfigInvalidException, IOException {
+	public MdmExitMessage call() throws ConfigInvalidException, IOException, GitAPIException {
 		try {
 			assertInRepo();
 		} catch (MdmExitMessage e) { return e; }
@@ -101,10 +103,20 @@ public class MdmUpdateCommand extends MdmCommand {
 			if (subrepo == null)
 				continue;
 
-			// if it's been flagged as our demense, weapons free
-			if (MdmModuleType.DEPENDENCY.toString().equals(subrepo.getConfig().getString("mdm", null, "mdm"))) {
-				removed.add(subrepos.getPathString());
-				IOForge.delete(subrepo.getWorkTree());
+			// if it's not been flagged as our demense, weapons hold
+			if (!MdmModuleType.DEPENDENCY.toString().equals(subrepo.getConfig().getString("mdm", null, "mdm")))
+				continue;
+
+			// if it's clean, weapons free.  otherwise, report frustration.
+			try {
+				if (new Git(subrepo).status().call().isClean()) {
+					removed.add(subrepos.getPathString());
+					IOForge.delete(subrepo.getWorkTree());
+				} else {
+					os.println((fancy ? "\033[2K\r" : "") + "notice: not removing unlinked dependency at "+subrepos.getPathString()+" because it contains uncommitted changes.");
+				}
+			} catch (NoWorkTreeException e) {
+				/* we literally wouldn't be here if this was the case.  or, our job is already done by a race, I guess. */
 			}
 		}
 
