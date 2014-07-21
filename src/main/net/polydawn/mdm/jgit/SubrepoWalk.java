@@ -49,8 +49,6 @@ public class SubrepoWalk {
 		walk.setRecursive(true);
 	}
 
-	private static final byte[] GIT_SUFFIX = new byte[] {'.', 'g', 'i', 't'};
-
 	private final TreeWalk walk;
 
 	public String next() throws IOException {
@@ -58,10 +56,9 @@ public class SubrepoWalk {
 			// if one wanted to handle gitignores it would look something like this:
 			// if (walk.getTree(0, DirCacheIterator.class) == null && f.isEntryIgnored()) {}
 
-			// lol!  .git appears to be explicitly filtered already by some part of the tree walk code.
-			System.err.println("considered: "+walk.getPathString());
-
-			if (walk.isPathSuffix(GIT_SUFFIX, 4))
+			// interestingly enough, a FileTreeIterator appears to consider something a gitlink
+			//  if it so much as has a .git file or directory -- it doesn't have to be in the dircache.
+			if (walk.getFileMode(0) == FileMode.GITLINK)
 				return walk.getPathString();
 		}
 		return null;

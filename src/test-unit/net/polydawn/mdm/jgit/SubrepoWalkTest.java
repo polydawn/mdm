@@ -30,7 +30,7 @@ import us.exultant.ahs.iob.*;
 @RunWith(OrderedJUnit4ClassRunner.class)
 public class SubrepoWalkTest extends TestCaseUsingRepository {
 	@Test
-	public void testSuffixMatching() throws Exception {
+	public void should_see_a_dir_with_dotgit_child_as_subrepo() throws Exception {
 		// setup
 		Fixture project = new ProjectAlpha("projectAlpha");
 		WithCwd wd = new WithCwd(project.getRepo().getWorkTree()); {
@@ -40,7 +40,7 @@ public class SubrepoWalkTest extends TestCaseUsingRepository {
 
 		// test we find it
 		SubrepoWalk generator = new SubrepoWalk(project.getRepo());
-		assertEquals("should find the so-called submodule path", "./submodule/.git", generator.next());
+		assertEquals("should find the so-called submodule path", "submodule", generator.next());
 		assertEquals("should find nothing else", null, generator.next());
 	}
 }
