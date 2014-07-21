@@ -170,112 +170,70 @@ public class MdmAddCommand extends MdmCommand {
 		Plumbing.fetch(repo, module);
 	}
 
-	void doGitStage(File path) {
-		try {
-			new Git(repo).add()
-				.addFilepattern(path.getPath())
-				.addFilepattern(Constants.DOT_GIT_MODULES)
-				// god.  damnit.  we're going to have to write raw fucking objects to get around an api that doesn't expose "--force".
-				// ... maybe the setWorkingTreeIterator() method lets us inject something that will ignore gitignore?
-				.setWorkingTreeIterator(new FileTreeIterator(repo) {
-					@Override
-					public boolean isEntryIgnored() {
-						System.err.println("path: "+new String(this.path));
-						// huh, apparently this is only getting called for ".gitmodules".  why?
-						return false;
-					}
-				})
-				.call();
-		} catch (NoFilepatternException e) {
-			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
-		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
-		}
-	}
-
-	void doGitStage2(File modulePath) {
-		if (filepatterns.isEmpty())
-			throw new NoFilepatternException(JGitText.get().atLeastOnePatternIsRequired);
-		checkCallable();
+	// nontrivial amount of AddCommand forked here, because it doesn't support enough intervention on gitignores.
+	void doGitStage(File modulePath) throws MissingObjectException, IncorrectObjectTypeException, IOException {
 		DirCache dc = null;
-		boolean addAll = false;
-		if (filepatterns.contains(".")) //$NON-NLS-1$
-			addAll = true;
-
 		ObjectInserter inserter = repo.newObjectInserter();
 		try {
 			dc = repo.lockDirCache();
-			DirCacheIterator c;
 
 			DirCacheBuilder builder = dc.builder();
 			final TreeWalk tw = new TreeWalk(repo);
 			tw.addTree(new DirCacheBuildIterator(builder));
-			if (workingTreeIterator == null)
-				workingTreeIterator = new FileTreeIterator(repo);
-			tw.addTree(workingTreeIterator);
+			tw.addTree(new FileTreeIterator(repo));
 			tw.setRecursive(true);
-			if (!addAll)
-				tw.setFilter(PathFilterGroup.createFromStrings(filepatterns));
+
+			tw.setFilter(PathFilterGroup.createFromStrings(
+				modulePath.getPath(),
+				Constants.DOT_GIT_MODULES
+			));
 
 			String lastAddedFile = null;
-
 			while (tw.next()) {
 				String path = tw.getPathString();
-
 				WorkingTreeIterator f = tw.getTree(1, WorkingTreeIterator.class);
-				if (tw.getTree(0, DirCacheIterator.class) == null &&
-						f != null && f.isEntryIgnored()) {
-					// file is not in index but is ignored, do nothing
-				}
+
 				// In case of an existing merge conflict the
 				// DirCacheBuildIterator iterates over all stages of
 				// this path, we however want to add only one
 				// new DirCacheEntry per path.
-				else if (!(path.equals(lastAddedFile))) {
-					if (!(update && tw.getTree(0, DirCacheIterator.class) == null)) {
-						c = tw.getTree(0, DirCacheIterator.class);
-						if (f != null) { // the file exists
-							long sz = f.getEntryLength();
-							DirCacheEntry entry = new DirCacheEntry(path);
-							if (c == null || c.getDirCacheEntry() == null
-									|| !c.getDirCacheEntry().isAssumeValid()) {
-								FileMode mode = f.getIndexFileMode(c);
-								entry.setFileMode(mode);
+				if (path.equals(lastAddedFile))
+					continue;
 
-								if (FileMode.GITLINK != mode) {
-									entry.setLength(sz);
-									entry.setLastModified(f
-											.getEntryLastModified());
-									long contentSize = f
-											.getEntryContentLength();
-									InputStream in = f.openEntryStream();
-									try {
-										entry.setObjectId(inserter.insert(
-												Constants.OBJ_BLOB, contentSize, in));
-									} finally {
-										in.close();
-									}
-								} else
-									entry.setObjectId(f.getEntryObjectId());
-								builder.add(entry);
-								lastAddedFile = path;
-							} else {
-								builder.add(c.getDirCacheEntry());
+				DirCacheIterator c = tw.getTree(0, DirCacheIterator.class);
+				if (f != null) { // the file exists
+					long sz = f.getEntryLength();
+					DirCacheEntry entry = new DirCacheEntry(path);
+					if (c == null || c.getDirCacheEntry() == null || !c.getDirCacheEntry().isAssumeValid()) {
+						FileMode mode = f.getIndexFileMode(c);
+						entry.setFileMode(mode);
+						if (FileMode.GITLINK != mode) {
+							entry.setLength(sz);
+							entry.setLastModified(f.getEntryLastModified());
+							// fun fact: this is content length thing is half the reason it's difficult to skip using the entire tree stuff
+							// if you wanted to, say, insert a single object from in memory.
+							// but if it's a binary blob, it's a giant noop -- it's the same as getEntryLength() and the plain body size, since there's no CRLF normalization to do.
+							long contentSize = f.getEntryContentLength();
+							InputStream in = f.openEntryStream();
+							try {
+								entry.setObjectId(inserter.insert(Constants.OBJ_BLOB, contentSize, in));
+							} finally {
+								in.close();
 							}
-
-						} else if (c != null
-								&& (!update || FileMode.GITLINK == c
-										.getEntryFileMode()))
-							builder.add(c.getDirCacheEntry());
+						} else {
+							entry.setObjectId(f.getEntryObjectId());
+						}
+						builder.add(entry);
+						lastAddedFile = path;
+					} else {
+						builder.add(c.getDirCacheEntry());
 					}
+				} else if (c != null) {
+					builder.add(c.getDirCacheEntry());
 				}
 			}
 			inserter.flush();
 			builder.commit();
-			setCallable(false);
-		} catch (IOException e) {
-			throw new JGitInternalException(
-					JGitText.get().exceptionCaughtDuringExecutionOfAddCommand, e);
 		} finally {
 			inserter.release();
 			if (dc != null)
