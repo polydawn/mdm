@@ -62,9 +62,7 @@
 
 
 	<target name="compile" depends="init" description="compile the source">
-		<exusJavac
-			classes="net/polydawn/${app}/Mdm.java"
-			>
+		<exusJavac>
 			<classpath refid="mdm.path.deps.main" />
 		</exusJavac>
 	</target>
