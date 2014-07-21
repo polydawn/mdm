@@ -28,10 +28,12 @@ import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.dircache.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.storage.file.*;
 import org.eclipse.jgit.submodule.*;
+import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.util.*;
 import static net.polydawn.mdm.Loco.*;
@@ -166,16 +168,74 @@ public class MdmAddCommand extends MdmCommand {
 		Plumbing.fetch(repo, module);
 	}
 
-	void doGitStage(File path) {
+	// nontrivial amount of AddCommand forked here, because it doesn't support enough intervention on gitignores.
+	void doGitStage(File modulePath) throws MissingObjectException, IncorrectObjectTypeException, IOException {
+		DirCache dc = null;
+		ObjectInserter inserter = repo.newObjectInserter();
 		try {
-			new Git(repo).add()
-				.addFilepattern(path.getPath())
-				.addFilepattern(Constants.DOT_GIT_MODULES)
-				.call();
-		} catch (NoFilepatternException e) {
-			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
-		} catch (GitAPIException e) {
-			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+			dc = repo.lockDirCache();
+
+			DirCacheBuilder builder = dc.builder();
+			final TreeWalk tw = new TreeWalk(repo);
+			tw.addTree(new DirCacheBuildIterator(builder));
+			tw.addTree(new FileTreeIterator(repo));
+			tw.setRecursive(true);
+
+			tw.setFilter(PathFilterGroup.createFromStrings(
+				modulePath.getPath(),
+				Constants.DOT_GIT_MODULES
+			));
+
+			String lastAddedFile = null;
+			while (tw.next()) {
+				String path = tw.getPathString();
+				WorkingTreeIterator f = tw.getTree(1, WorkingTreeIterator.class);
+
+				// In case of an existing merge conflict the
+				// DirCacheBuildIterator iterates over all stages of
+				// this path, we however want to add only one
+				// new DirCacheEntry per path.
+				if (path.equals(lastAddedFile))
+					continue;
+
+				DirCacheIterator c = tw.getTree(0, DirCacheIterator.class);
+				if (f != null) { // the file exists
+					long sz = f.getEntryLength();
+					DirCacheEntry entry = new DirCacheEntry(path);
+					if (c == null || c.getDirCacheEntry() == null || !c.getDirCacheEntry().isAssumeValid()) {
+						FileMode mode = f.getIndexFileMode(c);
+						entry.setFileMode(mode);
+						if (FileMode.GITLINK != mode) {
+							entry.setLength(sz);
+							entry.setLastModified(f.getEntryLastModified());
+							// fun fact: this is content length thing is half the reason it's difficult to skip using the entire tree stuff
+							// if you wanted to, say, insert a single object from in memory.
+							// but if it's a binary blob, it's a giant noop -- it's the same as getEntryLength() and the plain body size, since there's no CRLF normalization to do.
+							long contentSize = f.getEntryContentLength();
+							InputStream in = f.openEntryStream();
+							try {
+								entry.setObjectId(inserter.insert(Constants.OBJ_BLOB, contentSize, in));
+							} finally {
+								in.close();
+							}
+						} else {
+							entry.setObjectId(f.getEntryObjectId());
+						}
+						builder.add(entry);
+						lastAddedFile = path;
+					} else {
+						builder.add(c.getDirCacheEntry());
+					}
+				} else if (c != null) {
+					builder.add(c.getDirCacheEntry());
+				}
+			}
+			inserter.flush();
+			builder.commit();
+		} finally {
+			inserter.release();
+			if (dc != null)
+				dc.unlock();
 		}
 	}
 
