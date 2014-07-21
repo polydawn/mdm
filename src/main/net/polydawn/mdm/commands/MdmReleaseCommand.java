@@ -96,6 +96,8 @@ public class MdmReleaseCommand extends MdmCommand {
 				new Git(relRepo).checkout()
 					.setName("mdm/release/"+version)
 					.call();
+			} catch (InvalidRefNameException e) {
+				return new MdmExitMessage(":'(", "can't use \""+version+"\" as a branch name");
 			} catch (GitAPIException e) {
 				throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 			}
