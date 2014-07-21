@@ -95,13 +95,11 @@ public class MdmUpdateCommand extends MdmCommand {
 		// look for other repositories that *aren't* currently linked as submodules.  if they were created by mdm, we should sweep up.
 		SubrepoWalk subrepos = new SubrepoWalk(repo);
 		while (subrepos.next()) {
-			System.err.println("considering: "+subrepos.getPathString());
 			Repository subrepo = subrepos.getRepo();
 
 			// if it didn't actually manifest enough config to look like a real git repo, it's something odd and we'll leave it alone.
 			if (subrepo == null)
 				continue;
-			System.err.println("beep: "+subrepo.getConfig().getString("mdm", null, "mdm"));
 
 			// if it's been flagged as our demense, weapons free
 			if (MdmModuleType.DEPENDENCY.toString().equals(subrepo.getConfig().getString("mdm", null, "mdm"))) {
