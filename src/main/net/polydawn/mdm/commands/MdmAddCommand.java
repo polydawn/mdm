@@ -28,11 +28,14 @@ import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.dircache.*;
 import org.eclipse.jgit.errors.*;
+import org.eclipse.jgit.internal.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.storage.file.*;
 import org.eclipse.jgit.submodule.*;
 import org.eclipse.jgit.treewalk.*;
+import org.eclipse.jgit.treewalk.WorkingTreeIterator.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import us.exultant.ahs.util.*;
 import static net.polydawn.mdm.Loco.*;
@@ -187,6 +190,96 @@ public class MdmAddCommand extends MdmCommand {
 			throw new MajorBug(e); // why would an api throw exceptions like this *checked*?
 		} catch (GitAPIException e) {
 			throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
+		}
+	}
+
+	void doGitStage2(File modulePath) {
+		if (filepatterns.isEmpty())
+			throw new NoFilepatternException(JGitText.get().atLeastOnePatternIsRequired);
+		checkCallable();
+		DirCache dc = null;
+		boolean addAll = false;
+		if (filepatterns.contains(".")) //$NON-NLS-1$
+			addAll = true;
+
+		ObjectInserter inserter = repo.newObjectInserter();
+		try {
+			dc = repo.lockDirCache();
+			DirCacheIterator c;
+
+			DirCacheBuilder builder = dc.builder();
+			final TreeWalk tw = new TreeWalk(repo);
+			tw.addTree(new DirCacheBuildIterator(builder));
+			if (workingTreeIterator == null)
+				workingTreeIterator = new FileTreeIterator(repo);
+			tw.addTree(workingTreeIterator);
+			tw.setRecursive(true);
+			if (!addAll)
+				tw.setFilter(PathFilterGroup.createFromStrings(filepatterns));
+
+			String lastAddedFile = null;
+
+			while (tw.next()) {
+				String path = tw.getPathString();
+
+				WorkingTreeIterator f = tw.getTree(1, WorkingTreeIterator.class);
+				if (tw.getTree(0, DirCacheIterator.class) == null &&
+						f != null && f.isEntryIgnored()) {
+					// file is not in index but is ignored, do nothing
+				}
+				// In case of an existing merge conflict the
+				// DirCacheBuildIterator iterates over all stages of
+				// this path, we however want to add only one
+				// new DirCacheEntry per path.
+				else if (!(path.equals(lastAddedFile))) {
+					if (!(update && tw.getTree(0, DirCacheIterator.class) == null)) {
+						c = tw.getTree(0, DirCacheIterator.class);
+						if (f != null) { // the file exists
+							long sz = f.getEntryLength();
+							DirCacheEntry entry = new DirCacheEntry(path);
+							if (c == null || c.getDirCacheEntry() == null
+									|| !c.getDirCacheEntry().isAssumeValid()) {
+								FileMode mode = f.getIndexFileMode(c);
+								entry.setFileMode(mode);
+
+								if (FileMode.GITLINK != mode) {
+									entry.setLength(sz);
+									entry.setLastModified(f
+											.getEntryLastModified());
+									long contentSize = f
+											.getEntryContentLength();
+									InputStream in = f.openEntryStream();
+									try {
+										entry.setObjectId(inserter.insert(
+												Constants.OBJ_BLOB, contentSize, in));
+									} finally {
+										in.close();
+									}
+								} else
+									entry.setObjectId(f.getEntryObjectId());
+								builder.add(entry);
+								lastAddedFile = path;
+							} else {
+								builder.add(c.getDirCacheEntry());
+							}
+
+						} else if (c != null
+								&& (!update || FileMode.GITLINK == c
+										.getEntryFileMode()))
+							builder.add(c.getDirCacheEntry());
+					}
+				}
+			}
+			inserter.flush();
+			builder.commit();
+			setCallable(false);
+		} catch (IOException e) {
+			throw new JGitInternalException(
+					JGitText.get().exceptionCaughtDuringExecutionOfAddCommand, e);
+		} finally {
+			inserter.release();
+			if (dc != null)
+				dc.unlock();
 		}
 	}
 
