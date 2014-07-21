@@ -97,6 +97,12 @@ public class MdmUpdateCommand extends MdmCommand {
 		// look for other repositories that *aren't* currently linked as submodules.  if they were created by mdm, we should sweep up.
 		SubrepoWalk subrepos = new SubrepoWalk(repo);
 		while (subrepos.next()) {
+			String subrepoPath = subrepos.getPathString();
+
+			// if it's something we're currently managing, of course we should pass that over
+			if (modules.get(subrepoPath) != null)
+				continue;
+
 			Repository subrepo = subrepos.getRepo();
 
 			// if it didn't actually manifest enough config to look like a real git repo, it's something odd and we'll leave it alone.
@@ -110,10 +116,10 @@ public class MdmUpdateCommand extends MdmCommand {
 			// if it's clean, weapons free.  otherwise, report frustration.
 			try {
 				if (new Git(subrepo).status().call().isClean()) {
-					removed.add(subrepos.getPathString());
+					removed.add(subrepoPath);
 					IOForge.delete(subrepo.getWorkTree());
 				} else {
-					os.println((fancy ? "\033[2K\r" : "") + "notice: not removing unlinked dependency at "+subrepos.getPathString()+" because it contains uncommitted changes.");
+					os.println((fancy ? "\033[2K\r" : "") + "notice: not removing unlinked dependency at "+subrepoPath+" because it contains uncommitted changes.");
 				}
 			} catch (NoWorkTreeException e) {
 				/* we literally wouldn't be here if this was the case.  or, our job is already done by a race, I guess. */
