@@ -82,5 +82,24 @@ public class SubrepoWalkTest extends TestCaseUsingRepository {
 		assertEquals("should find nothing else", false, generator.next());
 	}
 
-	// also test when whole repo seen via symlink
+
+	@Test
+	public void should_see_a_dir_with_dotgit_child_as_subrepo_when_whole_repo_beyond_symlink() throws Exception {
+		// setup
+		Fixture project;
+		new Josh("ln").args("-s", "stuff", "trap").start().get();
+		WithCwd wd = new WithCwd("stuff"); {
+			project = new ProjectAlpha("projectAlpha");
+			WithCwd wd2 = new WithCwd(project.getRepo().getWorkTree()); {
+				new File("submodule").getCanonicalFile().mkdir();
+				IOForge.saveFile("faking it out", new File("./submodule/.git").getCanonicalFile());
+			} wd2.close();
+		} wd.close();
+
+		// test we find it
+		SubrepoWalk generator = new SubrepoWalk(project.getRepo());
+		assertEquals("should find the so-called submodule path", true, generator.next());
+		assertEquals("should find the so-called submodule path", "submodule", generator.getPathString());
+		assertEquals("should find nothing else", false, generator.next());
+	}
 }
