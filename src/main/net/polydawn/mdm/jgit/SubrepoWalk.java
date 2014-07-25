@@ -20,6 +20,7 @@
 package net.polydawn.mdm.jgit;
 
 import java.io.*;
+import net.polydawn.mdm.util.FileUtils;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.submodule.*;
@@ -54,6 +55,7 @@ public class SubrepoWalk {
 
 	private final Repository repo;
 	private final TreeWalk walk;
+	private String pathString;
 
 	public boolean next() throws IOException {
 		while (walk.next()) {
@@ -62,14 +64,21 @@ public class SubrepoWalk {
 
 			// interestingly enough, a FileTreeIterator appears to consider something a gitlink
 			//  if it so much as has a .git file or directory -- it doesn't have to be in the dircache.
-			if (walk.getFileMode(0) == FileMode.GITLINK)
-				return true;
+			if (walk.getFileMode(0) != FileMode.GITLINK)
+				continue;
+
+			// shame jgit doesn't understand symlinks at heart.
+			pathString = walk.getPathString();
+			if (FileUtils.isSymlink(repo.getWorkTree(), new File(pathString)))
+				continue;
+
+			return true;
 		}
 		return false;
 	}
 
 	public String getPathString() {
-		return walk.getPathString();
+		return pathString;
 	}
 
 	public Repository getRepo() throws IOException {
