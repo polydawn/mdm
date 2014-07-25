@@ -47,7 +47,6 @@ public class SubrepoWalkTest extends TestCaseUsingRepository {
 		assertEquals("should find nothing else", false, generator.next());
 	}
 
-	//FIXME: this is not a unit test anymore.  if indeed the class ever was; it is using files.
 	@Test
 	public void should_not_see_the_far_side_of_direct_symlinks() throws Exception {
 		// setup
