@@ -76,7 +76,28 @@ public class SwitchingToBranchWithoutDeps extends TestCaseUsingRepository {
 
 	@Test
 	public void should_leave_normal_unlinked_submodules_alone_on_update() throws Exception {
+		Fixture project = new ProjectAlpha("projectAlpha");
+		Fixture project2 = new ProjectBeta("projectBeta");
 
+		// create a branch and link a dep on it.  (leave master with no deps.)
+		WithCwd wd = new WithCwd(project.getRepo().getWorkTree()); {
+			git.args("checkout", "-b", "with-submodule").start().get();
+			git.args("submodule", "add", project2.getRepo().getWorkTree().getPath()).start().get();
+		} wd.close();
+
+		// sanity check: submodule path should exist
+		File depWorkTreePath = new File(project.getRepo().getWorkTree()+"/projectBeta").getCanonicalFile();
+		assertTrue("submodule path should exist on fs", depWorkTreePath.exists());
+		assertTrue("submodule path should be dir", depWorkTreePath.isDirectory());
+
+		// checkout back onto master.  update.
+		wd = new WithCwd(project.getRepo().getWorkTree()); {
+			git.args("checkout", "master").start().get();
+			assertJoy(Mdm.run("update"));
+		} wd.close();
+
+		// submodule path should remain
+		assertTrue("submodule path should remain present on fs", depWorkTreePath.exists());
 	}
 
 	@Test
