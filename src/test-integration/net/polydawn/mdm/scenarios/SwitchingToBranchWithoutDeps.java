@@ -131,19 +131,14 @@ public class SwitchingToBranchWithoutDeps extends TestCaseUsingRepository {
 			assertJoy(Mdm.run("update"));
 		} wd.close();
 
-		// dep path should not exist... but the symlink still should!
+		// dep path should not exist...
 		assertTrue("dependency module path should be absent on fs", !depWorkTreePath.exists());
-//		new File("projectAlpha/lib/alpha").getCanonicalFile().mkdir();
-		new Josh("ls").args("-la", "projectAlpha").start().get();
-		new Josh("ls").args("-la", "projectAlpha/lib").start().get();
-		new Josh("ls").args("-la", "projectAlpha/shenanigans/").okExit(new int[] { 0, 2 }).start().get();
-		new Josh("pwd").start().get();
-		// ... the behavior is *correct*, I just can't for the life of me figure out how to write a test for it, because a symlink that's dangling is pretty much invisible.
-		// damnit, java, would it have been so hard to just have an lstat implementation that noops on fucking windows?
+
+		// but the symlink still should!
+		// first make the symlink target exist again so we can detect the symlink -.-
 		// this was stupid in 2005 and it's still stupid now: https://bugs.openjdk.java.net/browse/JDK-6246549
-		System.err.println(symlinkPath);
-		System.err.println(symlinkPath.exists());
-		System.err.println(FileUtils.isSymlink(symlinkPath));
+		// damnit, java, would it have been so hard to just have an lstat implementation that noops on fucking windows?
+		new File("projectAlpha/lib/alpha").getCanonicalFile().mkdir();
 		assertTrue("symlink path should remain present on fs", symlinkPath.exists());
 	}
 }
