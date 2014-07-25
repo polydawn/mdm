@@ -169,6 +169,7 @@ public class MdmAddCommand extends MdmCommand {
 	}
 
 	// nontrivial amount of AddCommand forked here, because it doesn't support enough intervention on gitignores.
+	// ... in retrospect, maybe we could have actually gotten this with a custom tree working tree iterator, we just need to add createSubtreeIterator to the set of overrides
 	void doGitStage(File modulePath) throws MissingObjectException, IncorrectObjectTypeException, IOException {
 		DirCache dc = null;
 		ObjectInserter inserter = repo.newObjectInserter();
