@@ -21,8 +21,10 @@ package net.polydawn.mdm.jgit;
 
 import static org.junit.Assert.*;
 import java.io.*;
+import net.polydawn.josh.*;
 import net.polydawn.mdm.fixture.*;
 import net.polydawn.mdm.test.*;
+import net.polydawn.mdm.test.WithCwd;
 import org.junit.*;
 import org.junit.runner.*;
 import us.exultant.ahs.iob.*;
@@ -44,4 +46,42 @@ public class SubrepoWalkTest extends TestCaseUsingRepository {
 		assertEquals("should find the so-called submodule path", "submodule", generator.getPathString());
 		assertEquals("should find nothing else", false, generator.next());
 	}
+
+	//FIXME: this is not a unit test anymore.  if indeed the class ever was; it is using files.
+	@Test
+	public void should_not_see_the_far_side_of_direct_symlinks() throws Exception {
+		// setup
+		Fixture project = new ProjectAlpha("projectAlpha");
+		WithCwd wd = new WithCwd(project.getRepo().getWorkTree()); {
+			new File("submodule").getCanonicalFile().mkdir();
+			IOForge.saveFile("faking it out", new File("./submodule/.git").getCanonicalFile());
+			new Josh("ln").args("-s", "submodule", "trap").start().get();
+		} wd.close();
+
+		// test we find it
+		SubrepoWalk generator = new SubrepoWalk(project.getRepo());
+		assertEquals("should find the so-called submodule path", true, generator.next());
+		assertEquals("should find the so-called submodule path", "submodule", generator.getPathString());
+		assertEquals("should find nothing else", false, generator.next());
+	}
+
+	@Test
+	public void should_not_see_the_far_side_of_symlinks() throws Exception {
+		// setup
+		Fixture project = new ProjectAlpha("projectAlpha");
+		WithCwd wd = new WithCwd(project.getRepo().getWorkTree()); {
+			new File("stuff/").getCanonicalFile().mkdir();
+			new File("stuff/submodule/").getCanonicalFile().mkdir();
+			IOForge.saveFile("faking it out", new File("./stuff/submodule/.git").getCanonicalFile());
+			new Josh("ln").args("-s", "stuff", "trap").start().get();
+		} wd.close();
+
+		// test we find it
+		SubrepoWalk generator = new SubrepoWalk(project.getRepo());
+		assertEquals("should find the so-called submodule path", true, generator.next());
+		assertEquals("should find the so-called submodule path", "stuff/submodule", generator.getPathString());
+		assertEquals("should find nothing else", false, generator.next());
+	}
+
+	// also test when whole repo seen via symlink
 }

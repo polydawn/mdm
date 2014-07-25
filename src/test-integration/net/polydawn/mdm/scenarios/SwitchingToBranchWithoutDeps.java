@@ -78,4 +78,9 @@ public class SwitchingToBranchWithoutDeps extends TestCaseUsingRepository {
 	public void should_leave_normal_unlinked_submodules_alone_on_update() throws Exception {
 
 	}
+
+	@Test
+	public void should_leave_symlinks_even_if_they_point_to_deps() throws Exception {
+
+	}
 }
