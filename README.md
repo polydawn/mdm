@@ -207,10 +207,14 @@ Why?
 
 ### Relationship to Dependency Resolution
 
-A person could combine this with automatic dependency resolution.
-I'm personally not going to do so at this stage.  There's relatively little point that I can see to automating that,
-since once you've adopted this kind project organization suddenly everything about dependencies has become a one-time setup in the lifetime of the project,
-and any repository clone already has the hard choices etched into the repository's own structure with no runtime resolution needed.
+`mdm` does not require a transitive dependency resolution system at runtime because
+any repository clone already has the hard choices etched into stone with no runtime resolution needed.
+
+It would be possible to create a transitive dependency resolution system and use it to drive `mdm [add/alter/delete]` commands.
+This would hit a sweet spot where dependencies are still firmly pegged, but both new project setup and later updates can be specified with a convenient handwave.
+(This might come out looking something like the distinction between a "Gemfile" and "Gemfile.lock" -- mdm currently only provides the "lock".)
+
+PRs welcome on this front :)
 
 ### Dependencies of Dependencies of Dependencies of...
 
