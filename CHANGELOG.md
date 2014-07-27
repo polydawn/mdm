@@ -5,12 +5,12 @@ v2.xx.x (unreleased)
 --------------------
 
 - `mdm update` learned a `--strict` option, which causes it to exit with a non-zero status code in the event that fetching a library version my name resulted in a hash not matching the one committed in the project.  (As before, this scenario will always generate warnings, but without the `--strict` option it will exit with 0/success.)
-- `mdm update` will now remove dangling dependencies from your working tree, such as after switching to a branch that does not link a dependency.  (Git will not remove such dangling repos because git is -- quite reasonably -- paranoid about deleting other git repos.  Previously, mdm agreed with this stance.)
+- `mdm update` will now remove dangling dependencies from your working tree, such as after switching to a branch that does not link a dependency.  (Git will not remove such dangling repos because git is -- quite reasonably -- paranoid about deleting other git repos.  Previously, mdm agreed with this stance; as of this update, mdm has enough situational awareness to "do what I mean" while remaining quite safe.)
   - This will refrain from removing an unlinked dependency directory from your working tree if it has uncommitted changes, and issue a notice instead.
   - Only submodules managed by mdm are subject to this policy.  Any other submodules or plain git repos sitting in your working tree will be untouched.
   - Upgrade note: new project clones will recieve this benefit automatically; existing workspaces may be updated by using `mdm update --reclaim`.
-- Fix incorrect warning about hash-mismatches issued when using `mdm update` during an ongoing merge -- previously, mdm would check against the hash on the *incoming* branch, which would give false warnings when intentionally choosing the dependency version from the current branch.  mdm will now consider a hash from any of the merging branches to be valid.
-- Asking `mdm add` to place a dependency in a gitignored directory now works.  (Though I don't particularly know why you'd do that.)
+- Fix incorrect warning about hash-mismatches issued when using `mdm update` during an ongoing merge conflict resolution.  mdm will now consider a hash from any of the merging branches to be valid.  Previously, mdm would check against the dependency hash tracked on the *incoming* branch, which would give false warnings when intentionally choosing the dependency version from the current branch.
+- Asking `mdm add` to place a dependency in a gitignore'd directory now works.  (Though I don't particularly know why you'd do that.)
 - Improve rejection of invalid version names in the `mdm release` command.  (Previously, a ref could have been created, but release would still fail when assertions were made later in the process, which would leave a ref which native git would never have admitted; this no longer occurs.)
 
 
