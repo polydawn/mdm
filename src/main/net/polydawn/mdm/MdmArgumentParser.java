@@ -10,6 +10,33 @@ public class MdmArgumentParser {
 	public MdmArgumentParser() {
 		parser = ArgumentParsers.newArgumentParser("mdm").version(Package.getPackage("net.polydawn.mdm").getImplementationVersion());
 
+		parser.description(
+			  "mdm is a dependency management tool.  It can forge a connection between a software project's git repository and other libraries or assets required by that project.\n"
+			+ "\n"
+			+ "Users coming to a project that manages dependencies with mdm -- the most important command you're looking for is `mdm update`.  This command will fetch dependencies and whip your workspace into shape.\n"
+			+ "\n"
+			+ "For more information on subcommands, run `mdm [subcommand] -h` or `mdm [subcommand] --help`.\n"
+		);
+
+		// we can also override the usage string.  which might be useful for the release command at least, since it does have different contextual modes.
+		// parser.usage("usage section\novarride");
+
+		parser.epilog(
+			// Attempting to use leading spaces is fraught with peril.  the line wrapper in argparse4j isn't particularly clever, sadly.
+			// (nor is in configurable in the slightest.  even replacing the help action outright is extremely limited, because *i can't see back into the private fields listing the arguments*, so it would basically be forking territory.)
+			  "The source for mdm can be found on github:\n"
+			+ "\n"
+			+ "    https://github.com/polydawn/mdm/\n"
+			+ "\n"
+			+ "Working examples, extended explanation of concepts and mechanics, and other additional documentation is tracked with the source, and thus can also be found on github:\n"
+			+ "\n"
+			+ "    https://github.com/polydawn/mdm/tree/master/doc\n"
+			+ "\n"
+			+ "mdm is a Polydawn project.  mdm and other Polydawn projects can be discovered at http://polydawn.net/\n"
+			+ "\n"
+		);
+
+
 		parser.addArgument("--version").action(new ArgumentAction() {
 			@Override
 			public void run(ArgumentParser parser, Argument arg, Map<String,Object> attrs, String flag, Object value)
@@ -30,6 +57,8 @@ public class MdmArgumentParser {
 
 		Subparsers subparsers = parser.addSubparsers().dest("subcommand").title("subcommands");
 
+
+		//XXX: remove manual default value description texts and use `parser.defaultHelp(true);` instead.
 
 		Subparser parser_status = subparsers
 			.addParser("status")
