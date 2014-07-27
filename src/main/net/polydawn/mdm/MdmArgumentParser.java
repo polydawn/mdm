@@ -15,7 +15,7 @@ public class MdmArgumentParser {
 			+ "\n"
 			+ "Users coming to a project that manages dependencies with mdm -- the most important command you're looking for is `mdm update`.  This command will fetch dependencies and whip your workspace into shape.\n"
 			+ "\n"
-			+ "For more information on subcommands, run `mdm [subcommand] -h` or `mdm [subcommand] --help`.\n"
+			+ "Most mdm operations are subcommands, listed below.  For more information any subcommand, run `mdm [subcommand] -h` or `mdm [subcommand] --help`.\n"
 		);
 
 		// we can also override the usage string.  which might be useful for the release command at least, since it does have different contextual modes.
