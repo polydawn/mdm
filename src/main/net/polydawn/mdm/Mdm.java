@@ -67,6 +67,10 @@ public class Mdm {
 
 		// parse args
 		ArgumentParser parser = new MdmArgumentParser().parser;
+		if (args.length == 0) {
+			parser.printHelp();
+			if (real) System.exit(1);
+		}
 		Namespace parsedArgs = null;
 		try {
 			parsedArgs = parser.parseArgs(args);
