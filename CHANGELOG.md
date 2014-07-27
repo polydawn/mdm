@@ -5,6 +5,7 @@ v2.xx.x (unreleased)
 --------------------
 
 - `mdm update` learned a `--strict` option, which causes it to exit with a non-zero status code in the event that fetching a library version my name resulted in a hash not matching the one committed in the project.  (As before, this scenario will always generate warnings, but without the `--strict` option it will exit with 0/success.)
+- Fix incorrect warning about hash-mismatches issued when using `mdm update` during an ongoing merge -- previously, mdm would check against the hash on the *incoming* branch, which would give false warnings when intentionally choosing the dependency version from the current branch.  mdm will now consider a hash from any of the merging branches to be valid.
 
 
 

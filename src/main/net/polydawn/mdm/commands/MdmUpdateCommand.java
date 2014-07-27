@@ -29,6 +29,8 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.revwalk.*;
+import org.eclipse.jgit.treewalk.*;
 import us.exultant.ahs.iob.*;
 import static net.polydawn.mdm.Loco.*;
 import static us.exultant.ahs.util.Strings.join;
@@ -73,17 +75,34 @@ public class MdmUpdateCommand extends MdmCommand {
 				os.print((fancy ? "\033[2K\r" : "") + "updating module "+i+" of "+modules.size()+": "+module.getHandle() +" ..." + (fancy ? "" : "\n"));
 				if (Plumbing.fetch(repo, module)) {
 					impacted.add(module);
-					if (repo.readMergeHeads() != null) {
+					ObjectId moduleHeadId = module.getRepo().resolve(Constants.HEAD);
+					List<ObjectId> mergeHeads = repo.readMergeHeads();
+					if (mergeHeads == null) {
+						// if there are no merges in progress, we check if the dependency version we fetched by name has the hash that's expected by the parent repo.
+						if (!moduleHeadId.equals(module.getIndexId())) {
+							// in putting the module to the version named in .gitmodules, we made it disagree with the parent index.
+							// this probably indicates oddness.
+							hashMismatchWarnings++;
+							os.println((fancy ? "\033[2K\r" : "") + "notice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than the parent repo expected.");
+						}
+					} else {
 						// if we're in the middle of a merge, we skip the normal hash validity check, because
 						// module.getIndexId() contains the index's hash for the submodule only, and that can set off false alarms.
-						// there's actually a valid *set* of hashes here, one from each merge head, and TODO: we could consider them all.
-						continue;
-					}
-					if (!module.getRepo().resolve(Constants.HEAD).equals(module.getIndexId())) {
-						// in putting the module to the version named in .gitmodules, we made it disagree with the parent index.
-						// this probably indicates oddness.
-						hashMismatchWarnings++;
-						os.println((fancy ? "\033[2K\r" : "") + "notice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than the parent repo expected.");
+						// there's actually a valid *set* of hashes here, one from each merge head, and we consider them all.
+						boolean acceptable = false;
+						mergeHeads.add(repo.resolve(Constants.HEAD));
+						for (ObjectId incomingHead : mergeHeads) {
+							if (acceptable) break;
+							RevTree incomingHeadRootTree = new RevWalk(repo).parseCommit(incomingHead).getTree();
+							ObjectId incomingModuleHeadId = TreeWalk.forPath(repo, module.getPath(), incomingHeadRootTree).getObjectId(0);
+							acceptable |= moduleHeadId.equals(incomingModuleHeadId);
+						}
+						if (!acceptable) {
+							// in putting the module to the version named in .gitmodules, we didn't get a hash that agreed with *any* of the parent indexes.
+							hashMismatchWarnings++;
+							os.println((fancy ? "\033[2K\r" : "") + "notice: in updating "+module.getHandle()+" to version "+module.getVersionName()+", mdm left the submodule with a different hash checked out than *any* of the merging branches.  This is only expected if you changed the version name to a value also not present on any of the merging branches.");
+							// TODO: we could get even smarter and parse the gitmodules file from every merge head and use that to give a better qualification of the notice message.
+						}
 					}
 				} else
 					unphased.add(module);
