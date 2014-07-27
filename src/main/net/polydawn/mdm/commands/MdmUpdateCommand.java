@@ -42,9 +42,11 @@ public class MdmUpdateCommand extends MdmCommand {
 
 	public void parse(Namespace args) {
 		treatHashMismatchAsError = args.getBoolean("strict") == Boolean.TRUE;
+		performReclaim = args.getBoolean("reclaim") == Boolean.TRUE;
 	}
 
 	private boolean treatHashMismatchAsError = false;
+	private boolean performReclaim = false;
 
 	public void validate() throws MdmExitMessage {}
 
@@ -104,8 +106,10 @@ public class MdmUpdateCommand extends MdmCommand {
 							// TODO: we could get even smarter and parse the gitmodules file from every merge head and use that to give a better qualification of the notice message.
 						}
 					}
-				} else
+				} else {
+					if (performReclaim) Plumbing.markMdmClaim(module);
 					unphased.add(module);
+				}
 			} catch (MdmException e) {
 				os.println((fancy ? "\033[2K\r" : "") + "error: in updating "+module.getHandle()+" to version "+module.getVersionName()+", "+e);
 				contorted.add(module);

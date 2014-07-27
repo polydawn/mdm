@@ -72,6 +72,11 @@ public class MdmArgumentParser {
 			.addArgument("--strict")
 			.action(storeTrue())
 			.help("check hashes strictly: if a version fetched has a different hash than this repo expects, in addition to the normal warning message, report a failure code on exit.");
+		parser_update
+			.addArgument("--reclaim")
+			.action(storeTrue())
+			.help("apply config flags to any submodules managed by mdm.  there is normally no reason to do this manually, as these flags are already created automatically by all other mdm commands, but may be useful for upgrading old workspaces.");
+
 
 		Subparser parser_add = subparsers
 			.addParser("add")
