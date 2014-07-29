@@ -198,7 +198,7 @@ https://github.com/mdm-releases/mdm-releases/
 Building from source
 --------------------
 
-If downloading a binary release isn't your cup of tea, [Section 4.1 -- building from source](4.1-building-from-source.md) documents your way.
+If downloading a binary release isn't your cup of tea, [Section 4.1 -- building from source](doc/4.1-building-from-source.md) documents your way.
 
 
 Portability
