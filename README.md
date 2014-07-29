@@ -1,13 +1,33 @@
 Modern Dependency Management
 ============================
 
-Core concept is this: use git submodules in a planned and effective way, and you can get dependencies set up in a way that gives you:
+mdm is a dependency management system.
+mdm helps makes hard guarantees about the repeatability of your builds, because every dependency is tracked by hash as well as the semantic version name.
+mdm builds a distributed dependency management system, leveraging git for effective deduplicaton and a wide range of supported transports.
+
+Practically speaking, that means mdm goes fast because it spends most of its time working offline.
+It also means mdm is immune to accidentally [getting cat memes](http://blog.ontoillogical.com/blog/2014/07/28/how-to-take-over-any-java-developer/) in your build :)
+
+Now in bullet points:
 
 * strongly versioned and guaranteed repeatable builds!
 * project cloning that gives you exactly everything you need to do a build!
 * a repository that doesn't bloat over time, and fresh clones that ship you the bare minimum number of bytes that you need!
 
 These properties sound basic when stated clearly, but it's a trifecta that's frankly not well provided by any of the popular dependency management solutions to date.
+
+
+
+### full manual
+
+Jump to [docs](doc/), with chapters covering:
+
+1. [Getting Started](doc/1-getting-started.md)
+2. [Syncing Dependencies](doc/2-using-to-develop.md)
+3. [Making Releases](doc/3-using-to-release.md)
+4. [Advanced Topics & Theory](doc/4-advanced-topics-and-theorycraft.md)
+5. [Errata & Compatibility](doc/5-errata-and-compatibility.md)
+
 
 
 ### The TL;DR version of How It Works
@@ -57,13 +77,10 @@ and even with the full pattern laid out before you, it's a lot of commands to is
 
 
 
-*mdm*, Automated!
-=================
+*mdm* command reference
+=======================
 
-"```mdm```" is a script that will guide you / automagically perform any of the steps in the lifecycle of releasing.
-It also covers updating dependency specifications when releasing.
-And finally, ```mdm``` can be used as shorthand when making a fresh clone or performing a pull that changes dependency versions
-(though these actions can also be easily performed by stringing some git commands together; ```mdm``` is just being a bit of porcelain when used this way).
+"```mdm```" will guide you, automagically performing any of the steps in the lifecycle of releasing, creating dependency links and managing versions of dependencies, and syncing down dependencies into a new project clone.
 
 
 ### Usage: Releasing:
