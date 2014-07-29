@@ -90,7 +90,7 @@ The `mdm` commands translate your high-level intentions (that is, "depend on jun
 
 ...Into the mechanics ("remember to fetch tag 'release/4.10' from 'http://mdm-releases.com/junit-releases.git', and it should have hash 6e4860d64a2912c7e10639c87f48a93e1748f797").
 
-(If you're wonderring what `mdm` is doing that leverages git while handling binaries scalably, you can check out the documentation on [Anatomy of a Releases Repo History](4.4-anatomy-of-releases-repo-history.md).)
+(If you're wonderring what `mdm` is doing that leverages git while handling binaries scalably, you can check out the documentation on [Anatomy of a Releases Repo History](doc/4.4-anatomy-of-releases-repo-history.md).)
 
 
 
