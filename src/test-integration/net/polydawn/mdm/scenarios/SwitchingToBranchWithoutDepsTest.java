@@ -13,7 +13,7 @@ import org.junit.runner.*;
 import us.exultant.ahs.iob.*;
 
 @RunWith(OrderedJUnit4ClassRunner.class)
-public class SwitchingToBranchWithoutDeps extends TestCaseUsingRepository {
+public class SwitchingToBranchWithoutDepsTest extends TestCaseUsingRepository {
 	final Josh git = new Josh("git");
 
 	@Test
