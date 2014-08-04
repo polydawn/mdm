@@ -12,6 +12,7 @@ v2.xx.x (unreleased)
 - Fix incorrect warning about hash-mismatches issued when using `mdm update` during an ongoing merge conflict resolution.  mdm will now consider a hash from any of the merging branches to be valid.  Previously, mdm would check against the dependency hash tracked on the *incoming* branch, which would give false warnings when intentionally choosing the dependency version from the current branch.
 - Asking `mdm add` to place a dependency in a gitignore'd directory now works.  (Though I don't particularly know why you'd do that.)
 - Improve rejection of invalid version names in the `mdm release` command.  (Previously, a ref could have been created, but release would still fail when assertions were made later in the process, which would leave a ref which native git would never have admitted; this no longer occurs.)
+- Improve messaging from the `mdm release` command when an invalid destination repo was specified.  A distinction is now correctly made between a lack of a repo root at the specified path versus finding a repo that isn't a release repo.
 
 
 
