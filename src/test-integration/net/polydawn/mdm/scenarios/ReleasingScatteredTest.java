@@ -13,10 +13,10 @@ import us.exultant.ahs.iob.*;
 
 @RunWith(OrderedJUnit4ClassRunner.class)
 public class ReleasingScatteredTest extends TestCaseUsingRepository {
-	@Test
-	public void releasing_in_linked_relrepo_after_manually_reacquring_relrepo() throws Exception {
-		Fixture projectAlpha = new ProjectAlpha("projectAlpha");
-		Repository releaseHubRepo = new RepositoryBuilder()
+	@Before
+	public void setup() throws Exception {
+		projectAlpha = new ProjectAlpha("projectAlpha");
+		releaseHubRepo = new RepositoryBuilder()
 			.setGitDir(new File("projectAlpha-releases.git").getCanonicalFile())
 			.setBare()
 			.build();
@@ -46,11 +46,18 @@ public class ReleasingScatteredTest extends TestCaseUsingRepository {
 		} wd.close();
 
 		// clone the project.  the local releases repo doesn't come along, of course.
-		Fixture projectClone = new ProjectClone("projectClone", projectAlpha.getRepo());
+		projectClone = new ProjectClone("projectClone", projectAlpha.getRepo());
+	}
 
+	Fixture projectAlpha;
+	Repository releaseHubRepo;
+	Fixture projectClone;
+
+	@Test
+	public void releasing_in_linked_relrepo_after_manually_reacquring_relrepo() throws Exception {
 		// fetch the release repo again manually by using the git submodule command and the '--checkout' option to override the usual don't-fetch configuration.
 		// then make another release to it.
-		wd = new WithCwd(projectClone.getRepo().getWorkTree()); {
+		WithCwd wd = new WithCwd(projectClone.getRepo().getWorkTree()); {
 
 			new Josh("git").args("submodule", "update", "--init", "--checkout", "releases").start().get();
 
