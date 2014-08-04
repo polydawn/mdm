@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main"/>
+	<classpathentry kind="src" path="src/test-fixtures"/>
+	<classpathentry kind="src" path="src/test-integration"/>
+	<classpathentry kind="src" path="src/test-unit"/>
+	<classpathentry kind="lib" path="lib/ahslib/ahslib-codec-ebon.jar"/>
+	<classpathentry kind="lib" path="lib/ahslib/ahslib-codec-json.jar"/>
+	<classpathentry kind="lib" path="lib/ahslib/ahslib-codec-pre.jar"/>
+	<classpathentry kind="lib" path="lib/ahslib/ahslib-codec.jar"/>
+	<classpathentry kind="lib" path="lib/ahslib/ahslib-core.jar"/>
+	<classpathentry kind="lib" path="lib/ahslib/ahslib-crypto.jar"/>
+	<classpathentry kind="lib" path="lib/ahslib/ahslib-io.jar"/>
+	<classpathentry kind="lib" path="lib/ahslib/ahslib-test.jar"/>
+	<classpathentry kind="lib" path="lib/ahslib/ahslib-thread.jar"/>
+	<classpathentry kind="lib" path="lib/argparse4j/argparse4j.jar" sourcepath="lib/argparse4j/argparse4j-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jgit/org.eclipse.jgit.jar" sourcepath="lib/jgit/org.eclipse.jgit-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jsch/jsch.jar" sourcepath="lib/jsch/jsch-sources.jar"/>
+	<classpathentry kind="lib" path="lib/junit/junit.jar"/>
+	<classpathentry kind="lib" path="lib/logback/logback-access.jar"/>
+	<classpathentry kind="lib" path="lib/logback/logback-classic.jar"/>
+	<classpathentry kind="lib" path="lib/logback/logback-core.jar"/>
+	<classpathentry kind="lib" path="lib/proguard/proguard.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j/slf4j-api.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang/commons-lang.jar" sourcepath="lib/commons-lang/commons-lang-sources.jar"/>
+	<classpathentry kind="lib" path="lib/josh/josh.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path=".eclipse/build"/>
+</classpath>

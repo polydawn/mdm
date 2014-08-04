@@ -23,12 +23,12 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 import net.polydawn.mdm.*;
+import net.polydawn.mdm.errors.*;
 import net.polydawn.mdm.util.*;
 import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.*;
@@ -51,6 +51,8 @@ public class MdmReleaseCommand extends MdmCommand {
 		// Reject version names with slashes.  It's physically possible to deal with these, but just... why?  Even if mdm itself were to handle it smoothly, it would make life that much more annoying for any other scripts ever, and it would make the directory structure on the master branch just a mess of irregular depth.
 		if (version.contains("/"))
 			throw new MdmExitMessage(":(", "you can't use version names that have slashes in them, sorry.  it gets messy.");
+		if (!Repository.isValidRefName(Constants.R_HEADS + version))
+			throw new MdmExitMessage(":(", "this version name contains unusual characters that would be hard to represent.  please choose a different version name.");
 	}
 
 	public static final Pattern RELEASE_URL_NAME_EXTRACT = Pattern.compile("^(.*)-releases(?:.git)?$");
@@ -61,7 +63,12 @@ public class MdmReleaseCommand extends MdmCommand {
 	public String inputPath;
 
 	public MdmExitMessage call() throws IOException, MdmException, MdmExitMessage {
-		MdmModuleRelease relModule = loadReleaseModule();
+		MdmModuleRelease relModule;
+		try {
+			relModule = loadReleaseModule();
+		} catch (MdmRepositoryNonexistant e) {
+			throw new MdmExitMessage(":'(", e.getMessage()+"\nperhaps you should use `mdm release-init` first?");
+		}
 		Repository relRepo = relModule.getRepo();
 
 		relModule.assertPresentsAsReleaseRepo();
@@ -96,6 +103,8 @@ public class MdmReleaseCommand extends MdmCommand {
 				new Git(relRepo).checkout()
 					.setName("mdm/release/"+version)
 					.call();
+			} catch (InvalidRefNameException e) {
+				return new MdmExitMessage(":'(", "can't use \""+version+"\" as a branch name");
 			} catch (GitAPIException e) {
 				throw new MajorBug("an unrecognized problem occurred.  please file a bug report.", e);
 			}

@@ -1,6 +1,23 @@
 CHANGELOG
 =========
 
+v2.xx.x (unreleased)
+--------------------
+
+- `mdm update` learned a `--strict` option, which causes it to exit with a non-zero status code in the event that fetching a library version my name resulted in a hash not matching the one committed in the project.  (As before, this scenario will always generate warnings, but without the `--strict` option it will exit with 0/success.)
+- `mdm update` will now remove dangling dependencies from your working tree, such as after switching to a branch that does not link a dependency.  (Git will not remove such dangling repos because git is -- quite reasonably -- paranoid about deleting other git repos.  Previously, mdm agreed with this stance; as of this update, mdm has enough situational awareness to "do what I mean" while remaining quite safe.)
+  - This will refrain from removing an unlinked dependency directory from your working tree if it has uncommitted changes, and issue a notice instead.
+  - Only submodules managed by mdm are subject to this policy.  Any other submodules or plain git repos sitting in your working tree will be untouched.
+  - Upgrade note: new project clones will recieve this benefit automatically; existing workspaces may be updated by using `mdm update --reclaim`.
+- Fix incorrect warning about hash-mismatches issued when using `mdm update` during an ongoing merge conflict resolution.  mdm will now consider a hash from any of the merging branches to be valid.  Previously, mdm would check against the dependency hash tracked on the *incoming* branch, which would give false warnings when intentionally choosing the dependency version from the current branch.
+- Asking `mdm add` to place a dependency in a gitignore'd directory now works.  (Though I don't particularly know why you'd do that.)
+- Improve rejection of invalid version names in the `mdm release` command.  (Previously, a ref could have been created, but release would still fail when assertions were made later in the process, which would leave behind a ref which native git would never have admitted; this no longer occurs.)
+- Improve messaging from the `mdm release` command when an invalid destination repo is specified.  A distinction is now correctly made between a lack of a repo root at the specified path versus finding a repo that isn't a release repo.
+- `mdm --help` (or equivalently, `mdm -h`) now provides a larger description of the overall tool, where to go for source and additional documentation, and explicitly denotes that `-h` may be used for extended help on any subcommand.
+- `mdm` with no subcommands now also invokes the help routine (`git` with no subcommands has very similar behavior).
+
+
+
 v2.17.4
 -------
 
@@ -49,9 +66,9 @@ v2.17.0
 - Git data directories are now stored in the parent project's git data directory!
   - This is a significant improvement in that your entire lib/* directory can be blown away, and yet the cache of locally available repositories and their commits remains available.
   - In particular, this means after switching to a branch without a dependency, you can `git clean -xdff`, yet when switching back and "fetching" the dependency again, no fetch is necessary; all the data is still locally available.
-- Added enhanced support around use of URL "insteadof" git config: url.*.insteadof and url.*.pushinsteadof git config chunks in the parent repo's config will now be copied into a dependency module's config.
+- Added enhanced support around use of URL "insteadof" git config: `url.[...].insteadof` and `url.[...].pushinsteadof` git config chunks in the parent repo's config will now be copied into a dependency module's config.
   - This means it's easy to configure url replacements on a project and have `mdm update` pick up the replacement on the very first use.
-  - Additionally, git config parameters under "url.*" from the system and user gitconfigs are now accepted by mdm.
+  - Additionally, git config parameters under "`url.[...]`" from the system and user gitconfigs are now accepted by mdm.
   - If you're not familiar with this feature of git: play around with `git config url."file:///my/local/cache/".insteadof "http://mdm-releases.com/"`.
   - Note that "insteadof" config per repository was already supported by mdm previously; the change here is merely the convenience of injecting config from the parent into submodules to smooth initialization.
 - Improved deployment: binaries from v2.15.0 and later were sometimes not considered as valid executables in some contexts on POSIX (i.e. linux, mac) systems; this is now fixed.

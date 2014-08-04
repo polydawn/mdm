@@ -22,6 +22,9 @@ public class ProjectClone implements Fixture {
 				.setURI(remote.getWorkTree().getCanonicalPath())
 				.setDirectory(dest)
 				.call().getRepository();
+			// TODO: jgit clone seems to leave submodules in a "deleted" status.  real git, of course, will not do this.
+			// running `git checkout .` fixes this with real git, but sadly this call won't do the same:
+			//new Git(repo).checkout().addPath(".").call();
 		} catch (InvalidRemoteException e) {
 			throw new FixtureSetupError(e);
 		} catch (TransportException e) {

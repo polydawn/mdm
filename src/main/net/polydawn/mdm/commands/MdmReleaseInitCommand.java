@@ -164,6 +164,8 @@ public class MdmReleaseInitCommand extends MdmCommand {
 			throw new MdmExitMessage(":I", "there's already a releases module!  No changes made.");
 		if (pathFile.exists() && !pathFile.isDirectory() || new File(pathFile, ".git").exists())
 			throw new MdmExitMessage(":(", "something already exists at the location we want to initialize the releases repo.  clear it out and try again.");
+		if (asSubmodule && (repo.getRef("refs/heads/mdm/init") != null || repo.getRef("refs/remotes/origin/mdm/init") != null))
+			throw new MdmExitMessage(":(", "you are already in a releases repo!  it doesn't make any sense to put a releases repo in a releases repo.");
 	}
 
 	/**

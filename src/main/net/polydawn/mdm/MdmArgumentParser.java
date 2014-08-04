@@ -1,5 +1,6 @@
 package net.polydawn.mdm;
 
+import static net.sourceforge.argparse4j.impl.Arguments.storeTrue;
 import java.util.*;
 import net.sourceforge.argparse4j.*;
 import net.sourceforge.argparse4j.impl.*;
@@ -8,6 +9,33 @@ import net.sourceforge.argparse4j.inf.*;
 public class MdmArgumentParser {
 	public MdmArgumentParser() {
 		parser = ArgumentParsers.newArgumentParser("mdm").version(Package.getPackage("net.polydawn.mdm").getImplementationVersion());
+
+		parser.description(
+			  "mdm is a dependency management tool.  It can forge a connection between a software project's git repository and other libraries or assets required by that project.\n"
+			+ "\n"
+			+ "Users coming to a project that manages dependencies with mdm -- the most important command you're looking for is `mdm update`.  This command will fetch dependencies and whip your workspace into shape.\n"
+			+ "\n"
+			+ "Most mdm operations are subcommands, listed below.  For more information any subcommand, run `mdm [subcommand] -h` or `mdm [subcommand] --help`.\n"
+		);
+
+		// we can also override the usage string.  which might be useful for the release command at least, since it does have different contextual modes.
+		// parser.usage("usage section\novarride");
+
+		parser.epilog(
+			// Attempting to use leading spaces is fraught with peril.  the line wrapper in argparse4j isn't particularly clever, sadly.
+			// (nor is in configurable in the slightest.  even replacing the help action outright is extremely limited, because *i can't see back into the private fields listing the arguments*, so it would basically be forking territory.)
+			  "The source for mdm can be found on github:\n"
+			+ "\n"
+			+ "    https://github.com/polydawn/mdm/\n"
+			+ "\n"
+			+ "Working examples, extended explanation of concepts and mechanics, and other additional documentation is tracked with the source, and thus can also be found on github:\n"
+			+ "\n"
+			+ "    https://github.com/polydawn/mdm/tree/master/doc\n"
+			+ "\n"
+			+ "mdm is a Polydawn project.  mdm and other Polydawn projects can be discovered at http://polydawn.net/\n"
+			+ "\n"
+		);
+
 
 		parser.addArgument("--version").action(new ArgumentAction() {
 			@Override
@@ -30,6 +58,8 @@ public class MdmArgumentParser {
 		Subparsers subparsers = parser.addSubparsers().dest("subcommand").title("subcommands");
 
 
+		//XXX: remove manual default value description texts and use `parser.defaultHelp(true);` instead.
+
 		Subparser parser_status = subparsers
 			.addParser("status")
 			.help("list dependencies managed by mdm, and their current status.");
@@ -38,6 +68,14 @@ public class MdmArgumentParser {
 		Subparser parser_update = subparsers
 			.addParser("update")
 			.help("pull all dependencies up to date.  Run this after cloning a fresh repo, or pulling or checking out commits that change a dependency.");
+		parser_update
+			.addArgument("--strict")
+			.action(storeTrue())
+			.help("check hashes strictly: if a version fetched has a different hash than this repo expects, in addition to the normal warning message, report a failure code on exit.");
+		parser_update
+			.addArgument("--reclaim")
+			.action(storeTrue())
+			.help("apply config flags to any submodules managed by mdm.  there is normally no reason to do this manually, as these flags are already created automatically by all other mdm commands, but may be useful for upgrading old workspaces.");
 
 
 		Subparser parser_add = subparsers

@@ -21,6 +21,7 @@ package net.polydawn.mdm;
 
 import java.io.*;
 import net.polydawn.mdm.errors.*;
+import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.storage.file.*;
 import org.eclipse.jgit.submodule.*;
@@ -41,12 +42,13 @@ public class MdmModuleRelease extends MdmModule {
 		try {
 			relRepo = new FileRepositoryBuilder()
 				.setWorkTree(new File(relRepoPath).getCanonicalFile())	// must use getCanonicalFile to work around https://bugs.eclipse.org/bugs/show_bug.cgi?id=407478
+				.setMustExist(true)
 				.build();
+		} catch (RepositoryNotFoundException e) {
+			throw new MdmRepositoryNonexistant(relRepoPath);
 		} catch (IOException e) {
 			throw new MdmRepositoryIOException(false, relRepoPath, e);
 		}
-		if (relRepo == null)						// check that releases-repo is a git repo at all
-			throw new MdmRepositoryNonexistant(relRepoPath);
 		return new MdmModuleRelease(relRepo, relRepoPath, null, null, null);
 	}
 
@@ -69,7 +71,7 @@ public class MdmModuleRelease extends MdmModule {
 
 	public static class MdmModuleReleaseNeedsBranch extends MdmModuleTypeException {
 		public MdmModuleReleaseNeedsBranch(String relRepoPath, String branchName) {
-			super("releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \""+branchName+"\", and there should be.)");
+			super("releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \""+branchName+"\", which is an an indicator of a release repo.  Are you sure you've specified the right repo?)");
 		}
 	}
 

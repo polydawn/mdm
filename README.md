@@ -1,114 +1,185 @@
 Modern Dependency Management
 ============================
 
-Core concept is this: use git submodules in a planned and effective way, and you can get dependencies set up in a way that gives you:
+`mdm` is a a distributed, repeatable, and secure management system for your dependencies.
 
-* strongly versioned and guaranteed repeatable builds!
-* project cloning that gives you exactly everything you need to do a build!
-* a repository that doesn't bloat over time, and fresh clones that ship you the bare minimum number of bytes that you need!
+`mdm` helps makes hard guarantees about the repeatability of your builds, because every dependency is tracked by hash as well as the semantic version name.
+`mdm` weaves a distributed dependency management system, leveraging git features for distributed tracking, content-addressible storage, effective deduplicaton, and a wide range of supported transports.
 
-These properties sound basic when stated clearly, but it's a trifecta that's frankly not well provided by any of the popular dependency management solutions to date.
+Practically speaking, that means `mdm` goes fast because it spends most of its time working totally offline.
+It also means `mdm` is immune to accidentally [getting cat memes](http://blog.ontoillogical.com/blog/2014/07/28/how-to-take-over-any-java-developer/) in your build :)
 
+Now in bullet points:
 
-### The TL;DR version of How It Works
-
-Say you have a software project called myproject, already in its own git repository.
-You want your software to use some stuff from someone else's project; we'll call it projUpstream1.
-
-projUpstream1 has a releases repo, where for every version of projUpstream1 released, there is a branch.
-That branch contains just one commit, and that commit contains everything made by a build of projUpstream1.
-
-You use the ```mdm``` tool to set up myproject with a reference to a projUpstream1 release.
-Magic happens:
-
-```mdm``` fetches just one branch from the projUpstream1 releases repo.
-It goes into a folder at myproject/lib/projUpstream1.
-This branch from the projUpstream1 releases repo contains the single commit with all the build artifacts for a specific version of projUpstream1,
-so you now have all the files you need for your work in myproject.
-
-This commit that ```mdm``` fetched is set up as up a submodule in myproject.
-This means that the hash naming that commit is now itself committed to myproject's history, along with some metadata that can tell anyone who clones this project where to fetch that commit from themselves.
-
-Huzzah!
-Anyone who clones myproject can now fetch all myproject's dependencies based on git metadata.
-And because the hash of the projUpstream1 release artifacts is now embedded in myproject's history,
-it's impossible for anyone to be hoodwinked into getting anything other than the *exact* versions of myproject's dependencies that the author intended.
+* Strongly versioned and guaranteed repeatable builds!
+* No repository bloat or gigantic vendor commits!
+* Dependency fetching is automatically optimized to ship the smallest download possible!
 
 
-### Anatomy of a Releases Repo History
+full manual
+-----------
+
+Jump to [docs](doc/), with chapters covering:
+
+1. [Getting Started](doc/1-getting-started.md)
+2. [Syncing Dependencies](doc/2-using-to-develop.md)
+3. [Making Releases](doc/3-using-to-release.md)
+4. [Advanced Topics & Theory](doc/4-advanced-topics-and-theorycraft.md)
+5. [Errata & Compatibility](doc/5-errata-and-compatibility.md)
+
+
+
+
+### TL;DR How It Works
+
+Your project is a git repo.
+
+Each of your dependencies lives in a little git repo, all by itself.
+
+Your project tracks a link to each of these little git repos.  It remembers the hash of their contents, and it remembers where to clone them from if they aren't here yet.
+
+
+
+### Wanna see it?
+
+Clone this project repo.  Run `ant`.  Observe :)
+
+
+
+### Hosting mdm Releases
+
+Any git host can be an mdm host.  Github, Stash, gitolite, gitosis, git-daemon, Gitblit, Gitbucket, even a flat static http server.
+
+Anything.
+
+##### Mirroring an mdm Release Repository
+
+Try `git clone --mirror http://mdm-releases.com/junit/junit-releases.git` :)
+
+##### The mdm Central Repository
+
+A central repository of software packaged as mdm releases, ready for your consumption:
+
+**[http://mdm-releases.com/](http://mdm-releases.com/)**
+
+(natch, this is not quite as expansive as some other central package repository sites yet :) working on it!)
+
+
+
+### What do I need this "security" stuff for, anyway?  I use HTTPS.
+
+SSL can mitigate the thread of direct MITM attacks, but it's not a full solution either, for either security or more mundane repeatability guarantees.
+
+SSL is transport layer security -- you still fully trust the remote server not to give you cat memes.  (Or, put less nefariously, you still fully trust the remote server to never let anyone publish a "quick fixup re-release" that might quietly break your production deploys.)
+
+Embedding the hash of the dependencies we need in our projects directly gives us end-to-end confidence that we've got the right stuff.
+
+
+
+### Say, doesn't this sound like git submod--
+
+Shh!  Yes.
+
+These git repos that track each of your dependencies in isolation are really just git submodules in fancy clothes.
+`mdm` adds some tricks that makes it scalable with binaries, and, well, the fancy clothes.
+
+We get all of the benefits of working with git (rapid verification, `git status` helpfully reports changes (!), familiar semantics for distributed mirrors, tons of transports and authorization systems supported out of the box, caching different versions of a dependency can compress and dedup, and on and on).
+All of the messy parts of managing these submodules is handled for you by mdm commands.
+
+The `mdm` commands translate your high-level intentions (that is, "depend on junit, version 4.10!")...
+
+...Into the mechanics ("remember to fetch tag 'release/4.10' from 'http://mdm-releases.com/junit-releases.git', and it should have hash 6e4860d64a2912c7e10639c87f48a93e1748f797").
+
+(If you're wonderring what `mdm` is doing that leverages git while handling binaries scalably, you can check out the documentation on [Anatomy of a Releases Repo History](doc/4.4-anatomy-of-releases-repo-history.md).)
+
+
+
+### Language and Build-Tool Agnostic
+
+Everything about mdm is build-tool agnostic!
+You can use ant, maven, makefiles, rakefiles, hoefiles, whatever you want;
+the dependency storage planning will work the same for any kind of artifact files.
+
+
+
+
+
+
+
+
+mdm command reference
+=====================
+
+"```mdm```" will guide you, automagically performing any of the steps in the lifecycle of releasing, creating dependency links and managing versions of dependencies, and syncing down dependencies into a new project clone.
+
+Each major task is a subcommand of `mdm`.
+You can see all subcommands of mdm by running `mdm -h`.
+You can add a `-h` to any of these commands and get specific help and a full list of all available options, including descriptions of behaviors and default values --
+so for example, `mdm add -h` will list all possible options of the `add` subcommand in detail.
+
+This is the total set of available tasks:
+
+ - mdm update
+ - mdm status
+ - mdm add
+ - mdm alter
+ - mdm remove
+ - mdm release
+ - mdm release-init
+
+
+### Usage: Syncing all Dependencies:
+
+```mdm update``` asks mdm to pull the correct versions of all dependencies into the current project.
+
+Run this command whenever you clone a new repo, or pull changes that add or remove or alter dependencies, or whenever you switch between branches that have different dependencies.
+
+
+### Usage: Looking at Dependencies:
+
+```mdm status``` will list the all of the dependencies managed by mdm in the current project, as well as what's currently checked out in the working tree.
+
+If there are any dependencies that are out of sync with where your current branch wants them to be, warnings to that effect will also be displayed.
+
+
+### Usage: Adding a Dependency:
+
+```mdm add [URL]``` adds a new hash and submodule config to your project, linking a dependency provided from the remote URL.
+
+Specifying a version is optional, because ```mdm``` will look for the available versions and interactively prompt you to choose one.
+A local name and local path for the dependency can optionally be specified as well.
+
+
+### Usage: Changing a Dependency Version:
+
+```mdm alter [NAME]``` looks at the releases repository for something you already depend on and lets you switch which version your project specifies.
+
+
+### Usage: Dropping a Dependency:
+
+```mdm remove [NAME]``` removes a dependency from the repo's submodule config and the git hash tree, and tosses that repo.
+
+
+### Usage: Initializing a release system:
+
+When you're setting up a project to perform releases with ```mdm```, you need to not only create the git repository for that project, but also a repository for its releases.
+```mdm``` will happily automate this too:
 
 ```
-
-.               <-- branch="master"
-.                       The master branch keeps going, and every time a new
-.                       release is made, those files are merged in to master.
-|
-*               <-- commit=07  tag="mdm/master/v2.1"
-|\                      moved artifact.jar -> v2.1/artifact.jar
-| \                     moved artifact.so -> v2.1/artifact.so
-|  |   
-|  *            <-- commit=06  branch="mdm/release/v2.1"
-|                       added artifact.jar
-|                       added artifact.so
-|      
-*               <-- commit=05  tag="mdm/master/v2.0"
-|\                      moved artifact.jar -> v2.0/artifact.jar
-| \                     moved artifact.so -> v2.0/artifact.so
-|  |   
-|  *            <-- commit=04  branch="mdm/release/v2.0"
-|                       added artifact.jar
-|                       added artifact.so
-|      
-*               <-- commit=03  tag="mdm/master/v1.0"
-|\                      moved artifact.jar -> v1.0/artifact.jar
-| \                     moved artifact.so -> v1.0/artifact.so
-|  |   
-|  *            <-- commit=02  branch="mdm/release/v1.0"
-|                       added artifact.jar
-|                       added artifact.so
-|    
-|   
-|  
-| 
-*               <-- commit=01  branch="mdm/init"
-                        Nothing really to see here.  This is just the commit
-                        created to inaugurate the releases repository.
+	mdm release-init
 ```
 
-There are two key features of this graph:
+This automatically creates a new repository for releases, and adds it as a submodule to your current project in the ```./releases/``` dir.
+The release-repo url defauls to ```./${yourproj}-releases.git``` --
+if your project is published at ```https://github.com/username/mdm.git```, the releases repository will be set up to publish to ```https://github.com/username/mdm-releases.git```
 
-1. the release branches don't accumulate each other's history, so you can fetch them independently, without needing to pull down any data from the other branches.
-1. the master branch does accumulate history from each of the release branches, so by fetching the master branch, you get *all* of the release branches, which makes it easy to make a local cache for your workgroup or to take backups of things you depend on.
-1. when a release branch merges into the master branch, the actual artifact files from the release are moved to a subfolder, so it's easy to have every release ever checked out in one working tree (which in turns makes it dang handy to just throw the whole release repo up on an http server to make direct downloads available).
+Setup of the publishing site for the release-repo is still up to you though -- so for example if you use github, you still have to sign in and click "new repository".  Don't blow your spine out with the strain.
 
-### submodules keep your history clean
+If you're not a fan of github, hosting your own releases is easy and just like hosting any other git repository; you can do it over git://, https://, ssh:// or whatever other protocols git already supports.
 
-Using submodules in ```myproject/lib/``` for the specific release of ```projUpstream1``` means that when ```myproject``` upgrades to newer releases of ```projUpstream1``` over time,
-```myproject```'s repo doesn't grow in size and drag along baggage for the rest of its future history.
-In other words, even though we're more or less committing a binary, which would normally be a cardinal sin of version control since it won't diff/compact well,
-using the abstraction of the git submodule means that what actually ends up in your permanent git history is a reference to the release and a hash of exactly what we want,
-which of course is tiny (no baggage) AND even diffs in a way that's actually perfectly semantic and human-readable.
-
-### Relationship to Build tools
-
-Notice how everything about this system is build-tool agnostic!  You can use ant, maven, makefiles, rakefiles, hoefiles, whatever you want; the dependency storage planning
-will work the same for any kind of artifact files.
-
-### Getting it Done
-
-None of the ideas here are particularly radical.  The key is just being organized and having a plan that leverages the existing tools out there to their full potential.
-However, admittedly, the steps involved in performing a release with this process are not completely obvious when looking at the man page for "```git submodule```",
-and even with the full pattern laid out before you, it's a lot of commands to issue in a particular sequence.  Solution?  Automate it, of course.
-
-
-
-*mdm*, Automated!
-=================
-
-"```mdm```" is a script that will guide you / automagically perform any of the steps in the lifecycle of releasing.
-It also covers updating dependency specifications when releasing.
-And finally, ```mdm``` can be used as shorthand when making a fresh clone or performing a pull that changes dependency versions
-(though these actions can also be easily performed by stringing some git commands together; ```mdm``` is just being a bit of porcelain when used this way).
+Note that all of this init business is totally optional and you can refuse to do so.
+If you want to do some sort of non-canonical setup, the rest of mdm will play nice;
+doing releases for example just requires that you run ```mdm``` with an extra argument, a la ```mdm release --repo=../my/weird/path/releases-repo```.
 
 
 ### Usage: Releasing:
@@ -138,111 +209,11 @@ Alternatively, if you're the cautious type, you may wish to perform your build, 
 ```mdm``` also doesn't actually push any of the commits it creates, so you can manipulate or reset the release commits if something goes wrong, then push when everything is perfect.
 
 
-### Usage: Initializing a release system:
-
-When you're setting up a project to perform releases with ```mdm```, you need to not only create the git repository for that project, but also a repository for its releases.
-```mdm``` will happily automate this too:
-
-```
-	mdm release-init
-```
-
-This automatically creates a new repository for releases, and adds it as a submodule to your current project in the ```./releases/``` dir.
-The release-repo url defauls to ```./${yourproj}-releases.git``` --
-if your project is published at ```https://github.com/username/mdm.git```, the releases repository will be set up to publish to ```https://github.com/username/mdm-releases.git```
-
-Setup of the publishing site for the release-repo is still up to you though -- so for example if you use github, you still have to sign in and click "new repository".  Don't blow your spine out with the strain.
-
-If you're not a fan of github, hosting your own releases is easy and just like hosting any other git repository; you can do it over git://, https://, ssh:// or whatever other protocols git already supports.
-
-Note that all of this init business is totally optional and you can refuse to do so.
-If you want to do some sort of non-canonical setup, the rest of mdm will play nice;
-doing releases for example just requires that you run ```mdm``` with an extra argument, a la ```mdm release --repo=../my/weird/path/releases-repo```.
-
-
-### Usage: Adding a Dependency:
-
-```mdm add [URL]``` is the general form.
-Specifying a version is optional, because ```mdm``` will look for the available versions and interactively prompt you to choose one.
-A local name and local path for the dependency can optionally be specified as well.
-
-
-### Usage: Updating all Dependencies:
-
-```mdm update``` asks mdm to pull the correct versions of all dependencies into the current project.
-
-Run this command whenever you clone a new repo, or pull changes that add or remove or alter dependencies, or whenever you switch between branches that have different dependencies.
-
-
-### Usage: Looking at Dependencies:
-
-```mdm status``` will list the all of the dependencies managed by mdm in the current project, as well as what's currently checked out in the working tree.
-If there are any dependencies that are out of sync with where your current branch wants them to be, warnings to that effect will also be displayed.
-
-
-### Usage: Changing a Dependency Version:
-
-```mdm alter [NAME]``` looks at the releases repository for something you already depend on and lets you switch which version your project specifies.
-
-
-### Usage: Dropping a Dependency:
-
-```mdm remove [NAME]``` removes a dependency from the repo's submodule config and the git hash tree, and tosses that repo.
-
-
-### Usage: just in general...
-
-You can add a ```-h``` to any of these commands and get specific help and a full list of all available options, including descriptions of behaviors and default values.
-So for example, ```mdm -h``` will tell you all of the subcommands of mdm; ```mdm add -h``` will list all possible options of the ```add``` subcommand in detail.
-
-Most of mdm commands (and this really shouldn't be surprising!) generate git commits when you ask them to do something.
-So, there's a couple of implications of that:
-
-1. you should probably only do things in a relatively clean working tree.  Like, if you're in the middle of doing changes to submodules, you probably shouldn't also use ```mdm alter```, because it's going to commit the .gitmodules file.
-1. notice I said "commit" and not "push"!  That means anything mdm does is actually totally easy to back out of if it doesn't quite go according to plan.
 
 
 
 Getting MDM
 ===========
-
-Building from Source, without mdm
----------------------------------
-
-Clone this repo, pull down submodules, and then call ```ant``` to build.  In other words:
-
-```bash
-git clone https://github.com/polydawn/mdm.git
-cd mdm
-git submodule update --init --checkout
-ant
-```
-
-The freshly built ```mdm``` binary will now be located at ```target/dist/mdm```, ready to go.
-
-Typically, however, mdm uses mdm to manage its own dependencies, and this results in sigificantly less onerous download times and on-disk size.  This mechanism of bootstrapping dependency submodules works with plain git, but unnecessarily downloads all versions of dependencies, instead of only fetching the versions we need.
-
-(The `--checkout` option on `git submodule update` asks git to disregrad instructions in the `.gitmodules` about whether or not to fetch a submodule.  `mdm` marks dependency repos such that a normal `git submodule update` will not fetch them by default, since `git submodule update` will fetch more data than necessary.)
-
-
-Building from Source, *with* mdm
---------------------------------
-
-Clone this repo, pull down submodules, and then call ```ant``` to build.  In other words:
-
-```bash
-git clone https://github.com/polydawn/mdm.git
-cd mdm
-git submodule update --init
-mdm update
-ant
-```
-
-The freshly built ```mdm``` binary will now be located at ```target/dist/mdm```, ready to go.
-
-(In this project, there's both a `git submodule` as well as an `mdm` command during setup.
-This is because the project uses standard git submodules for linking source files, as well as using mdm for linking libraries.
-If your project just uses mdm, your project won't need a `git submodule update --init` step; the `mdm` command is self contained.)
 
 
 Downloading a release
@@ -261,36 +232,17 @@ You can browse the whole releases repo on github!
 https://github.com/mdm-releases/mdm-releases/
 
 
+Building from source
+--------------------
+
+If downloading a binary release isn't your cup of tea, [Section 4.1 -- building from source](doc/4.1-building-from-source.md) documents your way.
+
+
 Portability
 -----------
 
-Mdm is explicitly designed to be easily portable anywhere you can drop an archive-file-format-of-your-choice.
+See [portability](doc/5.1-portability.md).
 
-Mdm is distributed as a java jar, and so requires a java runtime (1.6 and above is supported).
-(If you prefer not to deploy a JRE, consider using the [robovm compiler](http://www.robovm.com/) to produce native binaries for your platform of choice.)
-
-Mdm has no external dependencies -- in particular, it does NOT require a system-installed git, nor is it capable of breaking because of variations of system installed git versions.
-(Mdm uses the excellent [jgit](http://eclipse.org/jgit/) project for a portable full-featured git implementation.)
-
-Mdm observes the name and email configured in your user gitconfig, but ignores all other values.
-
-Mdm is under 2 megabytes.  It fits on a jumpdrive -- and if it wasn't obvious by now,
-mdm certainly won't try to connect to the internet in order to download plugins before gracing you with a list of subcommands,
-nor will it put critical components of itself in your home directory just to surprise you by failing when you try to drag-and-drop the mdm executable.
-
-Long story short, it actually *makes sense* to ship mdm around in a completely offline/sneakernet fashion -- this is considered a critical design goal.
-
-
-Testing MDM
------------
-
-There's a script called ```mdma.sh``` in this repository.
-Once you've gotten ahold of an ```mdm``` binary (either by building it from source or downloading an official release),
-you can use the mdma script to put mdm through its paces --
-it will create projects, make releases, and set up dependencies as you watch, and it pauses frequently if you want to take a peek around at the state of the demo projects.
-This script can also be invoked as part of a build cycle: `ant run-mdma`.
-
-Mdm is also covered by tests using junit.  These tests can be built and ran with `ant run-test`.
 
 
 Other Notes
@@ -309,10 +261,14 @@ Why?
 
 ### Relationship to Dependency Resolution
 
-A person could combine this with automatic dependency resolution.
-I'm personally not going to do so at this stage.  There's relatively little point that I can see to automating that,
-since once you've adopted this kind project organization suddenly everything about dependencies has become a one-time setup in the lifetime of the project,
-and any repository clone already has the hard choices etched into the repository's own structure with no runtime resolution needed.
+`mdm` does not require a transitive dependency resolution system at runtime because
+any repository clone already has the hard choices etched into stone with no runtime resolution needed.
+
+It would be possible to create a transitive dependency resolution system and use it to drive `mdm [add/alter/delete]` commands.
+This would hit a sweet spot where dependencies are still firmly pegged, but both new project setup and later updates can be specified with a convenient handwave.
+(This might come out looking something like the distinction between a "Gemfile" and "Gemfile.lock" -- mdm currently only provides the "lock".)
+
+PRs welcome on this front :)
 
 ### Dependencies of Dependencies of Dependencies of...
 

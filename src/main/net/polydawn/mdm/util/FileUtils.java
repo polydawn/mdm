@@ -146,4 +146,35 @@ public class FileUtils {
 				closeable.close();
 		} catch (final IOException e) {}
 	}
+
+	/**
+	 * Check if a file relative to a base path has a symlink, not counting any symlinks in base or above.
+	 */
+	public static boolean isSymlink(File base, File curious) throws IOException {
+		if (base == null) { throw new NullPointerException("Base file must not be null"); }
+		if (curious == null) { throw new NullPointerException("Curious file must not be null"); }
+		File baseCanonical = base.getCanonicalFile();
+		File curiousResolved = new File(baseCanonical, curious.getPath());
+		File curiousCanonical = curiousResolved.getCanonicalFile();
+		return !curiousCanonical.equals(curiousResolved.getAbsoluteFile());
+	}
+
+	/**
+	 * Check if this single file is a symlink.
+	 */
+	public static boolean isSymlink(File file) throws IOException {
+		if (file == null) { throw new NullPointerException("File must not be null"); }
+		File fileInCanonicalDir = fileInCanonicalDir(file);
+
+		return !fileInCanonicalDir.getCanonicalFile().equals(fileInCanonicalDir.getAbsoluteFile());
+	}
+
+	private static File fileInCanonicalDir(File file) throws IOException {
+		if (file.getParent() == null) {
+			return file;
+		} else {
+			File canonicalDir = file.getParentFile().getCanonicalFile();
+			return new File(canonicalDir, file.getName());
+		}
+	}
 }

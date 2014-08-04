@@ -58,9 +58,17 @@ git checkout master
 
 git merge --no-ff --no-edit alpha
 
+# you still have to do an mdm update to pull it along though.
+# otherwise the last time we moved the dependency submodule was on branch beta, and it's still on 4.9
+
+mdm status
+
+mdm update
+
+mdm status
 
 
-# mergine the second... well...
+# merging the second... well...
 
 git checkout master
 
@@ -145,6 +153,14 @@ git commit --no-edit
 # yes, and the commit looks perfectly reasonable.
 
 git show --stat
+
+
+# mdm status also thinks all is right with the world
+# mdm update is calm, we're already there
+
+mdm status
+
+mdm update
 
 
 

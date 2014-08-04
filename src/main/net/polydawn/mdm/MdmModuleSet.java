@@ -42,6 +42,7 @@ public class MdmModuleSet {
 		mw.setModulesConfig(gitmodulesCfg);
 
 		SubmoduleWalk generator = SubmoduleWalk.forIndex(repo);
+		// generator.loadModulesConfig() might cause this to do a more efficient walk on large repos by just taking the gitmodules file's word for it?  not sure; read that source more and also ask if trusting that file would create other consistency issues.
 		while (generator.next()) {
 			try {
 				// get the handle.  which we presume to be rather like the path, but git config always uses forward slashes.
