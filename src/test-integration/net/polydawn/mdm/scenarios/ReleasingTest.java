@@ -72,9 +72,6 @@ public class ReleasingTest extends TestCaseUsingRepository {
 				// note: it's guessing the remote here.  correctly, as it happens.
 			));
 
-			new Josh("cat").args(".gitmodules").start().get();
-			new Josh("cat").args("releases/.git/config").start().get();
-
 			IOForge.saveFile("placeholder", new File("whatever").getCanonicalFile());
 
 			assertJoy(Mdm.run(
@@ -98,7 +95,6 @@ public class ReleasingTest extends TestCaseUsingRepository {
 		wd = new WithCwd(projectClone.getRepo().getWorkTree()); {
 
 			new Josh("git").args("submodule", "update", "--init", "--checkout", "releases").start().get();
-			new Josh("git").args("status").start().get();
 
 			//assertJoy(Mdm.run(
 			//	"release-init",
