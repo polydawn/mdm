@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.*;
 import net.polydawn.josh.*;
 import net.polydawn.mdm.*;
+import net.polydawn.mdm.errors.*;
 import net.polydawn.mdm.fixture.*;
 import net.polydawn.mdm.test.*;
 import net.polydawn.mdm.test.WithCwd;
@@ -58,6 +59,23 @@ public class ReleasingTest extends TestCaseUsingRepository {
 	public void releasing_in_a_random_repo_should_fail() throws Exception {
 		Fixture projectAlpha = new ProjectAlpha("projectAlpha");
 
+		try {
+			MdmExitMessage result = Mdm.run(
+				"release",
+				"--repo=projectAlpha",
+				"--version=v1",
+				"--files=whatever"
+			);
+			fail("expected release in non-release repo to fail, but command exited with '"+result.happy+"' -- \""+result.getMessage()+"\".");
+		} catch (MdmModuleRelease.MdmModuleReleaseNeedsBranch result) {
+			/* superb */
+		}
+	}
+
+	@Test
+	public void releasing_to_an_empty_path_in_a_repo_should_fail() throws Exception {
+		Fixture projectAlpha = new ProjectAlpha("projectAlpha");
+
 		WithCwd wd = new WithCwd(projectAlpha.getRepo().getWorkTree()); {
 			try {
 				MdmExitMessage result = Mdm.run(
@@ -65,13 +83,10 @@ public class ReleasingTest extends TestCaseUsingRepository {
 					"--version=v1",
 					"--files=whatever"
 				);
-				fail("expected release in non-release repo to fail, but command exited with '"+result.happy+"' -- \""+result.getMessage()+"\".");
-			} catch (MdmModuleRelease.MdmModuleReleaseNeedsBranch result) {
+				fail("expected release in non-repo path to fail, but command exited with '"+result.happy+"' -- \""+result.getMessage()+"\".");
+			} catch (MdmRepositoryNonexistant result) {
 				/* superb */
 			}
 		} wd.close();
-
-		// TODO: this *does* fail correctly, but the inane error message gets to me, why is the "releases" directory being mentioned here, it doesn't exist
-		// i think the problem begins in the arg parsing (!) of the MdmReleaseCommand.
 	}
 }
