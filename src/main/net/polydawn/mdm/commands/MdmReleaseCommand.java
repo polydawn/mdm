@@ -23,12 +23,12 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 import net.polydawn.mdm.*;
+import net.polydawn.mdm.errors.*;
 import net.polydawn.mdm.util.*;
 import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.*;
@@ -63,7 +63,12 @@ public class MdmReleaseCommand extends MdmCommand {
 	public String inputPath;
 
 	public MdmExitMessage call() throws IOException, MdmException, MdmExitMessage {
-		MdmModuleRelease relModule = loadReleaseModule();
+		MdmModuleRelease relModule;
+		try {
+			relModule = loadReleaseModule();
+		} catch (MdmRepositoryNonexistant e) {
+			throw new MdmExitMessage(":'(", e.getMessage()+"\nperhaps you should use `mdm release-init` first?");
+		}
 		Repository relRepo = relModule.getRepo();
 
 		relModule.assertPresentsAsReleaseRepo();

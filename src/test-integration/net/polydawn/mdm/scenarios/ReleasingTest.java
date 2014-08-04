@@ -84,8 +84,9 @@ public class ReleasingTest extends TestCaseUsingRepository {
 					"--files=whatever"
 				);
 				fail("expected release in non-repo path to fail, but command exited with '"+result.happy+"' -- \""+result.getMessage()+"\".");
-			} catch (MdmRepositoryNonexistant result) {
+			} catch (MdmExitMessage result) {
 				/* superb */
+				assertEquals("error code is very sad", 4, result.code);
 			}
 		} wd.close();
 	}

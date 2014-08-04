@@ -24,10 +24,10 @@ import java.io.*;
 //XXX: possible that this should be replaced by RepositoryNotFoundException from jgit
 public class MdmRepositoryNonexistant extends MdmRepositoryIOException {
 	public MdmRepositoryNonexistant(String path) {
-		super("mdm couldn't see a repository at "+path);
+		super("mdm couldn't see a repository at '"+path+"'");
 	}
 
 	public MdmRepositoryNonexistant(String path, IOException cause) {
-		super("mdm couldn't see a repository at "+path, cause);
+		super("mdm couldn't see a repository at '"+path+"'", cause);
 	}
 }
