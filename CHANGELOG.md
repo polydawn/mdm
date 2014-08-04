@@ -1,8 +1,8 @@
 CHANGELOG
 =========
 
-v2.xx.x (unreleased)
---------------------
+v2.18.0
+-------
 
 - `mdm update` learned a `--strict` option, which causes it to exit with a non-zero status code in the event that fetching a library version my name resulted in a hash not matching the one committed in the project.  (As before, this scenario will always generate warnings, but without the `--strict` option it will exit with 0/success.)
 - `mdm update` will now remove dangling dependencies from your working tree, such as after switching to a branch that does not link a dependency.  (Git will not remove such dangling repos because git is -- quite reasonably -- paranoid about deleting other git repos.  Previously, mdm agreed with this stance; as of this update, mdm has enough situational awareness to "do what I mean" while remaining quite safe.)
