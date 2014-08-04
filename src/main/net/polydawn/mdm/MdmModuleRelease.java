@@ -71,7 +71,7 @@ public class MdmModuleRelease extends MdmModule {
 
 	public static class MdmModuleReleaseNeedsBranch extends MdmModuleTypeException {
 		public MdmModuleReleaseNeedsBranch(String relRepoPath, String branchName) {
-			super("releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \""+branchName+"\", and there should be.)");
+			super("releases-repo directory '"+relRepoPath+"' contains a git repo, but it doesn't look like something that's been set up for mdm releases.\n(There's no branch named \""+branchName+"\", which is an an indicator of a release repo.  Are you sure you've specified the right repo?)");
 		}
 	}
 
