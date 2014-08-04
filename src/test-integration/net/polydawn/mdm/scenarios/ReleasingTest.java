@@ -53,4 +53,25 @@ public class ReleasingTest extends TestCaseUsingRepository {
 		assertTrue("accumlation tag present in release module", refNames.contains("refs/tags/mdm/master/v1"));
 		assertEquals("exactly these refs present in release module", 6, refNames.size());
 	}
+
+	@Test
+	public void releasing_in_a_random_repo_should_fail() throws Exception {
+		Fixture projectAlpha = new ProjectAlpha("projectAlpha");
+
+		WithCwd wd = new WithCwd(projectAlpha.getRepo().getWorkTree()); {
+			try {
+				MdmExitMessage result = Mdm.run(
+					"release",
+					"--version=v1",
+					"--files=whatever"
+				);
+				fail("expected release in non-release repo to fail, but command exited with '"+result.happy+"' -- \""+result.getMessage()+"\".");
+			} catch (MdmModuleRelease.MdmModuleReleaseNeedsBranch result) {
+				/* superb */
+			}
+		} wd.close();
+
+		// TODO: this *does* fail correctly, but the inane error message gets to me, why is the "releases" directory being mentioned here, it doesn't exist
+		// i think the problem begins in the arg parsing (!) of the MdmReleaseCommand.
+	}
 }
