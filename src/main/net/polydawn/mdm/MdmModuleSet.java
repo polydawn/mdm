@@ -83,9 +83,9 @@ public class MdmModuleSet {
 	/** Must load and keep this reference ourself rather than let {@link SubmoduleWalk} do it for us because we intend to read unusual values and mutate it in unusual ways. */
 	private final StoredConfig gitmodulesCfg;
 
-	private final Map<String,MdmModule> allModules = new HashMap<String,MdmModule>();
-	private final Map<String,MdmModuleDependency> dependencyModules = new HashMap<String,MdmModuleDependency>();
-	private final Map<String,MdmModuleRelease> releasesModules = new HashMap<String,MdmModuleRelease>();
+	private final Map<String,MdmModule> allModules = new TreeMap<String,MdmModule>();
+	private final Map<String,MdmModuleDependency> dependencyModules = new TreeMap<String,MdmModuleDependency>();
+	private final Map<String,MdmModuleRelease> releasesModules = new TreeMap<String,MdmModuleRelease>();
 
 	public Map<String,MdmModule> getAllModules() {
 		return this.allModules;
