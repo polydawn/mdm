@@ -6,6 +6,7 @@ v2.xx.x (unreleased)
 
 - bugfix: using `mdm update` during a merge conflict, while mdm needed to fetch a dependency, and that dependency was not present on one of the branches under merge... will no longer crash.
   - workaround note: if you experienced this and are stuck with an older version of mdm, you can commit the merge, and continue to patch the merge with `git commit --amend`.  Or, just do your `mdm update` before starting the merge.
+- usability: output of commands is now sorted (by the path in your repository).
 
 
 
