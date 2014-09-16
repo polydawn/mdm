@@ -29,6 +29,7 @@ public class MergeLopsidedTest extends TestCaseUsingRepository {
 
 		// create one branch off of master; add a library only on the branch
 		WithCwd wd = new WithCwd(project.getRepo().getWorkTree()); {
+			// add a library on the branch.
 			git.args("checkout", "-b", "blue").start().get();
 			assertJoy(Mdm.run(
 				"add",
@@ -113,13 +114,19 @@ public class MergeLopsidedTest extends TestCaseUsingRepository {
 			// switch to the branch with the lib
 			git.args("checkout", "blue").start().get();
 
-			// merge the master branch, which doesn't have the lib yet
-			git.args("merge", "--no-ff", "--no-commit", "master").start().get();
+			// add a conflicting file so we get halted mid merge (inb4: no, '--no-commit' isn't quite the same)
+			IOForge.saveFile("qwer", new File("somefile").getCanonicalFile());
+			git.args("add", "--", "somefile").start().get();
+			git.args("commit", "-m", "bluecommit").start().get();
 
-			// we simulated a merge conflict with --no-commit.  try to mdm-update during it  // TODO: maybe not well enough...
+			// merge the master branch, which doesn't have the lib yet.  should conflict (exit code is nonzero)
+			git.args("merge", "--no-ff", "master").okExit(new int[] { 1 }).start().get();
+
+			// we're stuck in a merge conflict.  try to mdm-update during it
 			assertJoy(Mdm.run("update", "--strict"));
 
 			// finish the merge.
+			git.args("add", "somefile").start().get();
 			git.args("commit", "--no-edit").start().get();
 		} wd.close();
 
@@ -142,13 +149,22 @@ public class MergeLopsidedTest extends TestCaseUsingRepository {
 
 		// do a merges.
 		WithCwd wd = new WithCwd(project.getRepo().getWorkTree()); {
-			// merge one branch.  should go clean.
-			git.args("merge", "--no-ff", "--no-commit", "blue").start().get();
+			// breifly switch to the blue branch
+			// add a conflicting file so we get halted mid merge (inb4: no, '--no-commit' isn't quite the same)
+			git.args("checkout", "blue").start().get();
+			IOForge.saveFile("qwer", new File("somefile").getCanonicalFile());
+			git.args("add", "--", "somefile").start().get();
+			git.args("commit", "-m", "bluecommit").start().get();
+			git.args("checkout", "master").start().get();
 
-			// we simulated a merge conflict with --no-commit.  try to mdm-update during it  // TODO: maybe not well enough...
+			// merge the blue branch, which will bring the lib in.  should conflict (exit code is nonzero)
+			git.args("merge", "--no-ff", "blue").okExit(new int[] { 1 }).start().get();
+
+			// we're stuck in a merge conflict.  try to mdm-update during it
 			assertJoy(Mdm.run("update", "--strict"));
 
 			// finish the merge.
+			git.args("add", "somefile").start().get();
 			git.args("commit", "--no-edit").start().get();
 		} wd.close();
 
