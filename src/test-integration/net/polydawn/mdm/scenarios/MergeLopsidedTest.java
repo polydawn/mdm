@@ -46,9 +46,9 @@ public class MergeLopsidedTest extends TestCaseUsingRepository {
 			git.args("add", "--", "somefile").start().get();
 			git.args("commit", "-m", "somecommit").start().get();
 
-
-			// we still left the library sitting in the working tree
-			// i don't think any of the tests in this set care one way or the other
+			// remove the library from the working tree.
+			// this is a cheap way to force any mdm-update invocations to take the long road through fetch.
+			IOForge.delete(new File("lib").getCanonicalFile());
 		} wd.close();
 	}
 
