@@ -94,9 +94,12 @@ public class MdmUpdateCommand extends MdmCommand {
 						boolean acceptable = false;
 						mergeHeads.add(repo.resolve(Constants.HEAD));
 						for (ObjectId incomingHead : mergeHeads) {
-							if (acceptable) break;
+							if (acceptable) break; // not required for correctness,just a shortcut
 							RevTree incomingHeadRootTree = new RevWalk(repo).parseCommit(incomingHead).getTree();
-							ObjectId incomingModuleHeadId = TreeWalk.forPath(repo, module.getPath(), incomingHeadRootTree).getObjectId(0);
+							TreeWalk incomingHeadModuleTree = TreeWalk.forPath(repo, module.getPath(), incomingHeadRootTree);
+							if (incomingHeadModuleTree == null) continue; // this is null if there is no object at that location in the incoming merge head
+							if (incomingHeadModuleTree.getFileMode(0) != FileMode.GITLINK) continue; // also don't accept the object id if it's something other than a submodule gitlink on the incoming merge head
+							ObjectId incomingModuleHeadId = incomingHeadModuleTree.getObjectId(0);
 							acceptable |= moduleHeadId.equals(incomingModuleHeadId);
 						}
 						if (!acceptable) {
