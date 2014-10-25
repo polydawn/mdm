@@ -42,6 +42,7 @@ public class Loco {
 			throw new MdmInputUnavailableException("stdin unavailable", e);
 		}
 		if (answer == null) throw new MdmInputUnavailableException("stdin unavailable");
+		output.println(); // add a little breathing room.
 		return answer;
 	}
 
