@@ -175,6 +175,7 @@
 		<junit
 			printsummary="off"
 			haltonfailure="yes"
+			outputtoformatters="false"
 			dir="${mdm.test.dir}"
 			newenvironment="true"
 			>
