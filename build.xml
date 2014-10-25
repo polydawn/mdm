@@ -172,7 +172,12 @@
 		<property name="mdm.test.dir" value="${java.io.tmpdir}/mdm-test"/>
 		<mkdir dir="${mdm.test.dir}"/>
 		<property name="keep" value="false"/>
-		<junit printsummary="off" haltonfailure="yes" dir="${mdm.test.dir}" newenvironment="true">
+		<junit
+			printsummary="off"
+			haltonfailure="yes"
+			dir="${mdm.test.dir}"
+			newenvironment="true"
+			>
 			<sysproperty key="keep" value="${keep}"/>
 			<formatter type="plain" usefile="false" />
 			<classpath refid="mdm.path.test"/>
