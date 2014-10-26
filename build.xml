@@ -182,7 +182,7 @@
 			<sysproperty key="keep" value="${keep}"/>
 			<formatter type="plain" usefile="false" />
 			<classpath refid="mdm.path.test"/>
-			<batchtest fork="yes">
+			<batchtest fork="yes" skipNonTests="true">
 				<fileset dir="${target.javac}/test-unit">
 					<include name="**/*Test*.class"/>
 				</fileset>
