@@ -186,6 +186,7 @@
 			dir="${mdm.test.dir}"
 			newenvironment="true"
 			>
+			<assertions><enable /></assertions>
 			<sysproperty key="keep" value="${keep}"/>
 			<formatter type="plain"/>
 			<classpath refid="mdm.path.test"/>
