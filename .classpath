@@ -25,6 +25,7 @@
 	<classpathentry kind="lib" path="lib/commons-lang/commons-lang.jar" sourcepath="lib/commons-lang/commons-lang-sources.jar"/>
 	<classpathentry kind="lib" path="lib/josh/josh.jar"/>
 	<classpathentry kind="lib" path="lib/ant/ant.jar" sourcepath="lib/ant/ant-sources.jar"/>
+	<classpathentry kind="lib" path="lib/ant/ant-junit.jar" sourcepath="lib/ant/ant-junit-sources.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path=".eclipse/build"/>
 </classpath>

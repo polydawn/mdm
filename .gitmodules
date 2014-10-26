@@ -72,3 +72,9 @@
 	mdm = dependency
 	mdm-version = 1.9.4.mvn
 	update = none
+[submodule "lib/ant-junit"]
+	path = lib/ant-junit
+	url = http://mdm-releases.com/org.apache.ant/ant-junit-releases.git
+	mdm = dependency
+	mdm-version = 1.9.4.mvn
+	update = none

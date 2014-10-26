@@ -53,6 +53,7 @@
 		<pathelement location="${lib}/josh/josh.jar"/>
 		<pathelement location="${lib}/junit/junit.jar"/>
 		<pathelement location="${lib}/ant/ant.jar"/>
+		<pathelement location="${lib}/ant-junit/ant-junit.jar"/>
 		<pathelement location="${target.javac}/test-fixtures" />
 	</path>
 	<path id="mdm.path.test">
