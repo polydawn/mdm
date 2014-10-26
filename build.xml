@@ -169,23 +169,34 @@
 		depends="compile, compile-test"
 		description="runs junit tests"
 		>
+		<!-- Make directory to contain all working temp directories for the tests. -->
 		<property name="mdm.test.dir" value="${java.io.tmpdir}/mdm-test"/>
 		<mkdir dir="${mdm.test.dir}"/>
+
+		<!-- Make directories to capture output. -->
+		<mkdir dir="${target}/test-unit"/>
+		<mkdir dir="${target}/test-integration"/>
+
+		<!-- If nobody's said otherwise yet, ask the test utils to discard the temp cwd dirs as the tests complete. -->
 		<property name="keep" value="false"/>
+
 		<junit
-			printsummary="off"
+			printsummary="on"
 			haltonfailure="yes"
-			outputtoformatters="false"
 			dir="${mdm.test.dir}"
 			newenvironment="true"
 			>
 			<sysproperty key="keep" value="${keep}"/>
-			<formatter type="plain" usefile="false" />
+			<formatter type="plain"/>
 			<classpath refid="mdm.path.test"/>
-			<batchtest fork="yes" skipNonTests="true">
+
+			<batchtest fork="yes" skipNonTests="true" todir="${target}/test-unit">
 				<fileset dir="${target.javac}/test-unit">
 					<include name="**/*Test*.class"/>
 				</fileset>
+			</batchtest>
+
+			<batchtest fork="yes" skipNonTests="true" todir="${target}/test-integration">
 				<fileset dir="${target.javac}/test-integration">
 					<include name="**/*Test*.class"/>
 				</fileset>
