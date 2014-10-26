@@ -58,7 +58,7 @@
 	path = lib/josh
 	url = http://mdm-releases.com/net.polydawn/josh-releases.git
 	mdm = dependency
-	mdm-version = v0.2
+	mdm-version = v0.4
 	update = none
 [submodule "lib/argparse4j"]
 	path = lib/argparse4j
