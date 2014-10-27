@@ -15,6 +15,16 @@
 	<property name="exus.build.java.version.source" value="1.6"/>
 	<property name="exus.build.java.version.target" value="1.6"/>
 
+	<!--
+		Override this property to run subsections of test.  Useful for minimizing turnaround time during development.
+		Will generally take any package or test name prefix, and then run everything underneath that tree.
+		A prefix of a test class name (without package) is also accepted.
+		Accepts globs.
+		Use slashes to separate packages if specifying a prefix deeper than one.
+	-->
+	<property name="test" value=""/>
+	<property name="testbase" value="net/polydawn/mdm/"/>
+
 
 	<exec executable="git" failonerror="true">
 		<arg value="submodule"/>
@@ -196,13 +206,19 @@
 
 			<batchtest fork="yes" skipNonTests="true" todir="${target}/test-unit">
 				<fileset dir="${target.javac}/test-unit">
-					<include name="**/*Test*.class"/>
+					<include name="${testbase}/${test}*.class"/>
+					<include name="${testbase}/${test}/*.class"/>
+					<include name="${testbase}/${test}/**/*Test*.class"/>
+					<include name="${testbase}/**/${test}*.class"/>
 				</fileset>
 			</batchtest>
 
 			<batchtest fork="yes" skipNonTests="true" todir="${target}/test-integration">
 				<fileset dir="${target.javac}/test-integration">
-					<include name="**/*Test*.class"/>
+					<include name="${testbase}/${test}*.class"/>
+					<include name="${testbase}/${test}/*.class"/>
+					<include name="${testbase}/${test}/**/*Test*.class"/>
+					<include name="${testbase}/**/${test}*.class"/>
 				</fileset>
 			</batchtest>
 		</junit>
