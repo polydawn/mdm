@@ -120,8 +120,7 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 	 *                the test suite
 	 */
 	public void startTestSuite(JUnitTest suite) {
-		if (output == null) { return; // Quick return - no output do nothing.
-		}
+		if (output == null) return;
 		StringBuffer sb = new StringBuffer(StringUtils.LINE_SEP);
 		sb.append("----------------------------------------------------------");
 		sb.append(StringUtils.LINE_SEP);
@@ -151,21 +150,24 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 		sb.append(StringUtils.LINE_SEP);
 		sb.append(StringUtils.LINE_SEP);
 
-		// append the err and output streams to the log
-		if (systemOutput != null && systemOutput.length() > 0) {
-			sb.append("------------- Standard Output ---------------")
-				.append(StringUtils.LINE_SEP)
-				.append(systemOutput)
-				.append("------------- ---------------- ---------------")
-				.append(StringUtils.LINE_SEP);
-		}
+		// go high verbosity if there were explosions
+		if (suite.failureCount() > 0 || suite.errorCount() > 0) {
+			// append the err and output streams to the log
+			if (systemOutput != null && systemOutput.length() > 0) {
+				sb.append("------------- Standard Output ---------------")
+					.append(StringUtils.LINE_SEP)
+					.append(systemOutput)
+					.append("------------- ---------------- ---------------")
+					.append(StringUtils.LINE_SEP);
+			}
 
-		if (systemError != null && systemError.length() > 0) {
-			sb.append("------------- Standard Error -----------------")
-				.append(StringUtils.LINE_SEP)
-				.append(systemError)
-				.append("------------- ---------------- ---------------")
-				.append(StringUtils.LINE_SEP);
+			if (systemError != null && systemError.length() > 0) {
+				sb.append("------------- Standard Error -----------------")
+					.append(StringUtils.LINE_SEP)
+					.append(systemError)
+					.append("------------- ---------------- ---------------")
+					.append(StringUtils.LINE_SEP);
+			}
 		}
 
 		if (output != null) {
