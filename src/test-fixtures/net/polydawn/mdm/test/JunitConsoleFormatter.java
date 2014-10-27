@@ -316,7 +316,6 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 		Throwable error) {
 		if (test != null) {
 			failedTests.put(test, test);
-			endTest(test);
 		}
 
 		resultWriter.println(formatTest(test) + type);
