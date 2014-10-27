@@ -57,11 +57,6 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 	private PrintWriter resultWriter;
 
 	/**
-	 * Formatter for timings.
-	 */
-	private NumberFormat numberFormat = NumberFormat.getInstance();
-
-	/**
 	 * Output suite has written to System.out
 	 */
 	private String systemOutput = null;
@@ -145,7 +140,7 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 		sb.append(", Errors: ");
 		sb.append(suite.errorCount());
 		sb.append(", Time elapsed: ");
-		sb.append(numberFormat.format(suite.getRunTime() / 1000.0));
+		sb.append(String.format("%.3f", suite.getRunTime() / 1000.0));
 		sb.append(" sec");
 		sb.append(StringUtils.LINE_SEP);
 		sb.append(StringUtils.LINE_SEP);
@@ -213,7 +208,7 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 		Long l = (Long) testStarts.get(test);
 
 		output.write("Ran [");
-		output.write(((System.currentTimeMillis() - l.longValue()) / 1000.0) + "] ");
+		output.write(String.format("%.3f", (System.currentTimeMillis() - l.longValue()) / 1000.0) + "] ");
 		output.write(getTestName(test) + " ... " + (failed ? "FAILED" : "OK"));
 		output.write(StringUtils.LINE_SEP);
 		output.flush();
