@@ -52,6 +52,8 @@
 		<path refid="mdm.path.main" />
 		<pathelement location="${lib}/josh/josh.jar"/>
 		<pathelement location="${lib}/junit/junit.jar"/>
+		<pathelement location="${lib}/ant/ant.jar"/>
+		<pathelement location="${lib}/ant-junit/ant-junit.jar"/>
 		<pathelement location="${target.javac}/test-fixtures" />
 	</path>
 	<path id="mdm.path.test">
@@ -189,7 +191,7 @@
 			<assertions><enable /></assertions>
 			<sysproperty key="keep" value="${keep}"/>
 			<formatter type="plain"/> <!-- This formatter outputs to files. -->
-			<formatter type="brief" usefile="false"/> <!-- This formatter is for showing progress on the terminal. -->
+			<formatter classname="net.polydawn.mdm.test.JunitConsoleFormatter" usefile="false" /> <!-- This formatter is for showing progress on the terminal. -->
 			<classpath refid="mdm.path.test"/>
 
 			<batchtest fork="yes" skipNonTests="true" todir="${target}/test-unit">
