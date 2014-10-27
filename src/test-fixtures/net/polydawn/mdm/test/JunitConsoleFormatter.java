@@ -36,6 +36,15 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 	// (\w+\.)+(\w+)\((\w+).(?:\w+):(\d+)\)
 	private final Pattern traceLinePattern = Pattern.compile("(\\w+\\.)+(\\w+)\\((\\w+).(?:\\w+):(\\d+)\\)");
 
+	private static final String ANSI_GREEN = "\033[32m";
+	private static final String ANSI_BROWN = "\033[33m";
+	private static final String ANSI_RED   = "\033[31m";
+	private static final String ANSI_RESET = "\033[0m";
+
+	private static final String OK    = ANSI_GREEN + "OK"    + ANSI_RESET;
+	private static final String FAIL  = ANSI_BROWN + "FAIL"  + ANSI_RESET;
+	private static final String ERROR = ANSI_RED   + "ERROR" + ANSI_RESET;
+
 	/**
 	 * Where to write the log to.
 	 */
@@ -209,7 +218,7 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 
 		output.write("Ran [");
 		output.write(String.format("%.3f", (System.currentTimeMillis() - l.longValue()) / 1000.0) + "] ");
-		output.write(getTestName(test) + " ... " + (failed ? "FAILED" : "OK"));
+		output.write(getTestName(test) + " ... " + (failed ? FAIL : OK));
 		output.write(StringUtils.LINE_SEP);
 		output.flush();
 	}
@@ -253,7 +262,7 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 	 *                the error thrown by the test
 	 */
 	public void addError(Test test, Throwable error) {
-		formatError("\tCaused an ERROR", test, error);
+		formatError("\tCaused an " + ERROR, test, error);
 	}
 
 	/**
