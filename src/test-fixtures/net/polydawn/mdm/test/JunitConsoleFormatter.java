@@ -41,7 +41,7 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 	private static final String ANSI_RED   = "\033[31m";
 	private static final String ANSI_RESET = "\033[0m";
 
-	private static final String OK    = ANSI_GREEN + "OK"    + ANSI_RESET;
+	private static final String PASS  = ANSI_GREEN + "PASS"  + ANSI_RESET;
 	private static final String FAIL  = ANSI_BROWN + "FAIL"  + ANSI_RESET;
 	private static final String ERROR = ANSI_RED   + "ERROR" + ANSI_RESET;
 
@@ -218,7 +218,7 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 
 		output.write("Ran [");
 		output.write(String.format("%.3f", (System.currentTimeMillis() - l.longValue()) / 1000.0) + "] ");
-		output.write(getTestName(test) + " ... " + (failed ? FAIL : OK));
+		output.write(getTestName(test) + " ... " + (failed ? FAIL : PASS));
 		output.write(StringUtils.LINE_SEP);
 		output.flush();
 	}
