@@ -1,31 +1,17 @@
 package net.polydawn.mdm.test;
 
-import java.io.BufferedReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.text.NumberFormat;
-import java.util.Hashtable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import junit.framework.AssertionFailedError;
-import junit.framework.Test;
-import org.apache.tools.ant.taskdefs.optional.junit.JUnitResultFormatter;
-import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
-import org.apache.tools.ant.taskdefs.optional.junit.JUnitVersionHelper;
-import org.apache.tools.ant.util.FileUtils;
-import org.apache.tools.ant.util.StringUtils;
+import java.io.*;
+import java.util.*;
+import java.util.regex.*;
+import junit.framework.*;
+import org.apache.tools.ant.taskdefs.optional.junit.*;
+import org.apache.tools.ant.util.*;
 
 /**
  * Prints a terse, human readable report of tests to a specified Writer.
  *
  * Forked from http://shaman-sir.wikidot.com/one-liner-output-formatter , which in turn
  * was inspired by the BriefJUnitResultFormatter and XMLJUnitResultFormatter.
- *
- * @see FormatterElement
- * @see BriefJUnitResultFormatter
- * @see XMLJUnitResultFormatter
  */
 
 public class JunitConsoleFormatter implements JUnitResultFormatter {
