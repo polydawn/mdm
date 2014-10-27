@@ -310,8 +310,12 @@ public class MdmReleaseCommand extends MdmCommand {
 	 * @throws MdmExitMessage
 	 * @throws IOException
 	 */
-	static void assertReleaseRepoDoesntAlreadyContain(MdmModuleRelease relModule, String version) throws MdmExitMessage, IOException {
+	void assertReleaseRepoDoesntAlreadyContain(MdmModuleRelease relModule, String version) throws MdmExitMessage, IOException {
 		Repository relRepo = relModule.getRepo();
+
+		// part 0: check parent repo (if we have one) doesn't already have a tag for version name
+		if (this.getRepository() != null && this.getRepository().getRef("refs/tags/release/"+version) != null)
+			throw new MdmExitMessage(":'(", "the parent repo already has a release point branch labeled version "+version+" !");
 
 		// part 1: check branch for version name doesn't already exist
 		if (relRepo.getRef("refs/heads/mdm/release/"+version) != null)
