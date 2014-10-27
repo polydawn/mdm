@@ -224,21 +224,6 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 	}
 
 	/**
-	 * Interface TestListener for JUnit &lt;= 3.4.
-	 *
-	 * <p>
-	 * A Test failed.
-	 *
-	 * @param test
-	 *                a test
-	 * @param t
-	 *                the exception thrown by the test
-	 */
-	public void addFailure(Test test, Throwable t) {
-		formatError("\tFAILED", test, t);
-	}
-
-	/**
 	 * Interface TestListener for JUnit &gt; 3.4.
 	 *
 	 * <p>
@@ -250,7 +235,7 @@ public class JunitConsoleFormatter implements JUnitResultFormatter {
 	 *                the assertion failed by the test
 	 */
 	public void addFailure(Test test, AssertionFailedError t) {
-		addFailure(test, (Throwable) t);
+		formatError("\tFAILED", test, t);
 	}
 
 	/**
