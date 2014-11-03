@@ -53,6 +53,23 @@ public class ReleasingTest extends TestCaseUsingRepository {
 		assertTrue("release tag present in release module", refNames.contains("refs/tags/release/v1"));
 		assertTrue("accumlation tag present in release module", refNames.contains("refs/tags/mdm/master/v1"));
 		assertEquals("exactly these refs present in release module", 6, refNames.size());
+
+		// assert on the files in the master commit
+		List<String> masterFiles = Arrays.asList(new File("projectAlpha/releases/").getCanonicalFile().list());
+		assertTrue("readme file remains present in master commit", masterFiles.contains("README"));
+		assertTrue("version dir present in master commit", masterFiles.contains("v1"));
+		assertTrue("release file present in version dir in master commit", Arrays.asList(new File("projectAlpha/releases/v1/").getCanonicalFile().list()).contains("whatever"));
+		assertTrue("git data dir still here", masterFiles.contains(".git")); // this isn't of interest per se, it's just to make sure the contents of this list are all accounted for
+		assertEquals("exactly these files present in master commit", 3, masterFiles.size());
+
+		// assert on the files in the release commit
+		new Git(releaseRepo).checkout()
+			.setName("refs/tags/release/v1")
+			.call();
+		List<String> releaseFiles = Arrays.asList(new File("projectAlpha/releases/").getCanonicalFile().list());
+		assertTrue("release file present in release commit", releaseFiles.contains("whatever"));
+		assertTrue("git data dir still here", masterFiles.contains(".git")); // this isn't of interest per se, it's just to make sure the contents of this list are all accounted for
+		assertEquals("exactly these files present in release commit", 2, releaseFiles.size());
 	}
 
 	@Test
