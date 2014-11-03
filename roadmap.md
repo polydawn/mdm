@@ -63,4 +63,8 @@ Decisions still need to be made here.  We need to strike a balance between recor
   - migrating from existing strategies would require care.  If we don't make this change, there's actually not a thing about the release commits and their ref names that makes a major breaking change.
   - some research needed: I'm not actually sure how (indeed, if) this concept applies to tags.
 
+### Steps
+
+- add a new flag to the `mdm release` command that skips creation release content on the master branch.
+
 
