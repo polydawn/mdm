@@ -45,6 +45,7 @@ public class MdmReleaseCommand extends MdmCommand {
 		version = args.getString("version");
 		snapshotPath = relRepoPath+"/"+version;
 		inputPath = args.getString("files");
+		accumulateData = !(args.getBoolean("skip_accumulation") == Boolean.TRUE);
 	}
 
 	public void validate() throws MdmExitMessage {
@@ -61,6 +62,7 @@ public class MdmReleaseCommand extends MdmCommand {
 	public String version;
 	String snapshotPath;
 	public String inputPath;
+	public boolean accumulateData;
 
 	public MdmExitMessage call() throws IOException, MdmException, MdmExitMessage {
 		MdmModuleRelease relModule;
@@ -208,12 +210,18 @@ public class MdmReleaseCommand extends MdmCommand {
 		}
 
 		// move the artifact files into a version-named directory
-		File artifactDestFile = new File(relRepoFile, version);
-		if (!artifactDestFile.mkdir())
-			return new MdmExitMessage(":'(", "couldn't make the directory named \""+version+"\" to put the releases into because there was already something there.");
+		if (accumulateData) {
+			File artifactDestFile = new File(relRepoFile, version);
+			if (!artifactDestFile.mkdir())
+				return new MdmExitMessage(":'(", "couldn't make the directory named \""+version+"\" to put the releases into because there was already something there.");
 
-		for (String input : inputFiles)
-			 new File(relRepoFile, input).renameTo(new File(artifactDestFile, input));
+			for (String input : inputFiles)
+				new File(relRepoFile, input).renameTo(new File(artifactDestFile, input));
+		} else {
+			// or just delete them, if we're not doing accumulation.
+			for (String input : inputFiles)
+				new File(relRepoFile, input).delete();
+		}
 
 		// now fire off the accumulation commit, and that commit now becomes head of the master branch.
 		try {
@@ -310,8 +318,12 @@ public class MdmReleaseCommand extends MdmCommand {
 	 * @throws MdmExitMessage
 	 * @throws IOException
 	 */
-	static void assertReleaseRepoDoesntAlreadyContain(MdmModuleRelease relModule, String version) throws MdmExitMessage, IOException {
+	void assertReleaseRepoDoesntAlreadyContain(MdmModuleRelease relModule, String version) throws MdmExitMessage, IOException {
 		Repository relRepo = relModule.getRepo();
+
+		// part 0: check parent repo (if we have one) doesn't already have a tag for version name
+		if (this.getRepository() != null && this.getRepository().getRef("refs/tags/release/"+version) != null)
+			throw new MdmExitMessage(":'(", "the parent repo already has a release point branch labeled version "+version+" !");
 
 		// part 1: check branch for version name doesn't already exist
 		if (relRepo.getRef("refs/heads/mdm/release/"+version) != null)

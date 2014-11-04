@@ -58,11 +58,23 @@
 	path = lib/josh
 	url = http://mdm-releases.com/net.polydawn/josh-releases.git
 	mdm = dependency
-	mdm-version = v0.2
+	mdm-version = v0.4
 	update = none
 [submodule "lib/argparse4j"]
 	path = lib/argparse4j
 	url = http://mdm-releases.com/net.sourceforge.argparse4j/argparse4j-releases.git
 	mdm = dependency
 	mdm-version = 0.4.3.mvn
+	update = none
+[submodule "lib/ant"]
+	path = lib/ant
+	url = http://mdm-releases.com/org.apache.ant/ant-releases.git
+	mdm = dependency
+	mdm-version = 1.9.4.mvn
+	update = none
+[submodule "lib/ant-junit"]
+	path = lib/ant-junit
+	url = http://mdm-releases.com/org.apache.ant/ant-junit-releases.git
+	mdm = dependency
+	mdm-version = 1.9.4.mvn
 	update = none

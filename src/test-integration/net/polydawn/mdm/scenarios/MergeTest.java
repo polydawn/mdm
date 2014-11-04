@@ -62,7 +62,7 @@ public class MergeTest extends TestCaseUsingRepository {
 			git.args("merge", "--no-ff", "blue").start().get();
 
 			// merge second branch.  should conflict (exit code is nonzero)
-			git.args("merge", "--no-ff", "green").okExit(new int[] { 1 }).start().get();
+			git.args("merge", "--no-ff", "green").okExit(1).start().get();
 
 			// choose their gitmodules file, then update to put that version in place
 			git.args("checkout", "--theirs", ".gitmodules").start().get();
@@ -96,7 +96,7 @@ public class MergeTest extends TestCaseUsingRepository {
 			git.args("merge", "--no-ff", "blue").start().get();
 
 			// merge second branch.  should conflict (exit code is nonzero)
-			git.args("merge", "--no-ff", "green").okExit(new int[] { 1 }).start().get();
+			git.args("merge", "--no-ff", "green").okExit(1).start().get();
 
 			// choose their gitmodules file, then update to put that version in place
 			git.args("checkout", "--ours", ".gitmodules").start().get();
@@ -139,7 +139,7 @@ public class MergeTest extends TestCaseUsingRepository {
 			IOForge.delete(new File("./lib/beta").getCanonicalFile());
 
 			// merge second branch.  should conflict (exit code is nonzero)
-			git.args("merge", "--no-ff", "green").okExit(new int[] { 1 }).start().get();
+			git.args("merge", "--no-ff", "green").okExit(1).start().get();
 
 			// choose their gitmodules file, then update to put that version in place
 			git.args("checkout", "--theirs", ".gitmodules").start().get();

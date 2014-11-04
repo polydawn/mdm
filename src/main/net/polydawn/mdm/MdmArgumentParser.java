@@ -130,6 +130,10 @@ public class MdmArgumentParser {
 			.addArgument("--repo")
 			.help("specifies a local path to the releases repository for this project.  The new release commits will be added to this repository.  By default, it is assumed that the releases repo of this project is already a submodule in the ./releases/ directory, but using a path like '../projX-releases/' is also reasonable.  (default: 'releases')")
 			.setDefault("releases");
+		parser_release
+			.addArgument("--skip-accumulation")
+			.action(Arguments.storeTrue())
+			.help("don't place the release data in the master branch.  The default behavior is to include all released files under a directory named '{version}/' in the master branch; enabling this flag skips this behavior, leaving less data on disk when the master branch is checked out (the commits linking releases to the master branch are otherwise unaffected).");
 
 
 		Subparser parser_releaseinit = subparsers
