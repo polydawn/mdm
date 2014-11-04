@@ -1,8 +1,8 @@
 CHANGELOG
 =========
 
-v2.xx.x (unreleased)
---------------------
+v2.19.0
+-------
 
 - Feature: `mdm release` learned a `--skip-accumulation` flag, which disables the accumulation of release folders and copies of the content in the master branch.  This is now an option for keeping less on disk if the master branch is checked out, but still keeps an audit log moving forward over time which maintains explicit references to the release data.   Note that it's expected that future mdm releases will move further in this direction and eventually make it the default behavior.
 
