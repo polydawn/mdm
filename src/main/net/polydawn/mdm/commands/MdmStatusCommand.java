@@ -26,6 +26,8 @@ import net.polydawn.mdm.errors.*;
 import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.storage.file.FileBasedConfig;
+
 import us.exultant.ahs.util.*;
 
 public class MdmStatusCommand extends MdmCommand {
@@ -38,12 +40,15 @@ public class MdmStatusCommand extends MdmCommand {
 	}
 
 	private PrintStream os = System.out;
+	private String depName;
 
 	public void setPrintStream(PrintStream os) {
 		this.os = os;
 	}
 
-	public void parse(Namespace args) {}
+	public void parse(Namespace args) {
+		this.depName = args.getString("name");
+	}
 
 	public void validate() throws MdmExitMessage {}
 
@@ -51,6 +56,17 @@ public class MdmStatusCommand extends MdmCommand {
 		try {
 			assertInRepo();
 		} catch (MdmExitMessage e) { return e; }
+
+		if (depName != null) {
+			StoredConfig gitmodulesCfg = new FileBasedConfig(new File(repo.getWorkTree(), Constants.DOT_GIT_MODULES), repo.getFS());
+			try {
+				gitmodulesCfg.load();
+			} catch (ConfigInvalidException e) {
+				throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
+			}
+			os.printf(MdmModuleDependency.load(repo, depName, gitmodulesCfg).getVersionActual());
+			return new MdmExitMessage(0);
+		}
 
 		MdmModuleSet moduleSet;
 		try {

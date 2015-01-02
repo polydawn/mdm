@@ -63,6 +63,9 @@ public class MdmArgumentParser {
 		Subparser parser_status = subparsers
 			.addParser("status")
 			.help("list dependencies managed by mdm, and their current status.");
+		parser_status
+			.addArgument("--name")
+			.help("get the status of a particular dependency by name");
 
 
 		Subparser parser_update = subparsers
