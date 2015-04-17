@@ -154,7 +154,7 @@
 			ant clean dist && export MDM=$(pwd)/dist/mdm MDMA=$(pwd)/mdma.sh && ( cd /tmp/ ;  rm -rf mdm-demo/ ; $MDMA -t )
 		-->
 		<delete dir="mdm-demo" />
-		<exec executable="mdma.sh" failonerror="true">
+		<exec executable="./mdma.sh" failonerror="true">
 			<env key="MDM" value="${basedir}/${dist}/${app}" />
 			<arg value="-t" />
 		</exec>

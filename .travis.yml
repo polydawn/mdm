@@ -1,0 +1,42 @@
+language: java
+
+jdk:
+  # - oraclejdk8 is offline until proguard can accept rt.jar bytecode from that version
+  # - openjdk6 is offline (but we do ship to it) because we have a test dep that requires jdk7
+  - oraclejdk7
+  - openjdk7
+
+before_install:
+  # travis ships with a version of ant that's close to 5 years old at the time of writing
+  # good thing it's just moar jars to fetch instead of anything arcane
+  - |-
+    (
+      set -exo pipefail
+      wget https://archive.apache.org/dist/ant/binaries/apache-ant-1.9.4-bin.zip -O /tmp/ant.zip
+      [ "$(sha384sum /tmp/ant.zip | tee /dev/stderr | cut -f 1 -d ' ')" == "1d7067ecd6c51ca3278282e90b4877e555249cd4ebc0eb422d80f04b2e172a1f4507adbb07dc60d8424032929b1a7505" ]
+      (cd /tmp && unzip /tmp/ant.zip)
+      sudo ln -nsf /tmp/apache-ant-1.9.4/bin/ant /usr/bin/ant
+    )
+  - which ant
+  - ant -version
+  - git --version
+  - git config --global user.name "Peaches Cream"
+  - git config --global user.email "bananas@example.com"
+
+install: ant bootstrap
+
+script:
+  - ant run-test
+  - ant run-mdma
+
+notifications:
+  email: false
+  irc:
+    channels:
+      - "irc.freenode.org##polydawn"
+    on_success: always
+    on_failure: always
+    template:
+      - "%{repository}: %{branch}:%{commit} by %{author}: %{result}. %{commit_message} %{message} (%{build_url})"
+    skip_join: true
+
