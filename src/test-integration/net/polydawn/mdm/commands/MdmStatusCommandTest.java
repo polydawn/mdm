@@ -5,6 +5,9 @@ import java.io.*;
 import java.util.*;
 import net.polydawn.mdm.fixture.*;
 import net.polydawn.mdm.test.*;
+import net.sourceforge.argparse4j.inf.*;
+import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.lib.*;
 import org.junit.*;
 import org.junit.rules.*;
 import org.junit.runner.*;
@@ -50,10 +53,71 @@ public class MdmStatusCommandTest extends TestCaseUsingRepository {
 	}
 
 	@Test
-	public void testDescribeFreshClonedRepo() throws Exception {}
+	public void testDescribeFreshClonedRepo() throws Exception {
+		Fixture upstream = new ProjectDelta("upstreamRepo");
+
+		new File("cloneRepo").getCanonicalFile().mkdir();
+		Repository clone = Git.cloneRepository()
+			.setURI(upstream.getRepo().getWorkTree().getPath())
+			.setDirectory(new File("cloneRepo").getCanonicalFile())
+			.call().getRepository();
+
+		WithCwd wd = new WithCwd(clone.getWorkTree());
+		{
+			PrintGatherer pg = new PrintGatherer();
+			MdmStatusCommand cmd = new MdmStatusCommand(clone, pg.printer());
+			cmd.validate();
+			assertJoy(cmd.call());
+			assertEquals(pg.toString(), Strings.join(Arrays.asList(
+				"dependency:        	 version:",
+				"-----------        	 --------",
+				"  lib/alpha        	   -- uninitialized --",
+				"  lib/beta         	   -- uninitialized --"
+				), "\n") + "\n");
+		}
+		wd.close();
+	}
 
 	@Test
-	public void testDescribeDesyncedDependency() throws Exception {}
+	public void testDescribeDesyncedDependency() throws Exception {
+		ProjectDelta project = new ProjectDelta("projectRepo");
+		// hilariously, remake a beta releases fixture, because we through it away already.
+		// consider it a charming test of... uh.  nothing, actually; this doesn't really exercise release hash determinism.
+		Fixture betaReleases = new ProjectBetaReleases("beta-releases");
+
+		WithCwd wd = new WithCwd(project.getRepo().getWorkTree());
+		{
+			// add another commit with a new version of the beta dep
+			MdmAlterCommand cmd = new MdmAlterCommand(project.getRepo(), new Namespace(new HashMap<String,Object>() {
+				{
+					put("name", "lib/beta");
+					put("version", "v1.1");
+				}
+			}));
+			cmd.validate();
+			cmd.call();
+			// checkout back up one
+			new Git(project.getRepo()).checkout()
+				.setName(project.getRepo().resolve("HEAD^").getName())
+				.call();
+		}
+		{
+			// now try status: it should see the newer version in place but the older version spec'd/
+			PrintGatherer pg = new PrintGatherer();
+			MdmStatusCommand cmd = new MdmStatusCommand(project.getRepo(), pg.printer());
+			cmd.validate();
+			assertJoy(cmd.call());
+			assertEquals(pg.toString(), Strings.join(Arrays.asList(
+				"dependency:        	 version:",
+				"-----------        	 --------",
+				"  lib/alpha        	   v1",
+				"  lib/beta         	   v1.1",
+				"                   	     !! intended version is v1.0, run `mdm update` to get it",
+				"                   	     !! commit currently checked out does not match hash in parent project"
+				), "\n") + "\n");
+		}
+		wd.close();
+	}
 }
 
 
