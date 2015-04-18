@@ -50,7 +50,9 @@ public class MdmStatusCommand extends MdmCommand {
 	public MdmExitMessage call() throws IOException {
 		try {
 			assertInRepo();
-		} catch (MdmExitMessage e) { return e; }
+		} catch (MdmExitMessage e) {
+			return e;
+		}
 
 		MdmModuleSet moduleSet;
 		try {
@@ -92,7 +94,7 @@ public class MdmStatusCommand extends MdmCommand {
 			s.errors.add("Incomplete configuration: No committed gitlink in history matches this gitmodules entry.");	// we could let `mdm update` mention these as well and accept an argument to pull and commit the named versions.
 
 		if (module.getType() == MdmModuleType.DEPENDENCY) {
-			MdmModuleDependency dependency = (MdmModuleDependency)module;
+			MdmModuleDependency dependency = (MdmModuleDependency) module;
 			if (dependency.getVersionName() == null)
 				s.errors.add("Version name not specified in gitmodules file!");
 			if (dependency.getHeadId() == null) {
@@ -100,7 +102,7 @@ public class MdmStatusCommand extends MdmCommand {
 			} else {
 				s.version = (dependency.getVersionActual() == null) ? "__UNKNOWN_VERSION__" : dependency.getVersionActual();
 				if (dependency.getVersionName() != null && !dependency.getVersionName().equals(dependency.getVersionActual()))
-					s.warnings.add("intended version is "+dependency.getVersionName()+", run `mdm update` to get it");
+					s.warnings.add("intended version is " + dependency.getVersionName() + ", run `mdm update` to get it");
 				if (!dependency.getIndexId().equals(dependency.getHeadId()))
 					s.warnings.add("commit currently checked out does not match hash in parent project");
 				if (dependency.hasDirtyFiles())
@@ -110,11 +112,19 @@ public class MdmStatusCommand extends MdmCommand {
 		return s;
 	}
 
+
+
 	public class StatusTuple {
 		public String version;
-		/** Major notifications about the state of a module -- things that mean your build probably won't work. */
+		/**
+		 * Major notifications about the state of a module -- things that mean
+		 * your build probably won't work.
+		 */
 		public List<String> warnings = new ArrayList<String>();
-		/** Errors so bad that we can't even tell what's supposed to be going on with this module. */
+		/**
+		 * Errors so bad that we can't even tell what's supposed to be going on
+		 * with this module.
+		 */
 		public List<String> errors = new ArrayList<String>();
 	}
 }
