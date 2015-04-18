@@ -37,12 +37,6 @@ public class MdmStatusCommand extends MdmCommand {
 		super(repo);
 	}
 
-	private PrintStream os = System.out;
-
-	public void setPrintStream(PrintStream os) {
-		this.os = os;
-	}
-
 	public void parse(Namespace args) {}
 
 	public void validate() throws MdmExitMessage {}
