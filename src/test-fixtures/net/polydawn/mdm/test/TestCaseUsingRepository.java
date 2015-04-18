@@ -29,7 +29,7 @@ public class TestCaseUsingRepository {
 
 	public void assertJoy(MdmExitMessage result) {
 		if (result != null && result.code != 0) {
-			fail("command exited with '"+result.happy+"' -- \""+result.getMessage()+"\".");
+			fail("command exited with "+result.getClass().getSimpleName()+": '"+result.happy+"' -- \""+result.getMessage()+"\".");
 		}
 	}
 }
