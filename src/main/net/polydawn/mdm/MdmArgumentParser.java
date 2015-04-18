@@ -65,7 +65,10 @@ public class MdmArgumentParser {
 			.help("list dependencies managed by mdm, and their current status.");
 		parser_status
 			.addArgument("--name")
-			.help("get the status of a particular dependency by name");
+			.help("get the status of a particular dependency by name.  If specified, only that dependency will be included in the report.");
+		parser_status
+			.addArgument("--format")
+			.help("the format of report to print.  Some formats contain subsets of information, suitable for use in extracting values for other scripts.  Valid values include: default, versionCheckedOut, versionSpecified.");
 
 
 		Subparser parser_update = subparsers
