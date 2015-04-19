@@ -27,7 +27,7 @@ public class MdmStatusCommandTest extends TestCaseUsingRepository {
 			MdmStatusCommand cmd = new MdmStatusCommand(project.getRepo(), pg.printer());
 			cmd.validate();
 			assertJoy(cmd.call());
-			assertEquals(pg.toString(), " --- no managed dependencies --- \n");
+			assertEquals(" --- no managed dependencies --- \n", pg.toString());
 		}
 		wd.close();
 	}
@@ -42,12 +42,13 @@ public class MdmStatusCommandTest extends TestCaseUsingRepository {
 			MdmStatusCommand cmd = new MdmStatusCommand(project.getRepo(), pg.printer());
 			cmd.validate();
 			assertJoy(cmd.call());
-			assertEquals(pg.toString(), Strings.join(Arrays.asList(
+			assertEquals(Strings.join(Arrays.asList(
 				"dependency:        	 version:",
 				"-----------        	 --------",
 				"  lib/alpha        	   v1",
 				"  lib/beta         	   v1.0"
-				), "\n") + "\n");
+				), "\n") + "\n",
+				pg.toString());
 		}
 		wd.close();
 	}
@@ -68,12 +69,13 @@ public class MdmStatusCommandTest extends TestCaseUsingRepository {
 			MdmStatusCommand cmd = new MdmStatusCommand(clone, pg.printer());
 			cmd.validate();
 			assertJoy(cmd.call());
-			assertEquals(pg.toString(), Strings.join(Arrays.asList(
+			assertEquals(Strings.join(Arrays.asList(
 				"dependency:        	 version:",
 				"-----------        	 --------",
 				"  lib/alpha        	   -- uninitialized --",
 				"  lib/beta         	   -- uninitialized --"
-				), "\n") + "\n");
+				), "\n") + "\n",
+				pg.toString());
 		}
 		wd.close();
 	}
@@ -107,14 +109,15 @@ public class MdmStatusCommandTest extends TestCaseUsingRepository {
 			MdmStatusCommand cmd = new MdmStatusCommand(project.getRepo(), pg.printer());
 			cmd.validate();
 			assertJoy(cmd.call());
-			assertEquals(pg.toString(), Strings.join(Arrays.asList(
+			assertEquals(Strings.join(Arrays.asList(
 				"dependency:        	 version:",
 				"-----------        	 --------",
 				"  lib/alpha        	   v1",
 				"  lib/beta         	   v1.1",
 				"                   	     !! intended version is v1.0, run `mdm update` to get it",
 				"                   	     !! commit currently checked out does not match hash in parent project"
-				), "\n") + "\n");
+				), "\n") + "\n",
+				pg.toString());
 		}
 		wd.close();
 	}
