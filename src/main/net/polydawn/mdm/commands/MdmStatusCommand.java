@@ -39,8 +39,8 @@ public class MdmStatusCommand extends MdmCommand {
 		super(repo);
 	}
 
-	private String depName;
-	private String formatName;
+	String depName;
+	String formatName;
 
 	public void parse(Namespace args) {
 		this.depName = args.getString("name");
@@ -82,8 +82,12 @@ public class MdmStatusCommand extends MdmCommand {
 				throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
 			}
 
-			MdmModuleDependency module = MdmModuleDependency.load(repo, depName, gitmodulesCfg);
-			this.formatter.fprintf(os, Arrays.asList(module));
+			try {
+				MdmModuleDependency module = MdmModuleDependency.load(repo, depName, gitmodulesCfg);
+				this.formatter.fprintf(os, Arrays.asList(module));
+			} catch (MdmModuleTypeException e) {
+				this.formatter.fprintf(os, Collections.EMPTY_LIST);
+			}
 
 			return new MdmExitMessage(0);
 		} else {

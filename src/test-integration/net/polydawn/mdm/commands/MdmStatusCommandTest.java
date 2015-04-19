@@ -121,6 +121,61 @@ public class MdmStatusCommandTest extends TestCaseUsingRepository {
 		}
 		wd.close();
 	}
+
+	@Test
+	public void testDescribeNamedDep() throws Exception {
+		Fixture project = new ProjectDelta("projectRepo");
+
+		WithCwd wd = new WithCwd(project.getRepo().getWorkTree());
+		{
+			PrintGatherer pg = new PrintGatherer();
+			MdmStatusCommand cmd = new MdmStatusCommand(project.getRepo(), pg.printer());
+			cmd.depName = "lib/alpha";
+			cmd.validate();
+			assertJoy(cmd.call());
+			assertEquals(Strings.join(Arrays.asList(
+				"dependency:        	 version:",
+				"-----------        	 --------",
+				"  lib/alpha        	   v1"
+				// there's another here, but in this mode it goes unreported.
+				), "\n") + "\n",
+				pg.toString());
+		}
+		wd.close();
+	}
+
+	@Test
+	public void testDescribeNamedDepNotThere() throws Exception {
+		Fixture project = new ProjectAlpha("projectRepo");
+
+		WithCwd wd = new WithCwd(project.getRepo().getWorkTree());
+		{
+			PrintGatherer pg = new PrintGatherer();
+			MdmStatusCommand cmd = new MdmStatusCommand(project.getRepo(), pg.printer());
+			cmd.depName = "lib/alpha";
+			cmd.validate();
+			assertJoy(cmd.call()); // REVIEW: maybe this should actually be an error?
+			assertEquals(" --- no managed dependencies --- \n", pg.toString());
+		}
+		wd.close();
+	}
+
+	@Test
+	public void testDescribeNamedDepWithShortFormate() throws Exception {
+		Fixture project = new ProjectDelta("projectRepo");
+
+		WithCwd wd = new WithCwd(project.getRepo().getWorkTree());
+		{
+			PrintGatherer pg = new PrintGatherer();
+			MdmStatusCommand cmd = new MdmStatusCommand(project.getRepo(), pg.printer());
+			cmd.depName = "lib/alpha";
+			cmd.formatName = "versionCheckedOut";
+			cmd.validate();
+			assertJoy(cmd.call());
+			assertEquals("v1\n", pg.toString());
+		}
+		wd.close();
+	}
 }
 
 
