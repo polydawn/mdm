@@ -69,6 +69,7 @@ public class MdmArgumentParser {
 		parser_status
 			.addArgument("--format")
 			.help("the format of report to print.  Some formats contain subsets of information, suitable for use in extracting values for other scripts.  Valid values include: default, versionCheckedOut, versionSpecified.");
+			// more valid values may come in the future.  also arbitrary format strings could be introduced by following the example set by `git log --format`.
 
 
 		Subparser parser_update = subparsers
