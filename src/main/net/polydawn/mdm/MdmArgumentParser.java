@@ -63,6 +63,13 @@ public class MdmArgumentParser {
 		Subparser parser_status = subparsers
 			.addParser("status")
 			.help("list dependencies managed by mdm, and their current status.");
+		parser_status
+			.addArgument("--name")
+			.help("get the status of a particular dependency by name.  If specified, only that dependency will be included in the report.");
+		parser_status
+			.addArgument("--format")
+			.help("the format of report to print.  Some formats contain subsets of information, suitable for use in extracting values for other scripts.  Valid values include: default, versionCheckedOut, versionSpecified.");
+			// more valid values may come in the future.  also arbitrary format strings could be introduced by following the example set by `git log --format`.
 
 
 		Subparser parser_update = subparsers

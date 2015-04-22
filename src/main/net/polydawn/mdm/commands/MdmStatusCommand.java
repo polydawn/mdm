@@ -26,6 +26,8 @@ import net.polydawn.mdm.errors.*;
 import net.sourceforge.argparse4j.inf.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.storage.file.FileBasedConfig;
+
 import us.exultant.ahs.util.*;
 
 public class MdmStatusCommand extends MdmCommand {
@@ -37,9 +39,32 @@ public class MdmStatusCommand extends MdmCommand {
 		super(repo);
 	}
 
-	public void parse(Namespace args) {}
+	String depName;
+	String formatName;
 
-	public void validate() throws MdmExitMessage {}
+	public void parse(Namespace args) {
+		this.depName = args.getString("name");
+		this.formatName = args.getString("format");
+	}
+
+	private Formatter formatter;
+
+	private static Map<String,Formatter> formatters = new HashMap<String,Formatter>() {{
+		put("default", new FormatDefault());
+		put("versionCheckedOut", new FormatVersionCheckedOut());
+		put("versionSpecified", new FormatVersionSpecified());
+	}};
+
+	public void validate() throws MdmExitMessage {
+		if (this.formatName == null) {
+			this.formatter = new FormatDefault();
+		} else {
+			this.formatter = formatters.get(formatName);
+			if (this.formatter == null) {
+				throw new MdmExitMessage(":(", "invalid argument: no formatter of name \""+this.formatName+"\"");
+			}
+		}
+	}
 
 	public MdmExitMessage call() throws IOException {
 		try {
@@ -48,36 +73,40 @@ public class MdmStatusCommand extends MdmCommand {
 			return e;
 		}
 
-		MdmModuleSet moduleSet;
-		try {
-			moduleSet = new MdmModuleSet(repo);
-		} catch (ConfigInvalidException e) {
-			throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
-		}
-		Map<String,MdmModuleDependency> modules = moduleSet.getDependencyModules();
+		if (depName != null) {
+			// if a specific dep name was specified, just load that one individually
+			StoredConfig gitmodulesCfg = new FileBasedConfig(new File(repo.getWorkTree(), Constants.DOT_GIT_MODULES), repo.getFS());
+			try {
+				gitmodulesCfg.load();
+			} catch (ConfigInvalidException e) {
+				throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
+			}
 
-		if (modules.size() == 0) {
-			os.println(" --- no managed dependencies --- ");
+			try {
+				MdmModuleDependency module = MdmModuleDependency.load(repo, depName, gitmodulesCfg);
+				this.formatter.fprintf(os, Arrays.asList(module));
+			} catch (MdmModuleTypeException e) {
+				this.formatter.fprintf(os, Collections.EMPTY_LIST);
+			}
+
+			return new MdmExitMessage(0);
+		} else {
+			// scan all modules and do a report on all of them
+			MdmModuleSet moduleSet;
+			try {
+				moduleSet = new MdmModuleSet(repo);
+			} catch (ConfigInvalidException e) {
+				throw new MdmExitInvalidConfig(Constants.DOT_GIT_MODULES);
+			}
+			Map<String,MdmModuleDependency> modules = moduleSet.getDependencyModules();
+
+			this.formatter.fprintf(os, modules.values());
+
 			return new MdmExitMessage(0);
 		}
-
-		Collection<String> row1 = new ArrayList<String>(modules.keySet());
-		row1.add("dependency:");
-		int width1 = Strings.chooseFieldWidth(row1);
-
-		os.printf("%-"+width1+"s   \t %s\n", "dependency:", "version:");
-		os.printf("%-"+width1+"s   \t %s\n", "-----------", "--------");
-
-		for (MdmModuleDependency mod : modules.values()) {
-			StatusTuple status = status(mod);
-			os.printf("  %-"+width1+"s \t   %s\n", mod.getHandle(), status.version);
-			for (String warning : status.warnings)
-				os.printf("  %-"+width1+"s \t   %s\n", "", "  !! "+warning);
-		}
-		return new MdmExitMessage(0);
 	}
 
-	public StatusTuple status(MdmModule module) {
+	private static StatusTuple status(MdmModule module) {
 		StatusTuple s = new StatusTuple();
 
 		if (!module.getHandle().equals(module.getPath()))
@@ -108,7 +137,7 @@ public class MdmStatusCommand extends MdmCommand {
 
 
 
-	public class StatusTuple {
+	public static class StatusTuple {
 		public String version;
 		/**
 		 * Major notifications about the state of a module -- things that mean
@@ -120,5 +149,59 @@ public class MdmStatusCommand extends MdmCommand {
 		 * with this module.
 		 */
 		public List<String> errors = new ArrayList<String>();
+	}
+
+
+
+	interface Formatter {
+		public void fprintf(PrintStream f, Collection<MdmModuleDependency> modules);
+	}
+
+
+
+	private static class FormatDefault implements Formatter {
+		public void fprintf(PrintStream f, Collection<MdmModuleDependency> modules) {
+			if (modules.size() == 0) {
+				f.println(" --- no managed dependencies --- ");
+				return;
+			}
+
+			Collection<String> row1 = new ArrayList<String>(modules.size()+1);
+			row1.add("dependency:");
+			for (MdmModuleDependency mod : modules) {
+				row1.add(mod.getHandle());
+			}
+			int width1 = Strings.chooseFieldWidth(row1);
+
+			f.printf("%-" + width1 + "s   \t %s\n", "dependency:", "version:");
+			f.printf("%-" + width1 + "s   \t %s\n", "-----------", "--------");
+
+			for (MdmModuleDependency mod : modules) {
+				StatusTuple status = status(mod);
+				f.printf("  %-" + width1 + "s \t   %s\n", mod.getHandle(), status.version);
+				for (String warning : status.warnings)
+					f.printf("  %-" + width1 + "s \t   %s\n", "", "  !! " + warning);
+			}
+		}
+	}
+
+
+
+	private static class FormatVersionCheckedOut implements Formatter {
+		public void fprintf(PrintStream f, Collection<MdmModuleDependency> modules) {
+			for (MdmModuleDependency mod : modules) {
+				f.println(mod.getVersionActual());
+			}
+		}
+	}
+
+
+
+	private static class FormatVersionSpecified implements Formatter {
+		public void fprintf(PrintStream f, Collection<MdmModuleDependency> modules) {
+			for (MdmModuleDependency mod : modules) {
+				f.println(mod.getVersionName());
+			}
+		}
 	}
 }

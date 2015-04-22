@@ -85,7 +85,7 @@ public abstract class MdmModule {
 			// sanity check the expected module type if we're a submodule (if we're not a submodule, we can't make any such check since there's no gitmodules file to refer to).
 			MdmModuleType type = getType();
 			MdmModuleType type_configured = MdmModuleType.fromString(gitmodulesCfg.getString(ConfigConstants.CONFIG_SUBMODULE_SECTION, handle, MdmConfigConstants.Module.MODULE_TYPE.toString()));
-			if (type == null)
+			if (type_configured == null)
 				throw new MdmModuleTypeException("expected module of type " + type + " for repository " + handle + ", but gitmodules file has no known type for this module.");
 			if (type != type_configured)
 				throw new MdmModuleTypeException("expected module of type " + type + " for repository " + handle + ", but gitmodules file states this is a " + type_configured + " module.");
