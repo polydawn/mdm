@@ -219,13 +219,13 @@ Getting MDM
 Downloading a release
 ---------------------
 
-The latest version is v2.19.0, available here:
+The latest version is v2.19.1, available here:
 
-http://mdm-releases.net/net.polydawn/mdm-releases/v2.19.0/mdm
+http://mdm-releases.net/net.polydawn/mdm-releases/v2.19.1/mdm
 
 Or, alternatively, mirrored here:
 
-https://raw.githubusercontent.com/mdm-releases/mdm-releases/master/v2.19.0/mdm
+https://raw.githubusercontent.com/mdm-releases/mdm-releases/master/v2.19.1/mdm
 
 You can browse the whole releases repo on github!
 
