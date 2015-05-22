@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+v2.xx.x (unreleased)
+--------------------
+
+- Feature: `mdm status` learned a `--name` option, which allows checking status of just one specific dependency.
+- Feature: `mdm status` learned a `--format` option, which may be used to generate more machine-readable output.
+  - Current values include 'default' (the existing verbose form), 'versionCheckedOut', and 'versionSpecified'.
+- Internal: new test coverage for all parts of the `mdm status` command.
+
+
+
 v2.19.0
 -------
 
