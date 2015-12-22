@@ -1,6 +1,6 @@
 build/
 dist/
-demo/
+mdm-demo/
 target/
 build.properties
 *krap*
