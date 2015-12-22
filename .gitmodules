@@ -28,7 +28,7 @@
 	path = lib/jgit
 	url = http://mdm-releases.com/org.eclipse.jgit/org.eclipse.jgit-releases.git
 	mdm = dependency
-	mdm-version = 3.3.2.201404171909-r.mvn
+	mdm-version = 4.0.0.201505050340-m2.mvn
 	update = none
 [submodule "lib/jsch"]
 	path = lib/jsch
